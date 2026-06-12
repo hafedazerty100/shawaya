@@ -1,0 +1,11 @@
+{% for code, icon, title, msg in [
+  (400, 'bi-exclamation-triangle', 'Bad Request', 'The request could not be understood.'),
+  (401, 'bi-lock', 'Unauthorized', 'Please log in to access this page.'),
+  (403, 'bi-shield-x', 'Forbidden', 'You do not have permission to view this page.'),
+  (404, 'bi-search', 'Not Found', 'The page you are looking for does not exist.'),
+  (500, 'bi-bug', 'Server Error', 'Something went wrong on our end. Please try again.')
+] %}
+{% if loop.first or True %}
+<!-- This template is overwritten per-error; see below -->
+{% endif %}
+{% endfor %}

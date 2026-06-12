@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Coffee Shop — Order{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/desktop.css') }}" />
+{% endblock %}
+
+{% block body %}
+<div class="kiosk-root" id="kiosk-root">
+
+  <!-- ── Category Sidebar ──────────────────────────────────────── -->
+  <aside class="category-sidebar" id="category-sidebar">
+    <div class="sidebar-brand">
+      <i class="bi bi-cup-hot-fill"></i>
+      <span>Menu</span>
+    </div>
+    <nav class="category-nav" id="category-nav">
+      <button class="cat-btn active" data-cat="all" id="cat-btn-all">
+        <i class="bi bi-grid-3x3-gap-fill"></i> All
+      </button>
+      {% for cat in categories %}
+      <button class="cat-btn" data-cat="{{ cat.id }}" id="cat-btn-{{ cat.id }}">
+        {{ cat.name }}
+      </button>
+      {% endfor %}
+    </nav>
+  </aside>
+
+  <!-- ── Product Grid ──────────────────────────────────────────── -->
+  <main class="product-area" id="product-area">
+    <header class="product-header">
+      <h1 class="product-heading">Our Menu</h1>
+      <div class="status-badge" id="sync-status">
+        <i class="bi bi-arrow-repeat"></i> <span id="sync-label">Ready</span>
+      </div>
+    </header>
+    <div class="product-grid" id="product-grid">
+      <div class="loading-spinner">
+        <div class="spinner-border text-warning" role="status">
+          <span class="visually-hidden">Loading…</span>
+        </div>
+        <p>Loading menu…</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- ── Cart Panel ────────────────────────────────────────────── -->
+  <aside class="cart-panel" id="cart-panel">
+    <div class="cart-header">
+      <i class="bi bi-cart3"></i>
+      <span>Your Order</span>
+      <button class="btn-clear" id="btn-clear-cart" title="Clear cart">
+        <i class="bi bi-trash3"></i>
+      </button>
+    </div>
+
+    <div class="cart-items" id="cart-items">
+      <div class="cart-empty" id="cart-empty">
+        <i class="bi bi-basket"></i>
+        <p>Add items to start your order</p>
+      </div>
+    </div>
+
+    <div class="cart-footer">
+      <div class="cart-total">
+        <span>Total</span>
+        <span id="cart-total">$0.00</span>
+      </div>
+      <button class="btn-place-order" id="btn-place-order" disabled>
+        <i class="bi bi-check2-circle"></i> Place Order
+      </button>
+    </div>
+  </aside>
+
+</div>
+
+<!-- ── Order Success Modal ─────────────────────────────────────── -->
+<div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content order-modal-content">
+      <div class="modal-body text-center py-5">
+        <div class="order-success-icon mb-3">
+          <i class="bi bi-check-circle-fill text-success" style="font-size:4rem;"></i>
+        </div>
+        <h2 class="fw-bold mb-2">Order Placed!</h2>
+        <p class="text-muted mb-4">Your order has been received and is being prepared.</p>
+        <p class="text-muted mb-4">Order #<strong id="modal-order-id"></strong></p>
+        <div class="d-flex gap-3 justify-content-center">
+          <button class="btn btn-outline-secondary btn-lg" id="btn-new-order">New Order</button>
+          <a class="btn btn-warning btn-lg" id="btn-print-receipt" href="#" target="_blank">
+            <i class="bi bi-printer"></i> Print Receipt
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/desktop.js') }}"></script>
+{% endblock %}

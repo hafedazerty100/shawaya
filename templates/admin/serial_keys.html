@@ -1,0 +1,123 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Serial Keys — Admin{% endblock %}
+{% block page_title %}Serial Keys{% endblock %}
+
+{% block content %}
+<!-- Generated keys alert -->
+{% if generated_serials %}
+<div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+  <h5><i class="bi bi-key-fill me-2"></i>New Serial Keys Generated</h5>
+  <p class="mb-2 fw-semibold text-danger">
+    ⚠️ Copy these keys now — they cannot be retrieved again!
+  </p>
+  <ul class="list-unstyled font-monospace mb-0">
+    {% for s in generated_serials %}
+    <li class="mb-1">
+      <code class="bg-light px-2 py-1 rounded">{{ s }}</code>
+    </li>
+    {% endfor %}
+  </ul>
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
+<div class="row g-4">
+  <!-- Generate form -->
+  <div class="col-lg-4">
+    <div class="card admin-card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Generate Keys</h5>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('admin.serial_keys') }}" novalidate>
+          {{ form.hidden_tag() }}
+          <div class="mb-3">
+            {{ form.label.label(class="form-label fw-semibold") }}
+            {{ form.label(class="form-control", placeholder="e.g. Kiosk-Counter-1") }}
+            {% for err in form.label.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ form.quantity.label(class="form-label fw-semibold") }}
+            {{ form.quantity(class="form-control", type="number", min="1", max="50") }}
+            {% for err in form.quantity.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
+          </div>
+          <div class="mb-4">
+            {{ form.expires_at.label(class="form-label fw-semibold") }}
+            {{ form.expires_at(class="form-control") }}
+            <div class="form-text">Leave blank for no expiry.</div>
+            {% for err in form.expires_at.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
+          </div>
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-key me-1"></i>Generate
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Keys table -->
+  <div class="col-lg-8">
+    <div class="card admin-card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>All Serial Keys</h5>
+      </div>
+      <div class="card-body p-0">
+        {% if serial_keys %}
+        <div class="table-responsive">
+          <table class="table table-hover admin-table mb-0">
+            <thead>
+              <tr>
+                <th>Label</th>
+                <th>Device</th>
+                <th>Status</th>
+                <th>Activated</th>
+                <th>Expires</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for key in serial_keys %}
+              <tr>
+                <td>{{ key.label or '—' }}</td>
+                <td class="small text-muted">{{ key.device_id or '—' }}</td>
+                <td>
+                  {% if key.is_active %}
+                  <span class="badge bg-success">Active</span>
+                  {% else %}
+                  <span class="badge bg-secondary">Inactive</span>
+                  {% endif %}
+                </td>
+                <td class="small text-muted">
+                  {{ key.activated_at.strftime('%d %b %Y') if key.activated_at else '—' }}
+                </td>
+                <td class="small text-muted">
+                  {{ key.expires_at.strftime('%d %b %Y') if key.expires_at else '∞' }}
+                </td>
+                <td>
+                  {% if key.is_active %}
+                  <form method="POST"
+                        action="{{ url_for('admin.revoke_serial_key', key_id=key.id) }}"
+                        class="d-inline"
+                        onsubmit="return confirm('Revoke this serial key? The device will lose access.')">
+                    {{ form.hidden_tag() }}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                      <i class="bi bi-x-circle"></i> Revoke
+                    </button>
+                  </form>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="p-5 text-center text-muted">
+          <i class="bi bi-key fs-1 d-block mb-3"></i>No serial keys yet. Generate some!
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

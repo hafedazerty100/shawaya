@@ -1,0 +1,105 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}{{ title }} — Admin{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card admin-card">
+      <div class="card-body p-4">
+        <form method="POST"
+              action="{% if product %}{{ url_for('admin.edit_product', product_id=product.id) }}{% else %}{{ url_for('admin.new_product') }}{% endif %}"
+              enctype="multipart/form-data" novalidate id="product-form">
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            {{ form.name.label(class="form-label fw-semibold") }}
+            {{ form.name(class="form-control", placeholder="e.g. Flat White") }}
+            {% for err in form.name.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="mb-3">
+            {{ form.description.label(class="form-label fw-semibold") }}
+            {{ form.description(class="form-control", rows=3, placeholder="Short description (optional)") }}
+            {% for err in form.description.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-sm-6">
+              {{ form.category_id.label(class="form-label fw-semibold") }}
+              {{ form.category_id(class="form-select") }}
+              {% for err in form.category_id.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
+            </div>
+            <div class="col-sm-6">
+              {{ form.price.label(class="form-label fw-semibold") }}
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                {{ form.price(class="form-control", placeholder="0.00") }}
+              </div>
+              {% for err in form.price.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
+            </div>
+          </div>
+
+          <!-- Image upload with live preview -->
+          <div class="mb-3">
+            {{ form.image.label(class="form-label fw-semibold") }}
+            {{ form.image(class="form-control", accept=".png,.jpg,.jpeg,.webp", id="image-input") }}
+            <div class="form-text">Max 5 MB · PNG, JPG, JPEG, WebP</div>
+            {% for err in form.image.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
+
+            <!-- Live preview -->
+            <div id="image-preview-wrap" class="mt-2" style="display:none;">
+              <img id="image-preview" src="" alt="Preview" class="product-image-preview" />
+              <p class="form-text mt-1" id="image-preview-name"></p>
+            </div>
+            {% if product and product.image %}
+            <div class="mt-2" id="current-image-wrap">
+              <p class="form-text mb-1">Current image:</p>
+              <img src="{{ url_for('static', filename='uploads/products/' ~ product.image) }}"
+                   alt="{{ product.name }}" class="product-image-preview" id="current-image" />
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="mb-4">
+            <div class="form-check form-switch">
+              {{ form.is_active(class="form-check-input", role="switch", id="is_active") }}
+              {{ form.is_active.label(class="form-check-label fw-semibold") }}
+            </div>
+          </div>
+
+          <div class="d-flex gap-3">
+            <button type="submit" class="btn btn-primary flex-grow-1" id="save-product-btn">
+              <i class="bi bi-save me-1"></i>
+              {% if product %}Save Changes{% else %}Create Product{% endif %}
+            </button>
+            <a href="{{ url_for('admin.products') }}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Live image preview
+  document.getElementById('image-input').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const preview = document.getElementById('image-preview');
+      const wrap = document.getElementById('image-preview-wrap');
+      const name = document.getElementById('image-preview-name');
+      const currentWrap = document.getElementById('current-image-wrap');
+      preview.src = ev.target.result;
+      name.textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+      wrap.style.display = 'block';
+      if (currentWrap) currentWrap.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  });
+</script>
+{% endblock %}

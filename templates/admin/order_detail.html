@@ -1,0 +1,75 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Order #{{ order.id }} — Admin{% endblock %}
+{% block page_title %}Order #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{{ url_for('admin.orders') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Back to Orders
+  </a>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card admin-card">
+      <div class="card-header"><h5 class="mb-0">Order Info</h5></div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-5 text-muted">Order ID</dt>
+          <dd class="col-7 font-monospace">#{{ order.id }}</dd>
+          <dt class="col-5 text-muted">Local ID</dt>
+          <dd class="col-7 font-monospace small text-truncate" title="{{ order.local_id }}">{{ order.local_id }}</dd>
+          <dt class="col-5 text-muted">Device</dt>
+          <dd class="col-7">{{ order.device_id or '—' }}</dd>
+          <dt class="col-5 text-muted">Status</dt>
+          <dd class="col-7">
+            {% if order.status == 'synced' %}<span class="badge bg-success">Synced</span>
+            {% elif order.status == 'pending' %}<span class="badge bg-warning text-dark">Pending</span>
+            {% else %}<span class="badge bg-danger">Failed</span>{% endif %}
+          </dd>
+          <dt class="col-5 text-muted">Created</dt>
+          <dd class="col-7 small">{{ order.created_at.strftime('%d %b %Y %H:%M:%S') }}</dd>
+          <dt class="col-5 text-muted">Synced At</dt>
+          <dd class="col-7 small">{{ order.synced_at.strftime('%H:%M:%S') if order.synced_at else '—' }}</dd>
+          <dt class="col-5 text-muted fw-bold">Total</dt>
+          <dd class="col-7 fw-bold fs-5">{{ format_price(order.total_cents) }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card admin-card">
+      <div class="card-header"><h5 class="mb-0">Items</h5></div>
+      <div class="card-body p-0">
+        <table class="table admin-table mb-0">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th class="text-center">Qty</th>
+              <th class="text-end">Unit Price</th>
+              <th class="text-end">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in order.items %}
+            <tr>
+              <td>{{ item.product_name_snapshot }}</td>
+              <td class="text-center">{{ item.quantity }}</td>
+              <td class="text-end">{{ format_price(item.unit_price_cents_snapshot) }}</td>
+              <td class="text-end fw-semibold">{{ format_price(item.subtotal_cents) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr class="table-light">
+              <td colspan="3" class="text-end fw-bold">Total</td>
+              <td class="text-end fw-bold fs-5">{{ format_price(order.total_cents) }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

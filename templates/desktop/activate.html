@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Activate Kiosk{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/desktop.css') }}" />
+{% endblock %}
+
+{% block body %}
+<div class="activate-root">
+  <div class="activate-card">
+    <div class="activate-icon">
+      <i class="bi bi-cup-hot-fill"></i>
+    </div>
+    <h1 class="activate-title">Kiosk Activation</h1>
+    <p class="activate-subtitle">Enter your serial key to activate this device.</p>
+
+    <!-- Online/offline indicator -->
+    <div class="online-badge {% if online %}online{% else %}offline{% endif %} mb-4">
+      <i class="bi {% if online %}bi-wifi{% else %}bi-wifi-off{% endif %}"></i>
+      {% if online %}Connected to server{% else %}Server unreachable — activation requires internet{% endif %}
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <span>{{ error }}</span>
+    </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('desktop.activate') }}" autocomplete="off">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <div class="mb-3">
+        <label for="serial" class="form-label fw-semibold">Serial Key</label>
+        <input
+          type="text"
+          class="form-control form-control-lg activate-input"
+          id="serial"
+          name="serial"
+          placeholder="XXXX-XXXX-XXXX-XXXX"
+          required
+          autofocus
+          spellcheck="false"
+        />
+      </div>
+      <div class="mb-4">
+        <label for="device_id" class="form-label fw-semibold">Device Name <span class="text-muted fw-normal">(optional)</span></label>
+        <input
+          type="text"
+          class="form-control activate-input"
+          id="device_id"
+          name="device_id"
+          placeholder="e.g. Kiosk-Counter-1"
+          maxlength="100"
+        />
+      </div>
+      <button type="submit" class="btn-activate w-100" {% if not online %}disabled{% endif %}>
+        <i class="bi bi-shield-lock-fill me-2"></i>Activate Device
+      </button>
+    </form>
+
+    {% if not online %}
+    <p class="text-muted text-center mt-3 small">
+      <i class="bi bi-info-circle"></i>
+      Cannot activate while offline. Please connect to the server network.
+    </p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
