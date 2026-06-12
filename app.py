@@ -61,7 +61,8 @@ def _seed_admin(app: Flask) -> None:
                 admin = AdminUser(
                     username=username,
                     password_hash=generate_password_hash(password),
-                    must_change_password=True,
+                    # If they explicitly set a custom password in Env Vars, don't force them to change it
+                    must_change_password=(password == "changeme123"),
                 )
                 db.session.add(admin)
                 db.session.commit()
