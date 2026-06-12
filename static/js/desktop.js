@@ -156,30 +156,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ── Silent direct-to-printer (no browser dialog) ──────────────────────────
-  async function printTicket(orderId, product) {
-    try {
-      const resp = await fetch(`/api/print-direct/${orderId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({})
-      });
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        const msg = err.error || "Printer error";
-        // If printer not connected, fall back to browser print
-        if (resp.status === 503) {
-          console.warn("Printer offline — falling back to browser print.");
-          browserFallbackPrint(orderId);
-        } else {
-          showToast("خطأ في الطابعة: " + msg, "error");
-        }
-      }
-      // Success is silent — no popup, no dialog
-    } catch (e) {
-      console.warn("Print network error — falling back to browser print.", e);
-      browserFallbackPrint(orderId);
-    }
+  // ── Silent browser print (perfectly compatible with all printers) ─────────
+  function printTicket(orderId, product) {
+    browserFallbackPrint(orderId);
   }
 
   // ── Browser fallback (only if printer is disconnected) ────────────────────

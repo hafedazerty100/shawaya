@@ -130,7 +130,6 @@ if tunnel:
     print()
 print(f"  [PC]   LOCAL ADMIN (this machine):")
 print(f"         http://localhost:{SERVER_PORT}/admin/login")
-print()
 print(f"  [SHOP] KIOSK (this machine):")
 print(f"         http://localhost:{KIOSK_PORT}")
 print()
@@ -141,7 +140,14 @@ print(f"  [STOP] Press Ctrl+C to stop everything")
 print("=" * 62)
 print()
 
-# ── 6. Watch child processes and block until Ctrl+C ───────────────────────────
+# Launch Edge with kiosk printing enabled
+try:
+    print("[4/4] Launching Microsoft Edge in kiosk printing mode...")
+    subprocess.Popen("start msedge --kiosk-printing http://localhost:5001", shell=True)
+except Exception as e:
+    print(f"[WARN] Failed to launch Edge: {e}")
+
+
 
 def _monitor(proc, name):
     """Restart a process if it crashes."""
