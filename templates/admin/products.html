@@ -37,8 +37,8 @@
           <tr>
             <td>
               {% if product.image %}
-              <img src="{{ url_for('static', filename='uploads/products/' ~ product.image) }}"
-                   alt="{{ product.name }}" class="product-thumb" />
+                {% set img_url = product.image if product.image and product.image.startswith('http') else url_for('static', filename='uploads/products/' ~ product.image) %}
+                <img src="{{ img_url }}" alt="{{ product.name }}" class="product-thumb" />
               {% else %}
               <div class="product-thumb-placeholder"><i class="bi bi-image"></i></div>
               {% endif %}
