@@ -156,19 +156,56 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ── Silent print via hidden iframe ────────────────────────────────────────
-  function printTicket(orderId, product) {
-    const url = `/api/print-receipt/${orderId}`;
-    printIframe.onload = () => {
-      try {
-        printIframe.contentWindow.focus();
-        printIframe.contentWindow.print();
-      } catch (e) {
-        // Fallback: open in new window
-        window.open(url, "_blank");
+  // ── Silent direct-to-printer (no browser dialog) ──────────────────────────
+  async function printTicket(orderId, product) {
+    try {
+      const resp = await fetch(`/api/print-direct/${orderId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({})
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        const msg = err.error || "Printer error";
+        // If printer not connected, fall back to browser print
+        if (resp.status === 503) {
+          console.warn("Printer offline — falling back to browser print.");
+          browserFallbackPrint(orderId);
+        } else {
+          showToast("خطأ في الطابعة: " + msg, "error");
+        }
+      }
+      // Success is silent — no popup, no dialog
+    } catch (e) {
+      console.warn("Print network error — falling back to browser print.", e);
+      browserFallbackPrint(orderId);
+    }
+  }
+
+  // ── Browser fallback (only if printer is disconnected) ────────────────────
+  function browserFallbackPrint(orderId) {
+    const iframe = document.getElementById("print-iframe");
+    iframe.onload = () => {
+      try { iframe.contentWindow.print(); } catch (e) {
+        window.open(`/api/print-receipt/${orderId}`, "_blank");
       }
     };
-    printIframe.src = url;
+    iframe.src = `/api/print-receipt/${orderId}`;
+  }
+
+  // ── Toast notification ────────────────────────────────────────────────────
+  function showToast(msg, type = "info") {
+    const toast = document.createElement("div");
+    toast.style.cssText = `
+      position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+      background:${type === "error" ? "#ef4444" : "#22c55e"};
+      color:#fff; padding:12px 24px; border-radius:999px;
+      font-weight:700; font-size:.95rem; z-index:9999;
+      animation: fadeOut 3s ease forwards;
+    `;
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
   }
 
   // ── Live ticket feed ──────────────────────────────────────────────────────

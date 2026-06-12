@@ -2,14 +2,15 @@
 routes/desktop.py — Desktop kiosk Blueprint.
 
 Routes:
-  GET  /                         — Ordering page (checks activation)
-  GET  /activate                 — Serial entry form
-  POST /activate                 — Submit serial for activation
-  GET  /api/products             — Local product list (JSON)
-  POST /api/orders               — Create a new order (JSON)
-  GET  /api/print-receipt/<id>   — Printable receipt HTML
-  POST /api/sync                 — Manually trigger sync cycle
-  POST /api/pull-products        — Manually trigger product pull
+  GET  /                           — Ordering page (checks activation)
+  GET  /activate                   — Serial entry form
+  POST /activate                   — Submit serial for activation
+  GET  /api/products               — Local product list (JSON)
+  POST /api/orders                 — Create a new order (JSON)
+  POST /api/print-direct/<id>      — Silent direct-to-printer (no browser dialog)
+  GET  /api/print-receipt/<id>     — Printable receipt HTML (fallback)
+  POST /api/sync                   — Manually trigger sync cycle
+  POST /api/pull-products          — Manually trigger product pull
 """
 
 import logging
@@ -302,9 +303,51 @@ def api_create_order():
         return jsonify({"error": "Failed to save order. Please try again."}), 500
 
 
+@desktop_bp.route("/api/print-direct/<int:order_id>", methods=["POST"])
+def api_print_direct(order_id: int):
+    """
+    Silently print a ticket for every item in the order directly
+    to the system printer — no browser dialog, no new tab.
+
+    For each item line, we print one ticket per unit quantity.
+    e.g. 3x Coffee → 3 separate tickets.
+    """
+    from print_service import build_ticket, print_ticket
+    from utils import format_price
+
+    order = db.session.get(Order, order_id)
+    if not order:
+        return jsonify({"error": "Order not found."}), 404
+
+    printer_name = request.json.get("printer") if request.is_json else None
+    tickets_sent = 0
+    failures = 0
+
+    for item in order.items:
+        ticket_data = build_ticket(
+            product_name=item.product_name_snapshot,
+            order_id=order.id,
+            price=format_price(item.unit_price_cents_snapshot),
+        )
+        # Print one ticket per unit (e.g. qty=3 → 3 tickets)
+        for _ in range(item.quantity):
+            ok = print_ticket(ticket_data, printer_name=printer_name)
+            if ok:
+                tickets_sent += 1
+            else:
+                failures += 1
+
+    if failures and not tickets_sent:
+        return jsonify({"error": "Printer not reachable. Check USB connection."}), 503
+
+    logger.info("Printed %d ticket(s) for order #%d (%d failures).",
+                tickets_sent, order_id, failures)
+    return jsonify({"printed": tickets_sent, "failures": failures}), 200
+
+
 @desktop_bp.route("/api/print-receipt/<int:order_id>")
 def print_receipt(order_id: int):
-    """Return a printable HTML receipt for a given order."""
+    """Fallback: return a printable HTML receipt for a given order."""
     order = Order.query.get_or_404(order_id)
     return render_template("desktop/receipt.html", order=order)
 
