@@ -164,11 +164,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // ── Browser fallback (only if printer is disconnected) ────────────────────
   function browserFallbackPrint(orderId) {
     const iframe = document.getElementById("print-iframe");
-    iframe.onload = () => {
-      try { iframe.contentWindow.print(); } catch (e) {
-        window.open(`/api/print-receipt/${orderId}`, "_blank");
-      }
-    };
     iframe.src = `/api/print-receipt/${orderId}`;
   }
 

@@ -140,10 +140,10 @@ print(f"  [STOP] Press Ctrl+C to stop everything")
 print("=" * 62)
 print()
 
-# Launch Edge with kiosk printing enabled
+# Launch Edge with kiosk printing enabled in an isolated profile
 try:
     print("[4/4] Launching Microsoft Edge in kiosk printing mode...")
-    subprocess.Popen("start msedge --kiosk-printing http://localhost:5001", shell=True)
+    subprocess.Popen('start msedge --kiosk-printing --user-data-dir="%TEMP%\\kiosk-edge-profile" http://localhost:5001', shell=True)
 except Exception as e:
     print(f"[WARN] Failed to launch Edge: {e}")
 
