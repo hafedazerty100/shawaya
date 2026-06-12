@@ -172,6 +172,12 @@ def create_app(mode: str | None = None) -> Flask:
         app.register_blueprint(api_bp)
         # Exempt the sync API blueprint from CSRF (API-key authenticated, not browser)
         csrf.exempt(api_bp)
+        
+        # Redirect the main URL (/) to the Admin Login so it doesn't show a 404
+        from flask import redirect, url_for
+        @app.route("/")
+        def index():
+            return redirect(url_for("admin.login"))
 
     # ── Register error handlers ───────────────────────────────────────────────
     _register_error_handlers(app)
