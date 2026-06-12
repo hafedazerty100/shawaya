@@ -1,6 +1,8 @@
 /* ═══════════════════════════════════════════════════════════════════
-   admin.css — Dark-mode responsive Admin Dashboard styles
+   admin.css — لوحة الإدارة — كافيه 24 (RTL - عربي)
    ═══════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap');
 
 :root {
   --brand:        #f59e0b;
@@ -19,11 +21,13 @@
 
 /* Base styles */
 body.admin-body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Tajawal', sans-serif;
   background-color: var(--bg-dark);
   color: var(--text-primary);
   min-height: 100vh;
   margin: 0;
+  direction: rtl;
+  text-align: right;
 }
 
 /* Admin layout structure */

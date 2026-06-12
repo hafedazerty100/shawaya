@@ -1,16 +1,16 @@
 {% extends "admin/base_admin.html" %}
-{% block title %}Categories — Admin{% endblock %}
-{% block page_title %}Categories{% endblock %}
+{% block title %}الأصناف — كافيه 24{% endblock %}
+{% block page_title %}الأصناف{% endblock %}
 
 {% block content %}
 <div class="row g-4">
-  <!-- Form panel -->
+  <!-- لوحة الإضافة/التعديل -->
   <div class="col-lg-4">
     <div class="card admin-card">
       <div class="card-header">
         <h5 class="mb-0">
-          {% if edit_cat %}<i class="bi bi-pencil me-2"></i>Edit Category
-          {% else %}<i class="bi bi-plus-circle me-2"></i>New Category{% endif %}
+          {% if edit_cat %}<i class="bi bi-pencil me-2"></i>تعديل الصنف
+          {% else %}<i class="bi bi-plus-circle me-2"></i>صنف جديد{% endif %}
         </h5>
       </div>
       <div class="card-body">
@@ -19,21 +19,21 @@
               novalidate>
           {{ form.hidden_tag() }}
           <div class="mb-3">
-            {{ form.name.label(class="form-label fw-semibold") }}
-            {{ form.name(class="form-control", placeholder="e.g. Espresso") }}
+            <label class="form-label fw-semibold">اسم الصنف</label>
+            {{ form.name(class="form-control", placeholder="مثال: قهوة ساخنة") }}
             {% for err in form.name.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
           </div>
           <div class="mb-4">
-            {{ form.display_order.label(class="form-label fw-semibold") }}
+            <label class="form-label fw-semibold">ترتيب العرض</label>
             {{ form.display_order(class="form-control", type="number", min="0") }}
             {% for err in form.display_order.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
           </div>
           <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary flex-grow-1">
-              {% if edit_cat %}Update{% else %}Create{% endif %}
+              {% if edit_cat %}تحديث{% else %}إنشاء{% endif %}
             </button>
             {% if edit_cat %}
-            <a href="{{ url_for('admin.categories') }}" class="btn btn-outline-secondary">Cancel</a>
+            <a href="{{ url_for('admin.categories') }}" class="btn btn-outline-secondary">إلغاء</a>
             {% endif %}
           </div>
         </form>
@@ -41,11 +41,11 @@
     </div>
   </div>
 
-  <!-- Categories table -->
+  <!-- جدول الأصناف -->
   <div class="col-lg-8">
     <div class="card admin-card">
       <div class="card-header">
-        <h5 class="mb-0"><i class="bi bi-tags-fill me-2"></i>All Categories</h5>
+        <h5 class="mb-0"><i class="bi bi-tags-fill me-2"></i>جميع الأصناف</h5>
       </div>
       <div class="card-body p-0">
         {% if categories %}
@@ -53,10 +53,10 @@
           <table class="table table-hover admin-table mb-0">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Order</th>
-                <th>Products</th>
-                <th class="text-end">Actions</th>
+                <th>الاسم</th>
+                <th>الترتيب</th>
+                <th>المنتجات</th>
+                <th class="text-start">إجراءات</th>
               </tr>
             </thead>
             <tbody>
@@ -65,13 +65,13 @@
                 <td class="fw-semibold">{{ cat.name }}</td>
                 <td>{{ cat.display_order }}</td>
                 <td>{{ cat.products | length }}</td>
-                <td class="text-end">
+                <td class="text-start">
                   <a href="{{ url_for('admin.edit_category', cat_id=cat.id) }}"
                      class="btn btn-sm btn-outline-primary me-1">
                     <i class="bi bi-pencil"></i>
                   </a>
                   <form method="POST" action="{{ url_for('admin.delete_category', cat_id=cat.id) }}"
-                        class="d-inline" onsubmit="return confirm('Delete category \'{{ cat.name }}\'?')">
+                        class="d-inline" onsubmit="return confirm('حذف الصنف \'{{ cat.name }}\'؟')">
                     {{ form.hidden_tag() }}
                     <button type="submit" class="btn btn-sm btn-outline-danger">
                       <i class="bi bi-trash3"></i>
@@ -85,7 +85,7 @@
         </div>
         {% else %}
         <div class="p-4 text-center text-muted">
-          <i class="bi bi-tags fs-2 d-block mb-2"></i>No categories yet. Create one!
+          <i class="bi bi-tags fs-2 d-block mb-2"></i>لا توجد أصناف بعد. أنشئ واحداً!
         </div>
         {% endif %}
       </div>

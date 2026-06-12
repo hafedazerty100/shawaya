@@ -1,16 +1,16 @@
 {% extends "admin/base_admin.html" %}
-{% block title %}Dashboard — Admin{% endblock %}
-{% block page_title %}Dashboard{% endblock %}
+{% block title %}لوحة التحكم — كافيه 24{% endblock %}
+{% block page_title %}لوحة التحكم{% endblock %}
 
 {% block content %}
-<!-- Stat cards -->
+<!-- بطاقات الإحصاءات -->
 <div class="row g-4 mb-4">
   <div class="col-sm-6 col-xl-3">
     <div class="stat-card stat-card--blue">
       <div class="stat-icon"><i class="bi bi-receipt-cutoff"></i></div>
       <div class="stat-body">
         <div class="stat-value">{{ today_orders }}</div>
-        <div class="stat-label">Orders Today</div>
+        <div class="stat-label">طلبات اليوم</div>
       </div>
     </div>
   </div>
@@ -19,7 +19,7 @@
       <div class="stat-icon"><i class="bi bi-cash-coin"></i></div>
       <div class="stat-body">
         <div class="stat-value">{{ today_revenue }}</div>
-        <div class="stat-label">Revenue Today</div>
+        <div class="stat-label">إيرادات اليوم</div>
       </div>
     </div>
   </div>
@@ -28,7 +28,7 @@
       <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
       <div class="stat-body">
         <div class="stat-value">{{ pending_count }}</div>
-        <div class="stat-label">Pending Sync</div>
+        <div class="stat-label">في انتظار المزامنة</div>
       </div>
     </div>
   </div>
@@ -37,17 +37,17 @@
       <div class="stat-icon"><i class="bi bi-arrow-repeat"></i></div>
       <div class="stat-body">
         <div class="stat-value">{{ recent_logs|length }}</div>
-        <div class="stat-label">Recent Sync Events</div>
+        <div class="stat-label">أحداث المزامنة</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Recent sync log -->
+<!-- سجل المزامنة الأخير -->
 <div class="card admin-card">
   <div class="card-header d-flex justify-content-between align-items-center">
-    <h5 class="mb-0"><i class="bi bi-activity me-2"></i>Recent Sync Activity</h5>
-    <a href="{{ url_for('admin.sync_log') }}" class="btn btn-sm btn-outline-secondary">View All</a>
+    <h5 class="mb-0"><i class="bi bi-activity me-2"></i>آخر نشاط للمزامنة</h5>
+    <a href="{{ url_for('admin.sync_log') }}" class="btn btn-sm btn-outline-secondary">عرض الكل</a>
   </div>
   <div class="card-body p-0">
     {% if recent_logs %}
@@ -55,11 +55,11 @@
       <table class="table table-hover admin-table mb-0">
         <thead>
           <tr>
-            <th>Time</th>
-            <th>Direction</th>
-            <th>Status</th>
-            <th>Detail</th>
-            <th>Device</th>
+            <th>الوقت</th>
+            <th>الاتجاه</th>
+            <th>الحالة</th>
+            <th>التفاصيل</th>
+            <th>الجهاز</th>
           </tr>
         </thead>
         <tbody>
@@ -68,12 +68,12 @@
             <td class="text-muted small">{{ log.timestamp.strftime('%H:%M:%S') }}</td>
             <td>
               <span class="badge {% if log.direction == 'push' %}bg-primary{% else %}bg-info text-dark{% endif %}">
-                {{ log.direction }}
+                {{ 'رفع' if log.direction == 'push' else 'سحب' }}
               </span>
             </td>
             <td>
               <span class="badge {% if log.status == 'success' %}bg-success{% else %}bg-danger{% endif %}">
-                {{ log.status }}
+                {{ 'نجاح' if log.status == 'success' else 'فشل' }}
               </span>
             </td>
             <td class="small text-truncate" style="max-width:300px;">{{ log.detail or '—' }}</td>
@@ -85,7 +85,7 @@
     </div>
     {% else %}
     <div class="p-4 text-center text-muted">
-      <i class="bi bi-inbox fs-2 d-block mb-2"></i>No sync activity yet.
+      <i class="bi bi-inbox fs-2 d-block mb-2"></i>لا يوجد نشاط مزامنة بعد.
     </div>
     {% endif %}
   </div>

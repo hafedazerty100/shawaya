@@ -1,25 +1,25 @@
 {% extends "admin/base_admin.html" %}
-{% block title %}Sync Log — Admin{% endblock %}
-{% block page_title %}Sync Log{% endblock %}
+{% block title %}سجل المزامنة — كافيه 24{% endblock %}
+{% block page_title %}سجل المزامنة{% endblock %}
 
 {% block content %}
-<!-- Filters -->
+<!-- الفلاتر -->
 <div class="d-flex gap-2 mb-4 flex-wrap align-items-center">
-  <span class="text-muted small me-1">Direction:</span>
+  <span class="text-muted small me-1">الاتجاه:</span>
   <a href="{{ url_for('admin.sync_log', status=status_filter) }}"
-     class="btn btn-sm {% if not direction_filter %}btn-primary{% else %}btn-outline-secondary{% endif %}">All</a>
+     class="btn btn-sm {% if not direction_filter %}btn-primary{% else %}btn-outline-secondary{% endif %}">الكل</a>
   <a href="{{ url_for('admin.sync_log', direction='push', status=status_filter) }}"
-     class="btn btn-sm {% if direction_filter == 'push' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Push</a>
+     class="btn btn-sm {% if direction_filter == 'push' %}btn-primary{% else %}btn-outline-secondary{% endif %}">رفع</a>
   <a href="{{ url_for('admin.sync_log', direction='pull', status=status_filter) }}"
-     class="btn btn-sm {% if direction_filter == 'pull' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Pull</a>
+     class="btn btn-sm {% if direction_filter == 'pull' %}btn-primary{% else %}btn-outline-secondary{% endif %}">سحب</a>
 
-  <span class="text-muted small ms-3 me-1">Status:</span>
+  <span class="text-muted small ms-3 me-1">الحالة:</span>
   <a href="{{ url_for('admin.sync_log', direction=direction_filter) }}"
-     class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-outline-secondary{% endif %}">All</a>
+     class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-outline-secondary{% endif %}">الكل</a>
   <a href="{{ url_for('admin.sync_log', direction=direction_filter, status='success') }}"
-     class="btn btn-sm {% if status_filter == 'success' %}btn-success{% else %}btn-outline-secondary{% endif %}">Success</a>
+     class="btn btn-sm {% if status_filter == 'success' %}btn-success{% else %}btn-outline-secondary{% endif %}">نجاح</a>
   <a href="{{ url_for('admin.sync_log', direction=direction_filter, status='error') }}"
-     class="btn btn-sm {% if status_filter == 'error' %}btn-danger{% else %}btn-outline-secondary{% endif %}">Error</a>
+     class="btn btn-sm {% if status_filter == 'error' %}btn-danger{% else %}btn-outline-secondary{% endif %}">خطأ</a>
 </div>
 
 <div class="card admin-card">
@@ -29,11 +29,11 @@
       <table class="table table-hover admin-table mb-0">
         <thead>
           <tr>
-            <th>Timestamp</th>
-            <th>Direction</th>
-            <th>Status</th>
-            <th>Device</th>
-            <th>Detail</th>
+            <th>التوقيت</th>
+            <th>الاتجاه</th>
+            <th>الحالة</th>
+            <th>الجهاز</th>
+            <th>التفاصيل</th>
           </tr>
         </thead>
         <tbody>
@@ -42,12 +42,12 @@
             <td class="small font-monospace text-muted">{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
             <td>
               <span class="badge {% if log.direction == 'push' %}bg-primary{% else %}bg-info text-dark{% endif %}">
-                {{ log.direction }}
+                {{ 'رفع' if log.direction == 'push' else 'سحب' }}
               </span>
             </td>
             <td>
               <span class="badge {% if log.status == 'success' %}bg-success{% else %}bg-danger{% endif %}">
-                {{ log.status }}
+                {{ 'نجاح' if log.status == 'success' else 'خطأ' }}
               </span>
             </td>
             <td class="small">{{ log.device_id or '—' }}</td>
@@ -65,7 +65,7 @@
           {% if pagination.has_prev %}
           <li class="page-item">
             <a class="page-link" href="{{ url_for('admin.sync_log', page=pagination.prev_num, direction=direction_filter, status=status_filter) }}">
-              <i class="bi bi-chevron-left"></i>
+              <i class="bi bi-chevron-right"></i>
             </a>
           </li>
           {% endif %}
@@ -81,7 +81,7 @@
           {% if pagination.has_next %}
           <li class="page-item">
             <a class="page-link" href="{{ url_for('admin.sync_log', page=pagination.next_num, direction=direction_filter, status=status_filter) }}">
-              <i class="bi bi-chevron-right"></i>
+              <i class="bi bi-chevron-left"></i>
             </a>
           </li>
           {% endif %}
@@ -92,7 +92,7 @@
 
     {% else %}
     <div class="p-5 text-center text-muted">
-      <i class="bi bi-arrow-left-right fs-1 d-block mb-3"></i>No sync events found.
+      <i class="bi bi-arrow-left-right fs-1 d-block mb-3"></i>لا توجد أحداث مزامنة.
     </div>
     {% endif %}
   </div>

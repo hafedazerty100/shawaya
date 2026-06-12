@@ -1,5 +1,5 @@
 {% extends "admin/base_admin.html" %}
-{% block title %}{{ title }} — Admin{% endblock %}
+{% block title %}{{ title }} — كافيه 24{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
 
 {% block content %}
@@ -13,50 +13,50 @@
           {{ form.hidden_tag() }}
 
           <div class="mb-3">
-            {{ form.name.label(class="form-label fw-semibold") }}
-            {{ form.name(class="form-control", placeholder="e.g. Flat White") }}
+            <label class="form-label fw-semibold">اسم المنتج</label>
+            {{ form.name(class="form-control", placeholder="مثال: كابتشينو") }}
             {% for err in form.name.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
           </div>
 
           <div class="mb-3">
-            {{ form.description.label(class="form-label fw-semibold") }}
-            {{ form.description(class="form-control", rows=3, placeholder="Short description (optional)") }}
+            <label class="form-label fw-semibold">الوصف</label>
+            {{ form.description(class="form-control", rows=3, placeholder="وصف قصير (اختياري)") }}
             {% for err in form.description.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
           </div>
 
           <div class="row g-3 mb-3">
             <div class="col-sm-6">
-              {{ form.category_id.label(class="form-label fw-semibold") }}
+              <label class="form-label fw-semibold">الصنف</label>
               {{ form.category_id(class="form-select") }}
               {% for err in form.category_id.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
             </div>
             <div class="col-sm-6">
-              {{ form.price.label(class="form-label fw-semibold") }}
+              <label class="form-label fw-semibold">السعر</label>
               <div class="input-group">
-                <span class="input-group-text">$</span>
+                <span class="input-group-text">د.ج</span>
                 {{ form.price(class="form-control", placeholder="0.00") }}
               </div>
               {% for err in form.price.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
             </div>
           </div>
 
-          <!-- Image upload with live preview -->
+          <!-- رفع الصورة مع معاينة مباشرة -->
           <div class="mb-3">
-            {{ form.image.label(class="form-label fw-semibold") }}
+            <label class="form-label fw-semibold">صورة المنتج</label>
             {{ form.image(class="form-control", accept=".png,.jpg,.jpeg,.webp", id="image-input") }}
-            <div class="form-text">Max 5 MB · PNG, JPG, JPEG, WebP</div>
+            <div class="form-text">الحد الأقصى 5 ميغابايت · PNG، JPG، WebP</div>
             {% for err in form.image.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
 
-            <!-- Live preview -->
+            <!-- معاينة مباشرة -->
             <div id="image-preview-wrap" class="mt-2" style="display:none;">
-              <img id="image-preview" src="" alt="Preview" class="product-image-preview" />
+              <img id="image-preview" src="" alt="معاينة" class="product-image-preview" />
               <p class="form-text mt-1" id="image-preview-name"></p>
             </div>
             {% if product and product.image %}
             <div class="mt-2" id="current-image-wrap">
-              <p class="form-text mb-1">Current image:</p>
-              <img src="{{ url_for('static', filename='uploads/products/' ~ product.image) }}"
-                   alt="{{ product.name }}" class="product-image-preview" id="current-image" />
+              <p class="form-text mb-1">الصورة الحالية:</p>
+              {% set img_url = product.image if product.image.startswith('http') else url_for('static', filename='uploads/products/' ~ product.image) %}
+              <img src="{{ img_url }}" alt="{{ product.name }}" class="product-image-preview" id="current-image" />
             </div>
             {% endif %}
           </div>
@@ -64,16 +64,16 @@
           <div class="mb-4">
             <div class="form-check form-switch">
               {{ form.is_active(class="form-check-input", role="switch", id="is_active") }}
-              {{ form.is_active.label(class="form-check-label fw-semibold") }}
+              <label class="form-check-label fw-semibold" for="is_active">نشط</label>
             </div>
           </div>
 
           <div class="d-flex gap-3">
             <button type="submit" class="btn btn-primary flex-grow-1" id="save-product-btn">
               <i class="bi bi-save me-1"></i>
-              {% if product %}Save Changes{% else %}Create Product{% endif %}
+              {% if product %}حفظ التغييرات{% else %}إنشاء المنتج{% endif %}
             </button>
-            <a href="{{ url_for('admin.products') }}" class="btn btn-outline-secondary">Cancel</a>
+            <a href="{{ url_for('admin.products') }}" class="btn btn-outline-secondary">إلغاء</a>
           </div>
         </form>
       </div>
@@ -84,7 +84,6 @@
 
 {% block extra_scripts %}
 <script>
-  // Live image preview
   document.getElementById('image-input').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;

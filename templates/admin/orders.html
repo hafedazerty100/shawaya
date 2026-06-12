@@ -1,25 +1,25 @@
 {% extends "admin/base_admin.html" %}
-{% block title %}Orders — Admin{% endblock %}
-{% block page_title %}Orders{% endblock %}
+{% block title %}الطلبات — كافيه 24{% endblock %}
+{% block page_title %}الطلبات{% endblock %}
 
 {% block content %}
-<!-- Status filter -->
+<!-- فلتر الحالة -->
 <div class="d-flex gap-2 mb-4 flex-wrap">
   <a href="{{ url_for('admin.orders') }}"
      class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-outline-secondary{% endif %}">
-    All
+    الكل
   </a>
   <a href="{{ url_for('admin.orders', status='pending') }}"
      class="btn btn-sm {% if status_filter == 'pending' %}btn-warning{% else %}btn-outline-secondary{% endif %}">
-    Pending
+    قيد الانتظار
   </a>
   <a href="{{ url_for('admin.orders', status='synced') }}"
      class="btn btn-sm {% if status_filter == 'synced' %}btn-success{% else %}btn-outline-secondary{% endif %}">
-    Synced
+    تمت المزامنة
   </a>
   <a href="{{ url_for('admin.orders', status='failed') }}"
      class="btn btn-sm {% if status_filter == 'failed' %}btn-danger{% else %}btn-outline-secondary{% endif %}">
-    Failed
+    فشل
   </a>
 </div>
 
@@ -30,13 +30,13 @@
       <table class="table table-hover admin-table mb-0">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Device</th>
-            <th>Items</th>
-            <th>Total</th>
-            <th>Status</th>
-            <th>Created</th>
-            <th>Synced</th>
+            <th>رقم الطلب</th>
+            <th>الجهاز</th>
+            <th>المنتجات</th>
+            <th>الإجمالي</th>
+            <th>الحالة</th>
+            <th>تاريخ الإنشاء</th>
+            <th>وقت المزامنة</th>
             <th></th>
           </tr>
         </thead>
@@ -48,11 +48,11 @@
             <td>{{ order.items | length }}</td>
             <td class="fw-semibold">{{ format_price(order.total_cents) }}</td>
             <td>
-              {% if order.status == 'synced' %}<span class="badge bg-success">Synced</span>
-              {% elif order.status == 'pending' %}<span class="badge bg-warning text-dark">Pending</span>
-              {% else %}<span class="badge bg-danger">Failed</span>{% endif %}
+              {% if order.status == 'synced' %}<span class="badge bg-success">تمت المزامنة</span>
+              {% elif order.status == 'pending' %}<span class="badge bg-warning text-dark">قيد الانتظار</span>
+              {% else %}<span class="badge bg-danger">فشل</span>{% endif %}
             </td>
-            <td class="small text-muted">{{ order.created_at.strftime('%d %b %Y %H:%M') }}</td>
+            <td class="small text-muted">{{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
             <td class="small text-muted">
               {% if order.synced_at %}{{ order.synced_at.strftime('%H:%M:%S') }}{% else %}—{% endif %}
             </td>
@@ -68,7 +68,7 @@
       </table>
     </div>
 
-    <!-- Pagination -->
+    <!-- ترقيم الصفحات -->
     {% if pagination.pages > 1 %}
     <div class="d-flex justify-content-center py-3">
       <nav>
@@ -76,7 +76,7 @@
           {% if pagination.has_prev %}
           <li class="page-item">
             <a class="page-link" href="{{ url_for('admin.orders', page=pagination.prev_num, status=status_filter) }}">
-              <i class="bi bi-chevron-left"></i>
+              <i class="bi bi-chevron-right"></i>
             </a>
           </li>
           {% endif %}
@@ -92,7 +92,7 @@
           {% if pagination.has_next %}
           <li class="page-item">
             <a class="page-link" href="{{ url_for('admin.orders', page=pagination.next_num, status=status_filter) }}">
-              <i class="bi bi-chevron-right"></i>
+              <i class="bi bi-chevron-left"></i>
             </a>
           </li>
           {% endif %}
@@ -103,7 +103,7 @@
 
     {% else %}
     <div class="p-5 text-center text-muted">
-      <i class="bi bi-receipt fs-1 d-block mb-3"></i>No orders found.
+      <i class="bi bi-receipt fs-1 d-block mb-3"></i>لا توجد طلبات.
     </div>
     {% endif %}
   </div>
