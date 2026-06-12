@@ -1,61 +1,53 @@
 /**
- * desktop.js — Touch-friendly kiosk POS client code.
+ * desktop.js — 1-Click instant-print kiosk.
+ *
+ * Flow: tap product → POST /api/orders (1 item, qty=1) → open print window → done.
+ * No cart, no confirmation, no modal. Pure speed.
  */
 
 document.addEventListener("DOMContentLoaded", () => {
-  let cart = [];
-  let menuData = []; // Array of categories, each containing products
+  let menuData = [];
   let currentCategory = "all";
+  let printInProgress = false; // prevent double-tap spam
 
   // Elements
-  const productGrid = document.getElementById("product-grid");
-  const categoryNav = document.getElementById("category-nav");
-  const cartItemsContainer = document.getElementById("cart-items");
-  const cartEmptyState = document.getElementById("cart-empty");
-  const cartTotalVal = document.getElementById("cart-total");
-  const btnPlaceOrder = document.getElementById("btn-place-order");
-  const btnClearCart = document.getElementById("btn-clear-cart");
+  const productGrid     = document.getElementById("product-grid");
+  const categoryNav     = document.getElementById("category-nav");
   const syncStatusBadge = document.getElementById("sync-status");
-  const syncLabel = document.getElementById("sync-label");
+  const syncLabel       = document.getElementById("sync-label");
+  const ticketFeedItems = document.getElementById("ticket-feed-items");
+  const feedEmpty       = document.getElementById("feed-empty");
+  const btnClearFeed    = document.getElementById("btn-clear-feed");
+  const printIframe     = document.getElementById("print-iframe");
 
-  // Modal elements
-  const orderModalEl = document.getElementById("orderModal");
-  const orderModal = new bootstrap.Modal(orderModalEl);
-  const modalOrderId = document.getElementById("modal-order-id");
-  const btnNewOrder = document.getElementById("btn-new-order");
-  const btnPrintReceipt = document.getElementById("btn-print-receipt");
-
-  // UUID generator for order local_id
-  function generateUUID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+  // ── UUID generator ────────────────────────────────────────────────────────
+  function uuid() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
       const r = Math.random() * 16 | 0;
-      const v = c === 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
+      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
     });
   }
 
-  // Format cents to $XX.XX string
-  function formatPrice(cents) {
-    return "$" + (cents / 100).toFixed(2);
+  // ── Format price ──────────────────────────────────────────────────────────
+  function fmt(cents) {
+    return (cents / 100).toFixed(2) + " د.ج";
   }
 
-  // Fetch product catalog
+  // ── Fetch product catalog ─────────────────────────────────────────────────
   async function fetchProducts() {
     try {
       showLoading(true);
       const resp = await fetch("/api/products");
-      if (!resp.ok) throw new Error("Failed to fetch product catalog");
+      if (!resp.ok) throw new Error("فشل تحميل المنتجات");
       menuData = await resp.json();
       renderProducts();
     } catch (err) {
-      console.error(err);
       productGrid.innerHTML = `
         <div class="col-12 text-center py-5 text-danger">
           <i class="bi bi-exclamation-octagon fs-1"></i>
-          <p class="mt-2">Error loading menu. Please try pulling products manually or check network.</p>
-          <button class="btn btn-outline-warning btn-sm mt-2" id="btn-retry-load">Retry</button>
-        </div>
-      `;
+          <p class="mt-2">خطأ في تحميل المنتجات</p>
+          <button class="btn btn-outline-warning btn-sm mt-2" id="btn-retry-load">إعادة المحاولة</button>
+        </div>`;
       document.getElementById("btn-retry-load")?.addEventListener("click", fetchProducts);
     } finally {
       showLoading(false);
@@ -66,251 +58,172 @@ document.addEventListener("DOMContentLoaded", () => {
     if (show) {
       productGrid.innerHTML = `
         <div class="loading-spinner">
-          <div class="spinner-border text-warning" role="status">
-            <span class="visually-hidden">Loading…</span>
-          </div>
-          <p>Loading menu…</p>
-        </div>
-      `;
+          <div class="spinner-border text-warning" role="status"></div>
+          <p>جاري التحميل…</p>
+        </div>`;
     }
   }
 
-  // Render products in grid based on category selection
+  // ── Render products ───────────────────────────────────────────────────────
   function renderProducts() {
     productGrid.innerHTML = "";
-    let productsToRender = [];
-
+    let items = [];
     if (currentCategory === "all") {
-      menuData.forEach(cat => {
-        productsToRender = productsToRender.concat(cat.products);
-      });
+      menuData.forEach(cat => { items = items.concat(cat.products); });
     } else {
-      const selectedCat = menuData.find(cat => cat.id.toString() === currentCategory.toString());
-      if (selectedCat) {
-        productsToRender = selectedCat.products;
-      }
+      const cat = menuData.find(c => c.id.toString() === currentCategory.toString());
+      if (cat) items = cat.products;
     }
 
-    if (productsToRender.length === 0) {
-      productGrid.innerHTML = `
-        <div class="col-12 text-center py-5 text-muted">
-          <i class="bi bi-inbox fs-1"></i>
-          <p class="mt-2">No products available in this category.</p>
-        </div>
-      `;
+    if (!items.length) {
+      productGrid.innerHTML = `<div class="col-12 text-center py-5 text-muted"><p>لا توجد منتجات</p></div>`;
       return;
     }
 
-    productsToRender.forEach(product => {
+    items.forEach(product => {
       const card = document.createElement("div");
       card.className = "product-card";
-      
-      let imgHTML = `<div class="product-card__img-placeholder"><i class="bi bi-cup-hot"></i></div>`;
-      if (product.image) {
-        imgHTML = `<img class="product-card__img" src="/static/uploads/products/${product.image}" alt="${product.name}">`;
-      }
+      card.setAttribute("data-id", product.id);
+
+      // Support external URLs (Unsplash) as well as local uploads
+      const imgSrc = product.image
+        ? (product.image.startsWith("http") ? product.image : `/static/uploads/products/${product.image}`)
+        : null;
+
+      const imgHTML = imgSrc
+        ? `<img class="product-card__img" src="${imgSrc}" alt="${product.name}" loading="lazy">`
+        : `<div class="product-card__img-placeholder"><i class="bi bi-cup-hot"></i></div>`;
 
       card.innerHTML = `
         ${imgHTML}
         <div class="product-card__body">
           <div class="product-card__name">${product.name}</div>
           <div class="product-card__price">${product.price_display}</div>
+          <div class="product-card__tap-hint"><i class="bi bi-printer"></i> اطبع</div>
         </div>
+        <div class="product-card__flash" id="flash-${product.id}"></div>
       `;
 
-      card.addEventListener("click", () => addToCart(product));
+      card.addEventListener("click", () => instantOrder(product, card));
       productGrid.appendChild(card);
     });
   }
 
-  // Cart operations
-  function addToCart(product) {
-    const existing = cart.find(item => item.id === product.id);
-    if (existing) {
-      if (existing.quantity < 99) {
-        existing.quantity += 1;
-      }
-    } else {
-      cart.push({
-        id: product.id,
-        name: product.name,
-        price_cents: product.price_cents,
-        quantity: 1
-      });
-    }
-    renderCart();
-  }
+  // ── 1-Click instant order & print ────────────────────────────────────────
+  async function instantOrder(product, cardEl) {
+    if (printInProgress) return;
+    printInProgress = true;
 
-  function changeQty(productId, delta) {
-    const existing = cart.find(item => item.id === productId);
-    if (!existing) return;
+    // Visual feedback — flash the card green
+    cardEl.classList.add("card-printing");
 
-    existing.quantity += delta;
-    if (existing.quantity <= 0) {
-      cart = cart.filter(item => item.id !== productId);
-    }
-    renderCart();
-  }
-
-  function clearCart() {
-    cart = [];
-    renderCart();
-  }
-
-  function renderCart() {
-    cartItemsContainer.innerHTML = "";
-
-    if (cart.length === 0) {
-      cartEmptyState.style.display = "flex";
-      cartTotalVal.textContent = "$0.00";
-      btnPlaceOrder.disabled = true;
-      return;
-    }
-
-    cartEmptyState.style.display = "none";
-    btnPlaceOrder.disabled = false;
-
-    let totalCents = 0;
-
-    cart.forEach(item => {
-      const itemSubtotal = item.price_cents * item.quantity;
-      totalCents += itemSubtotal;
-
-      const itemEl = document.createElement("div");
-      itemEl.className = "cart-item";
-      itemEl.innerHTML = `
-        <div class="cart-item__name">${item.name}</div>
-        <div class="cart-item__price">${formatPrice(itemSubtotal)}</div>
-        <div class="cart-item__controls">
-          <button class="qty-btn btn-qty-minus" data-id="${item.id}">-</button>
-          <span class="qty-value">${item.quantity}</span>
-          <button class="qty-btn btn-qty-plus" data-id="${item.id}">+</button>
-        </div>
-      `;
-
-      // Event listeners for qty controls
-      itemEl.querySelector(".btn-qty-minus").addEventListener("click", () => changeQty(item.id, -1));
-      itemEl.querySelector(".btn-qty-plus").addEventListener("click", () => changeQty(item.id, 1));
-
-      cartItemsContainer.appendChild(itemEl);
-    });
-
-    cartTotalVal.textContent = formatPrice(totalCents);
-  }
-
-  // Category filtering
-  categoryNav.addEventListener("click", (e) => {
-    const btn = e.target.closest(".cat-btn");
-    if (!btn) return;
-
-    // Toggle active state
-    document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-
-    currentCategory = btn.dataset.cat;
-    renderProducts();
-  });
-
-  // Clear cart action
-  btnClearCart.addEventListener("click", clearCart);
-
-  // Submit Order
-  btnPlaceOrder.addEventListener("click", async () => {
-    if (cart.length === 0) return;
-
-    btnPlaceOrder.disabled = true;
-    const prevText = btnPlaceOrder.innerHTML;
-    btnPlaceOrder.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...`;
-
-    const localId = generateUUID();
-    const payload = {
-      local_id: localId,
-      device_id: "Kiosk-Desktop",
-      items: cart.map(item => ({
-        product_id: item.id,
-        quantity: item.quantity
-      }))
-    };
-
+    const localId = uuid();
     try {
       const resp = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          local_id: localId,
+          device_id: "Kiosk-1",
+          items: [{ product_id: product.id, quantity: 1 }]
+        })
       });
 
       if (!resp.ok) {
-        const errData = await resp.json();
-        throw new Error(errData.error || "Failed to place order");
+        const err = await resp.json();
+        throw new Error(err.error || "Order failed");
       }
 
       const data = await resp.json();
-      
-      // Order placed successfully
-      modalOrderId.textContent = data.order_id || localId;
-      btnPrintReceipt.href = `/api/print-receipt/${data.order_id}`;
-      
-      // Clear local cart and show modal
-      clearCart();
-      orderModal.show();
 
-      // Trigger automatic manual sync in the background
-      triggerSync(false);
+      // ── Print ticket silently via iframe ──────────────────────────────────
+      printTicket(data.order_id, product);
+
+      // ── Add to feed ───────────────────────────────────────────────────────
+      addToFeed(product, data.order_id);
+
+      // Trigger background sync (don't await — keep it fast)
+      fetch("/api/sync", { method: "POST" }).catch(() => {});
 
     } catch (err) {
-      alert("Order submission failed: " + err.message);
+      console.error("Order error:", err);
+      showFlash(product.id, false);
     } finally {
-      btnPlaceOrder.innerHTML = prevText;
-      btnPlaceOrder.disabled = cart.length === 0;
-    }
-  });
-
-  // Modal reset flow
-  btnNewOrder.addEventListener("click", () => {
-    orderModal.hide();
-  });
-
-  // Manual trigger sync
-  async function triggerSync(userInitiated = true) {
-    if (userInitiated) {
-      syncStatusBadge.classList.add("syncing");
-      syncLabel.textContent = "Syncing...";
-    }
-
-    try {
-      const ordersResp = await fetch("/api/sync", { method: "POST" });
-      const productsResp = await fetch("/api/pull-products", { method: "POST" });
-
-      if (ordersResp.ok && productsResp.ok) {
-        if (userInitiated) {
-          syncStatusBadge.classList.remove("syncing");
-          syncLabel.textContent = "Synced";
-          // Refetch UI menu catalog in case it changed
-          await fetchProducts();
-          setTimeout(() => {
-            syncLabel.textContent = "Ready";
-          }, 3000);
-        }
-      } else {
-        throw new Error("Failed background sync sync/pull APIs");
-      }
-    } catch (err) {
-      console.warn("Manual sync error: ", err);
-      if (userInitiated) {
-        syncStatusBadge.classList.remove("syncing");
-        syncStatusBadge.classList.add("error");
-        syncLabel.textContent = "Sync Fail";
-        setTimeout(() => {
-          syncStatusBadge.classList.remove("error");
-          syncLabel.textContent = "Ready";
-        }, 5000);
-      }
+      setTimeout(() => {
+        cardEl.classList.remove("card-printing");
+        printInProgress = false;
+      }, 600);
     }
   }
 
-  // Click badge to sync manually
-  syncStatusBadge.addEventListener("click", () => triggerSync(true));
+  // ── Silent print via hidden iframe ────────────────────────────────────────
+  function printTicket(orderId, product) {
+    const url = `/api/print-receipt/${orderId}`;
+    printIframe.onload = () => {
+      try {
+        printIframe.contentWindow.focus();
+        printIframe.contentWindow.print();
+      } catch (e) {
+        // Fallback: open in new window
+        window.open(url, "_blank");
+      }
+    };
+    printIframe.src = url;
+  }
 
-  // Initialize
+  // ── Live ticket feed ──────────────────────────────────────────────────────
+  function addToFeed(product, orderId) {
+    feedEmpty.style.display = "none";
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString("ar-DZ", { hour: "2-digit", minute: "2-digit" });
+
+    const item = document.createElement("div");
+    item.className = "feed-item";
+    item.innerHTML = `
+      <div class="feed-item__icon"><i class="bi bi-receipt-cutoff"></i></div>
+      <div class="feed-item__info">
+        <div class="feed-item__name">${product.name}</div>
+        <div class="feed-item__meta">طلب #${orderId} · ${timeStr}</div>
+      </div>
+      <div class="feed-item__badge">✓</div>
+    `;
+    ticketFeedItems.insertBefore(item, ticketFeedItems.firstChild);
+  }
+
+  // ── Category filtering ────────────────────────────────────────────────────
+  categoryNav.addEventListener("click", (e) => {
+    const btn = e.target.closest(".cat-btn");
+    if (!btn) return;
+    document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentCategory = btn.dataset.cat;
+    renderProducts();
+  });
+
+  // ── Clear feed ────────────────────────────────────────────────────────────
+  btnClearFeed.addEventListener("click", () => {
+    ticketFeedItems.querySelectorAll(".feed-item").forEach(el => el.remove());
+    feedEmpty.style.display = "flex";
+  });
+
+  // ── Sync status badge ─────────────────────────────────────────────────────
+  syncStatusBadge.addEventListener("click", async () => {
+    syncLabel.textContent = "يتزامن…";
+    syncStatusBadge.classList.add("syncing");
+    try {
+      await fetch("/api/sync", { method: "POST" });
+      await fetch("/api/pull-products", { method: "POST" });
+      syncLabel.textContent = "تم التزامن";
+      await fetchProducts();
+      setTimeout(() => { syncLabel.textContent = "جاهز"; syncStatusBadge.classList.remove("syncing"); }, 3000);
+    } catch {
+      syncLabel.textContent = "خطأ";
+      syncStatusBadge.classList.remove("syncing");
+      syncStatusBadge.classList.add("error");
+      setTimeout(() => { syncLabel.textContent = "جاهز"; syncStatusBadge.classList.remove("error"); }, 5000);
+    }
+  });
+
+  // ── Boot ──────────────────────────────────────────────────────────────────
   fetchProducts();
 });
