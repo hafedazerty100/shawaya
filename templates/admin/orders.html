@@ -56,11 +56,22 @@
             <td class="small text-muted">
               {% if order.synced_at %}{{ order.synced_at.strftime('%H:%M:%S') }}{% else %}—{% endif %}
             </td>
-            <td>
+            <td class="text-nowrap">
               <a href="{{ url_for('admin.order_detail', order_id=order.id) }}"
-                 class="btn btn-sm btn-outline-secondary">
+                 class="btn btn-sm btn-outline-info" title="عرض">
                 <i class="bi bi-eye"></i>
               </a>
+              <a href="{{ url_for('admin.edit_order', order_id=order.id) }}"
+                 class="btn btn-sm btn-outline-warning" title="تعديل">
+                <i class="bi bi-pencil-square"></i>
+              </a>
+              <form action="{{ url_for('admin.delete_order', order_id=order.id) }}" method="post"
+                    onsubmit="return confirm('هل أنت متأكد من حذف هذا الطلب؟');" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger" title="حذف">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </form>
             </td>
           </tr>
           {% endfor %}

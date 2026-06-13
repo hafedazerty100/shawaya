@@ -1,0 +1,124 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}متصفح قاعدة البيانات — كافيه 24{% endblock %}
+{% block page_title %}متصفح قاعدة البيانات (Direct DB Browser){% endblock %}
+
+{% block content %}
+<!-- اختيار الجدول والبحث -->
+<div class="card admin-card mb-4">
+  <div class="card-body">
+    <div class="row g-3 align-items-center justify-content-between">
+      <div class="col-md-6 d-flex align-items-center gap-2">
+        <label for="table-select" class="form-label mb-0 text-nowrap">الجدول النشط:</label>
+        <select id="table-select" class="form-select form-select-sm" onchange="window.location.href='?table=' + this.value" style="max-width: 250px;">
+          {% for tbl in tables %}
+          <option value="{{ tbl }}" {% if tbl == table_name %}selected{% endif %}>{{ tbl }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-5">
+        <form method="get" class="d-flex gap-2">
+          <input type="hidden" name="table" value="{{ table_name }}">
+          <input type="text" name="q" class="form-control form-control-sm" placeholder="ابحث في هذا الجدول..." value="{{ search }}">
+          <button type="submit" class="btn btn-primary btn-sm">بحث</button>
+          {% if search %}
+          <a href="?table={{ table_name }}" class="btn btn-outline-secondary btn-sm">إلغاء</a>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- عرض السجلات -->
+<div class="card admin-card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">سجلات جدول: <span class="text-warning font-monospace">{{ table_name }}</span></h5>
+    <span class="badge bg-secondary">{{ pagination.total }} سجل إجمالي</span>
+  </div>
+  <div class="card-body p-0">
+    {% if items %}
+    <div class="table-responsive">
+      <table class="table table-hover table-striped admin-table mb-0">
+        <thead>
+          <tr>
+            {% for col in columns %}
+            <th>{{ col }}</th>
+            {% endfor %}
+            <th style="width: 80px;" class="text-center">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+          <tr>
+            {% for col in columns %}
+            <td class="small font-monospace">
+              {% set val = getattr(item, col) %}
+              {% if val is none %}
+                <span class="text-muted">—</span>
+              {% elif col == 'password_hash' %}
+                <span class="text-muted">[HASHED]</span>
+              {% elif 'price' in col or 'total' in col or 'subtotal' in col %}
+                {{ format_price(val) }}
+              {% elif 'created_at' in col or 'updated_at' in col or 'timestamp' in col or 'activated_at' in col or 'expires_at' in col %}
+                {{ val.strftime('%Y-%m-%d %H:%M:%S') if val else '—' }}
+              {% else %}
+                {{ val | string | truncate(50) }}
+              {% endif %}
+            </td>
+            {% endfor %}
+            <td class="text-center">
+              <form action="{{ url_for('admin.db_delete_row', table_name=table_name, row_id=item.id if hasattr(item, 'id') else 0) }}"
+                    method="post" onsubmit="return confirm('هل أنت متأكد من حذف هذا الصف نهائياً من قاعدة البيانات؟');" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger p-1" title="حذف الصف">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ترقيم الصفحات -->
+    {% if pagination.pages > 1 %}
+    <div class="d-flex justify-content-center py-3">
+      <nav>
+        <ul class="pagination pagination-sm mb-0">
+          {% if pagination.has_prev %}
+          <li class="page-item">
+            <a class="page-link" href="?table={{ table_name }}&page={{ pagination.prev_num }}&q={{ search }}">
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          </li>
+          {% endif %}
+          {% for pg in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if pg %}
+            <li class="page-item {% if pg == pagination.page %}active{% endif %}">
+              <a class="page-link" href="?table={{ table_name }}&page={{ pg }}&q={{ search }}">{{ pg }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+          {% endfor %}
+          {% if pagination.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?table={{ table_name }}&page={{ pagination.next_num }}&q={{ search }}">
+              <i class="bi bi-chevron-left"></i>
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="p-5 text-center text-muted">
+      <i class="bi bi-database-exclamation fs-1 d-block mb-3"></i>لا توجد سجلات في هذا الجدول.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

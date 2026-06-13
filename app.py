@@ -186,6 +186,8 @@ def create_app(mode: str | None = None) -> Flask:
     # ── Jinja2 globals ────────────────────────────────────────────────────────
     from utils import format_price
     app.jinja_env.globals["format_price"] = format_price
+    app.jinja_env.globals["getattr"] = getattr
+    app.jinja_env.globals["hasattr"] = hasattr
 
     # ── Create tables + seed admin (server mode only) ─────────────────────────
     with app.app_context():

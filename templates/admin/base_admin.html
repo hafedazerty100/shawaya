@@ -9,6 +9,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}" />
   {% block extra_styles %}{% endblock %}
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
 </head>
 <body class="admin-body">
 
@@ -58,6 +64,12 @@
           <i class="bi bi-key-fill"></i><span>مفاتيح التفعيل</span>
         </a>
       </li>
+      <li>
+        <a href="{{ url_for('admin.db_browser') }}"
+           class="nav-link {% if 'db_browser' in request.endpoint %}active{% endif %}">
+          <i class="bi bi-database-fill-gear"></i><span>متصفح البيانات</span>
+        </a>
+      </li>
     </ul>
     <div class="sidebar-footer">
       <span class="sidebar-user"><i class="bi bi-person-circle"></i> {{ current_user.username }}</span>
@@ -72,11 +84,18 @@
 
   <!-- ── Main content ──────────────────────────────────────────── -->
   <main class="admin-main" id="admin-main">
-    <div class="admin-topbar">
-      <button class="sidebar-toggle" id="sidebar-toggle" aria-label="تبديل الشريط الجانبي">
-        <i class="bi bi-list"></i>
-      </button>
-      <h2 class="page-title">{% block page_title %}{% endblock %}</h2>
+    <div class="admin-topbar d-flex justify-content-between align-items-center w-100">
+      <div class="d-flex align-items-center gap-3">
+        <button class="sidebar-toggle" id="sidebar-toggle" aria-label="تبديل الشريط الجانبي">
+          <i class="bi bi-list"></i>
+        </button>
+        <h2 class="page-title">{% block page_title %}{% endblock %}</h2>
+      </div>
+      <div>
+        <button id="theme-toggle" class="btn btn-outline-secondary btn-sm rounded-circle p-2" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" aria-label="تبديل السمة">
+          <i id="theme-toggle-icon" class="bi bi-moon-stars-fill"></i>
+        </button>
+      </div>
     </div>
 
     <!-- Flash messages -->

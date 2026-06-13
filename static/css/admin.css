@@ -16,7 +16,17 @@
   --sidebar-w:    260px;
   --radius:       12px;
   --shadow:       0 4px 20px rgba(0,0,0,.3);
-  --transition:   .2s ease-in-out;
+  --transition:   .25s ease-in-out;
+}
+
+[data-theme="light"] {
+  --bg-dark:      #f1f5f9;
+  --bg-panel:     #ffffff;
+  --bg-card:      #f8fafc;
+  --text-primary: #0f172a;
+  --text-muted:   #64748b;
+  --border:       #cbd5e1;
+  --shadow:       0 4px 20px rgba(0,0,0,.06);
 }
 
 /* Base styles */
@@ -28,6 +38,11 @@ body.admin-body {
   margin: 0;
   direction: rtl;
   text-align: right;
+  transition: background-color var(--transition), color var(--transition);
+}
+
+.admin-sidebar, .admin-main, .admin-card, .stat-card, .admin-topbar, .form-control, .form-select, .btn, .nav-link, table, th, td {
+  transition: background-color var(--transition), color var(--transition), border-color var(--transition), box-shadow var(--transition);
 }
 
 /* Admin layout structure */

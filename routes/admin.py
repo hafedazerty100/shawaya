@@ -28,7 +28,7 @@ from forms import (
     ProductForm,
     SerialKeyGenerateForm,
 )
-from models import AdminUser, Category, Order, Product, SerialKey, SyncLog
+from models import AdminUser, Category, Order, Product, SerialKey, SyncLog, OrderItem
 from utils import (
     delete_product_image,
     da_to_cents,
@@ -225,6 +225,39 @@ def dashboard():
         for r in daily_breakdown
     ]
 
+    # Chart datasets
+    chart_labels = [str(r.day) for r in reversed(daily_breakdown)]
+    chart_revenue = [float(r.revenue_cents or 0) / 100 for r in reversed(daily_breakdown)]
+    chart_orders = [int(r.orders or 0) for r in reversed(daily_breakdown)]
+
+    # System Diagnostics
+    import platform
+    import os
+    db_size = "Unknown"
+    try:
+        db_uri = db.engine.url.database
+        if db_uri and os.path.exists(db_uri):
+            db_size = f"{os.path.getsize(db_uri) / (1024 * 1024):.2f} MB"
+        else:
+            from sqlalchemy import text
+            res = db.session.execute(text("SELECT pg_size_pretty(pg_database_size(current_database()))")).scalar()
+            if res:
+                db_size = res
+    except Exception:
+        pass
+
+    sync_total = SyncLog.query.count()
+    sync_success = SyncLog.query.filter_by(status="success").count()
+    sync_rate = f"{(sync_success / sync_total * 100):.1f}%" if sync_total > 0 else "100%"
+
+    diagnostics = {
+        "db_engine": db.engine.name.upper(),
+        "db_size": db_size,
+        "os": platform.system(),
+        "sync_rate": sync_rate,
+        "active_devices": SerialKey.query.filter_by(is_active=True).count()
+    }
+
     return render_template(
         "admin/dashboard.html",
         today_orders=today_orders,
@@ -237,6 +270,10 @@ def dashboard():
         top_selling=formatted_top_selling,
         daily_rows=daily_rows,
         date_str=date_str,
+        chart_labels=chart_labels,
+        chart_revenue=chart_revenue,
+        chart_orders=chart_orders,
+        diagnostics=diagnostics,
     )
 
 
@@ -288,7 +325,7 @@ def edit_category(cat_id: int):
 @admin_bp.route("/categories/<int:cat_id>/delete", methods=["POST"])
 @login_required
 def delete_category(cat_id: int):
-    cat = Category.query.get_or_404(cat_id)
+    cat = db.get_or_404(Category, cat_id)
     try:
         db.session.delete(cat)
         db.session.commit()
@@ -515,17 +552,260 @@ def serial_keys():
     )
 
 
-@admin_bp.route("/serial_keys/<int:key_id>/revoke", methods=["POST"])
+    return redirect(url_for("admin.serial_keys"))
+
+
+# ─── Super-Admin & Advanced Control Panel ───────────────────────────────────
+
+@admin_bp.route("/orders/export")
 @login_required
-def revoke_serial_key(key_id: int):
-    key = db.get_or_404(SerialKey, key_id)
+def export_orders():
+    import csv
+    import io
+    from flask import Response
+
+    start_str = request.args.get("start_date", "").strip()
+    end_str = request.args.get("end_date", "").strip()
+
+    query = Order.query
+    if start_str:
+        try:
+            start_date = datetime.strptime(start_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            query = query.filter(Order.created_at >= start_date)
+        except ValueError:
+            pass
+    if end_str:
+        try:
+            end_date = datetime.strptime(end_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            from datetime import timedelta
+            query = query.filter(Order.created_at < end_date + timedelta(days=1))
+        except ValueError:
+            pass
+
+    orders = query.order_by(Order.created_at.desc()).all()
+
+    dest = io.StringIO()
+    writer = csv.writer(dest)
+    writer.writerow(["ID", "Local ID", "Status", "Total (DA)", "Created At", "Synced At", "Device ID"])
+
+    for o in orders:
+        writer.writerow([
+            o.id,
+            o.local_id,
+            o.status,
+            f"{o.total_cents / 100:.2f}",
+            o.created_at.strftime("%Y-%m-%d %H:%M:%S") if o.created_at else "",
+            o.synced_at.strftime("%Y-%m-%d %H:%M:%S") if o.synced_at else "",
+            o.device_id or ""
+        ])
+
+    output = dest.getvalue()
+    dest.close()
+
+    bom_output = "\ufeff" + output
+    filename = f"orders_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    return Response(
+        bom_output.encode("utf-8-sig"),
+        mimetype="text/csv",
+        headers={"Content-disposition": f"attachment; filename={filename}"}
+    )
+
+
+@admin_bp.route("/orders/<int:order_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_order(order_id: int):
+    order = db.get_or_404(Order, order_id)
+    products = Product.query.filter_by(is_active=True).order_by(Product.name).all()
+
+    if request.method == "POST":
+        try:
+            # Edit metadata
+            status = request.form.get("status")
+            device_id = request.form.get("device_id")
+            created_at_str = request.form.get("created_at")
+
+            if status in ("pending", "synced", "failed"):
+                order.status = status
+            order.device_id = device_id or None
+
+            if created_at_str:
+                # Expecting format 'YYYY-MM-DDTHH:MM' from datetime-local input
+                naive_dt = datetime.strptime(created_at_str, "%Y-%m-%dT%H:%M")
+                order.created_at = naive_dt.replace(tzinfo=timezone.utc)
+
+            db.session.commit()
+            flash("Order metadata updated successfully.", "success")
+            return redirect(url_for("admin.edit_order", order_id=order.id))
+        except Exception as exc:
+            db.session.rollback()
+            logger.error("Failed to update order metadata: %s", exc)
+            flash("Failed to update order metadata. Check format.", "danger")
+
+    return render_template("admin/order_edit.html", order=order, products=products)
+
+
+@admin_bp.route("/orders/<int:order_id>/delete", methods=["POST"])
+@login_required
+def delete_order(order_id: int):
+    order = db.get_or_404(Order, order_id)
     try:
-        key.is_active = False
-        key.device_id = None
+        db.session.delete(order)
         db.session.commit()
-        flash(f"Serial key '{key.label or key.id}' revoked.", "success")
+        flash(f"Order #{order_id} deleted successfully.", "success")
     except Exception as exc:
         db.session.rollback()
-        logger.error("Serial key revoke failed: %s", exc)
-        flash("Failed to revoke serial key.", "danger")
-    return redirect(url_for("admin.serial_keys"))
+        logger.error("Failed to delete order %s: %s", order_id, exc)
+        flash("Failed to delete order.", "danger")
+    return redirect(url_for("admin.orders"))
+
+
+@admin_bp.route("/orders/<int:order_id>/items/update", methods=["POST"])
+@login_required
+def update_order_items(order_id: int):
+    order = db.get_or_404(Order, order_id)
+    try:
+        # 1. Update existing items
+        for item in list(order.items):
+            qty_key = f"qty_{item.id}"
+            price_key = f"price_{item.id}"
+
+            if request.form.get(f"delete_{item.id}") == "1":
+                db.session.delete(item)
+                continue
+
+            if qty_key in request.form:
+                qty = int(request.form[qty_key])
+                if qty <= 0:
+                    db.session.delete(item)
+                    continue
+                item.quantity = qty
+
+            if price_key in request.form:
+                price_val = float(request.form[price_key].replace(",", "."))
+                item.unit_price_cents_snapshot = da_to_cents(price_val)
+
+            item.subtotal_cents = item.quantity * item.unit_price_cents_snapshot
+
+        # 2. Add new item
+        new_prod_id = request.form.get("new_product_id")
+        if new_prod_id:
+            new_prod_id = int(new_prod_id)
+            new_qty = int(request.form.get("new_quantity", 1))
+            if new_qty > 0:
+                prod = db.get_or_404(Product, new_prod_id)
+                new_item = OrderItem(
+                    order_id=order.id,
+                    product_id=prod.id,
+                    product_name_snapshot=prod.name,
+                    unit_price_cents_snapshot=prod.price_cents,
+                    quantity=new_qty,
+                    subtotal_cents=prod.price_cents * new_qty
+                )
+                db.session.add(new_item)
+                order.items.append(new_item)
+
+        db.session.flush()
+
+        # 3. Recalculate total_cents
+        total = 0
+        for item in order.items:
+            if item not in db.session.deleted:
+                total += item.subtotal_cents
+        order.total_cents = total
+
+        db.session.commit()
+        flash("Order items updated successfully.", "success")
+    except Exception as exc:
+        db.session.rollback()
+        logger.error("Failed to update order items: %s", exc)
+        flash("Failed to update order items. Check values.", "danger")
+
+    return redirect(url_for("admin.edit_order", order_id=order.id))
+
+
+@admin_bp.route("/db-browser")
+@login_required
+def db_browser():
+    table_name = request.args.get("table", "products").lower()
+    page = request.args.get("page", 1, type=int)
+    search = request.args.get("q", "").strip()
+
+    models_map = {
+        "products": Product,
+        "categories": Category,
+        "orders": Order,
+        "order_items": OrderItem,
+        "serial_keys": SerialKey,
+        "sync_logs": SyncLog,
+        "admin_users": AdminUser,
+    }
+
+    if table_name not in models_map:
+        table_name = "products"
+
+    model = models_map[table_name]
+    query = model.query
+
+    if search:
+        if table_name == "products":
+            query = query.filter(Product.name.ilike(f"%{search}%") | Product.description.ilike(f"%{search}%"))
+        elif table_name == "categories":
+            query = query.filter(Category.name.ilike(f"%{search}%"))
+        elif table_name == "orders":
+            query = query.filter(Order.local_id.ilike(f"%{search}%") | Order.device_id.ilike(f"%{search}%") | Order.status.ilike(f"%{search}%"))
+        elif table_name == "order_items":
+            query = query.filter(OrderItem.product_name_snapshot.ilike(f"%{search}%"))
+        elif table_name == "serial_keys":
+            query = query.filter(SerialKey.label.ilike(f"%{search}%") | SerialKey.device_id.ilike(f"%{search}%"))
+        elif table_name == "sync_logs":
+            query = query.filter(SyncLog.detail.ilike(f"%{search}%") | SyncLog.device_id.ilike(f"%{search}%"))
+        elif table_name == "admin_users":
+            query = query.filter(AdminUser.username.ilike(f"%{search}%"))
+
+    if hasattr(model, "id"):
+        query = query.order_by(model.id.desc())
+    elif hasattr(model, "timestamp"):
+        query = query.order_by(model.timestamp.desc())
+
+    pagination = query.paginate(page=page, per_page=ITEMS_PER_PAGE, error_out=False)
+    columns = [col.name for col in model.__table__.columns]
+
+    return render_template(
+        "admin/db_browser.html",
+        table_name=table_name,
+        tables=list(models_map.keys()),
+        columns=columns,
+        items=pagination.items,
+        pagination=pagination,
+        search=search,
+    )
+
+
+@admin_bp.route("/db-browser/<string:table_name>/<int:row_id>/delete", methods=["POST"])
+@login_required
+def db_delete_row(table_name: str, row_id: int):
+    models_map = {
+        "products": Product,
+        "categories": Category,
+        "orders": Order,
+        "order_items": OrderItem,
+        "serial_keys": SerialKey,
+        "sync_logs": SyncLog,
+        "admin_users": AdminUser,
+    }
+    if table_name not in models_map:
+        flash("Invalid table name.", "danger")
+        return redirect(url_for("admin.db_browser"))
+
+    model = models_map[table_name]
+    row = db.get_or_404(model, row_id)
+    try:
+        db.session.delete(row)
+        db.session.commit()
+        flash(f"Row {row_id} deleted successfully from {table_name}.", "success")
+    except Exception as exc:
+        db.session.rollback()
+        logger.error("Failed to delete row %s from %s: %s", row_id, table_name, exc)
+        flash("Failed to delete row due to database constraints.", "danger")
+
+    return redirect(url_for("admin.db_browser", table=table_name))

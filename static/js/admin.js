@@ -3,6 +3,33 @@
  */
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Theme Toggle Logic
+  const themeToggle = document.getElementById("theme-toggle");
+  const themeToggleIcon = document.getElementById("theme-toggle-icon");
+
+  function updateThemeUI(theme) {
+    if (!themeToggleIcon) return;
+    if (theme === "light") {
+      themeToggleIcon.className = "bi bi-sun-fill";
+    } else {
+      themeToggleIcon.className = "bi bi-moon-stars-fill";
+    }
+  }
+
+  // Sync visual icon with current theme
+  const initialTheme = document.documentElement.getAttribute("data-theme") || "dark";
+  updateThemeUI(initialTheme);
+
+  if (themeToggle) {
+    themeToggle.addEventListener("click", () => {
+      const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
+      const nextTheme = currentTheme === "light" ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", nextTheme);
+      localStorage.setItem("theme", nextTheme);
+      updateThemeUI(nextTheme);
+    });
+  }
+
   // Mobile sidebar toggle
   const sidebarToggle = document.getElementById("sidebar-toggle");
   const sidebar = document.getElementById("admin-sidebar");
