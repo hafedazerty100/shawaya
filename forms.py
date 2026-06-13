@@ -103,7 +103,7 @@ class ProductForm(FlaskForm):
     )
     image = FileField(
         "Product Image",
-        validators=[Optional()],
+        validators=[FileAllowed(["png", "jpg", "jpeg", "webp"], "Only PNG, JPG, JPEG, and WebP images are allowed.")]
     )
     is_active = BooleanField("Active", default=True)
 
@@ -117,16 +117,6 @@ class ProductForm(FlaskForm):
             raise ValidationError("Price cannot be negative.")
         if val > 99999.99:
             raise ValidationError("Price is unrealistically large.")
-
-    def validate_image(self, field):
-        """Only validate extension if a file was actually uploaded."""
-        # FileStorage is always truthy even when empty — check filename explicitly
-        filename = getattr(field.data, "filename", None) or ""
-        if not filename:
-            return  # No file selected — skip validation (image is optional on edit)
-        ext = filename.rsplit(".", 1)[-1].lower()
-        if ext not in ["png", "jpg", "jpeg", "webp"]:
-            raise ValidationError("Only PNG, JPG, JPEG, and WebP images are allowed.")
 
 
 class SerialKeyGenerateForm(FlaskForm):
