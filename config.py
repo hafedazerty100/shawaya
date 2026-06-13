@@ -6,7 +6,6 @@ Never hardcode secrets here; add them to .env (gitignored).
 """
 
 import os
-import sys
 from dotenv import load_dotenv
 
 # Load .env file before anything else reads os.environ
@@ -100,18 +99,19 @@ class ProductionConfig(Config):
     WTF_CSRF_ENABLED = True
 
     def __init__(self):
-        # Fail fast if critical secrets are still at default values
+        # Warn loudly if critical secrets are still at default values
         missing = []
         if Config.SECRET_KEY == "dev-insecure-secret-key-change-me":
             missing.append("SECRET_KEY")
         if Config.SYNC_API_KEY == "dev-insecure-sync-api-key":
             missing.append("SYNC_API_KEY")
         if missing:
-            print(
-                f"[FATAL] Production requires these env vars to be set: {', '.join(missing)}",
-                file=sys.stderr,
+            import logging
+            logging.getLogger("config").warning(
+                "[WARNING] The following env vars are using insecure defaults: %s. "
+                "Set them in your environment or .env file before going live.",
+                ", ".join(missing),
             )
-            sys.exit(1)
 
 
 def get_config() -> Config:

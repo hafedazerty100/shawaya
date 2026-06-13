@@ -63,7 +63,7 @@ class Product(db.Model):
     )
     name = db.Column(db.String(150), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    # Stored in cents — e.g. $4.50 → 450
+    # Stored in cents — e.g. 450 DA → 45000 cents
     price_cents = db.Column(db.Integer, nullable=False)
     image = db.Column(db.String(255), nullable=True)  # UUID-based filename
     is_active = db.Column(db.Boolean, nullable=False, default=True)
@@ -75,7 +75,7 @@ class Product(db.Model):
     category = db.relationship("Category", back_populates="products")
 
     def __repr__(self) -> str:
-        return f"<Product {self.name!r} ${self.price_cents / 100:.2f}>"
+        return f"<Product {self.name!r} {self.price_cents / 100:.2f} DA>"
 
 
 class Order(db.Model):

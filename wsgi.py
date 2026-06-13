@@ -1,12 +1,17 @@
+"""
+wsgi.py — WSGI entrypoint for production servers (gunicorn, waitress).
+
+Usage on Render / Railway / Fly.io:
+    gunicorn wsgi:app
+    OR
+    python run_server.py
+"""
 import os
+from dotenv import load_dotenv
 
-# Force production server settings so it never crashes on missing environment variables
-os.environ["APP_MODE"] = "server"
-os.environ["FLASK_DEBUG"] = "0"
-os.environ.setdefault("SECRET_KEY", "pella-cloud-secret-key-super-secure")
-os.environ.setdefault("SYNC_API_KEY", "pella-cloud-sync-key-super-secure")
+load_dotenv()
+os.environ.setdefault("APP_MODE", "server")
 
-from app import create_app
+from app import create_app  # noqa: E402
 
-# This 'app' variable is what Pella will hook into
 app = create_app("server")

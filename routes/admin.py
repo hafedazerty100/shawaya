@@ -219,7 +219,7 @@ def categories():
 @admin_bp.route("/categories/<int:cat_id>/edit", methods=["GET", "POST"])
 @login_required
 def edit_category(cat_id: int):
-    cat = Category.query.get_or_404(cat_id)
+    cat = db.get_or_404(Category, cat_id)
     form = CategoryForm(obj=cat)
     if form.validate_on_submit():
         try:
@@ -310,7 +310,7 @@ def new_product():
 @admin_bp.route("/products/<int:product_id>/edit", methods=["GET", "POST"])
 @login_required
 def edit_product(product_id: int):
-    product = Product.query.get_or_404(product_id)
+    product = db.get_or_404(Product, product_id)
     form = ProductForm(obj=product)
     form.category_id.choices = [
         (c.id, c.name)
@@ -350,7 +350,7 @@ def edit_product(product_id: int):
 @admin_bp.route("/products/<int:product_id>/delete", methods=["POST"])
 @login_required
 def delete_product(product_id: int):
-    product = Product.query.get_or_404(product_id)
+    product = db.get_or_404(Product, product_id)
     try:
         if product.image:
             delete_product_image(product.image)
@@ -388,7 +388,7 @@ def orders():
 @admin_bp.route("/orders/<int:order_id>")
 @login_required
 def order_detail(order_id: int):
-    order = Order.query.get_or_404(order_id)
+    order = db.get_or_404(Order, order_id)
     return render_template("admin/order_detail.html", order=order)
 
 
@@ -469,7 +469,7 @@ def serial_keys():
 @admin_bp.route("/serial_keys/<int:key_id>/revoke", methods=["POST"])
 @login_required
 def revoke_serial_key(key_id: int):
-    key = SerialKey.query.get_or_404(key_id)
+    key = db.get_or_404(SerialKey, key_id)
     try:
         key.is_active = False
         key.device_id = None
