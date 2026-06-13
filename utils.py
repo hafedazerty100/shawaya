@@ -37,9 +37,9 @@ def format_price(cents: int) -> str:
     return f"{cents / 100:.2f} DA"
 
 
-def dollars_to_cents(dollars: float) -> int:
-    """Convert a dollar float (from user input) to integer cents."""
-    return round(dollars * 100)
+def da_to_cents(da: float) -> int:
+    """Convert a DA float (from user input) to integer cents."""
+    return round(da * 100)
 
 
 # ─── Serial key hashing ───────────────────────────────────────────────────────

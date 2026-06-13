@@ -31,7 +31,7 @@ from forms import (
 from models import AdminUser, Category, Order, Product, SerialKey, SyncLog
 from utils import (
     delete_product_image,
-    dollars_to_cents,
+    da_to_cents,
     format_price,
     hash_serial,
     save_product_image,
@@ -120,21 +120,74 @@ def force_password_change():
 @admin_bp.route("/dashboard")
 @login_required
 def dashboard():
-    today_start = datetime.now(timezone.utc).replace(
-        hour=0, minute=0, second=0, microsecond=0
-    )
-    today_orders = Order.query.filter(Order.created_at >= today_start).all()
-    today_revenue = sum(o.total_cents for o in today_orders)
+    from sqlalchemy import func
+    from datetime import timedelta
+    from models import OrderItem
+
+    # Determine filter period
+    period = request.args.get("period", "week").lower()
+    now_utc = datetime.now(timezone.utc)
+
+    if period == "today":
+        start_date = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif period == "month":
+        start_date = now_utc - timedelta(days=30)
+    elif period == "all":
+        start_date = datetime.fromtimestamp(0, tz=timezone.utc)
+    else:
+        period = "week"
+        start_date = now_utc - timedelta(days=7)
+
+    # General today's stats for top badges
+    today_start = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
+    today_orders = Order.query.filter(Order.created_at >= today_start).count()
+    today_revenue_cents = db.session.query(func.sum(Order.total_cents)).filter(Order.created_at >= today_start).scalar() or 0
+    today_revenue = format_price(today_revenue_cents)
+
     pending_count = Order.query.filter_by(status="pending").count()
     recent_logs = (
         SyncLog.query.order_by(SyncLog.timestamp.desc()).limit(10).all()
     )
+
+    # Period statistics
+    period_orders = Order.query.filter(Order.created_at >= start_date).count()
+    period_revenue_cents = db.session.query(func.sum(Order.total_cents)).filter(Order.created_at >= start_date).scalar() or 0
+    period_revenue = format_price(period_revenue_cents)
+
+    # Top selling products in this period
+    top_selling = (
+        db.session.query(
+            OrderItem.product_name_snapshot,
+            func.sum(OrderItem.quantity).label("total_qty"),
+            func.sum(OrderItem.subtotal_cents).label("total_sales")
+        )
+        .join(Order)
+        .filter(Order.created_at >= start_date)
+        .group_by(OrderItem.product_name_snapshot)
+        .order_by(func.sum(OrderItem.quantity).desc())
+        .limit(5)
+        .all()
+    )
+
+    formatted_top_selling = [
+        {
+            "name": item[0],
+            "qty": item[1],
+            "sales": format_price(item[2])
+        }
+        for item in top_selling
+    ]
+
     return render_template(
         "admin/dashboard.html",
-        today_orders=len(today_orders),
-        today_revenue=format_price(today_revenue),
+        today_orders=today_orders,
+        today_revenue=today_revenue,
         pending_count=pending_count,
         recent_logs=recent_logs,
+        period=period,
+        period_orders=period_orders,
+        period_revenue=period_revenue,
+        top_selling=formatted_top_selling,
     )
 
 
@@ -237,7 +290,7 @@ def new_product():
                 name=form.name.data.strip(),
                 description=form.description.data.strip() if form.description.data else "",
                 category_id=form.category_id.data,
-                price_cents=dollars_to_cents(float(form.price.data.replace(",", "."))),
+                price_cents=da_to_cents(float(form.price.data.replace(",", "."))),
                 image=image_filename,
                 is_active=form.is_active.data,
             )
@@ -263,7 +316,7 @@ def edit_product(product_id: int):
         (c.id, c.name)
         for c in Category.query.order_by(Category.display_order, Category.name).all()
     ]
-    # Pre-populate price field (stored as cents, display as dollars)
+    # Pre-populate price field (stored as cents, display as DA decimal)
     if request.method == "GET":
         form.price.data = f"{product.price_cents / 100:.2f}"
 
@@ -278,7 +331,7 @@ def edit_product(product_id: int):
             product.name = form.name.data.strip()
             product.description = form.description.data.strip() if form.description.data else ""
             product.category_id = form.category_id.data
-            product.price_cents = dollars_to_cents(float(form.price.data.replace(",", ".")))
+            product.price_cents = da_to_cents(float(form.price.data.replace(",", ".")))
             product.is_active = form.is_active.data
             db.session.commit()
             flash(f"Product '{product.name}' updated.", "success")

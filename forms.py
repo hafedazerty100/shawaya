@@ -96,20 +96,14 @@ class ProductForm(FlaskForm):
         coerce=int,
         validators=[DataRequired()],
     )
-    # Price entered as dollars (e.g. 4.50) — converted to cents in the route
+    # Price entered as DA (e.g. 250.00) — converted to cents in the route
     price = StringField(
         "Price (DA)",
         validators=[DataRequired()],
     )
     image = FileField(
         "Product Image",
-        validators=[
-            Optional(),
-            FileAllowed(
-                ["png", "jpg", "jpeg", "webp"],
-                "Only PNG, JPG, JPEG, and WebP images are allowed.",
-            ),
-        ],
+        validators=[Optional()],
     )
     is_active = BooleanField("Active", default=True)
 
@@ -118,11 +112,18 @@ class ProductForm(FlaskForm):
         try:
             val = float(field.data.replace(",", "."))
         except (ValueError, AttributeError):
-            raise ValidationError("Price must be a valid number (e.g. 4.50).")
+            raise ValidationError("Price must be a valid number (e.g. 250.00).")
         if val < 0:
             raise ValidationError("Price cannot be negative.")
         if val > 99999.99:
             raise ValidationError("Price is unrealistically large.")
+
+    def validate_image(self, field):
+        """Only validate extension if a file was actually uploaded."""
+        if field.data and hasattr(field.data, "filename") and field.data.filename:
+            ext = field.data.filename.rsplit(".", 1)[-1].lower()
+            if ext not in ["png", "jpg", "jpeg", "webp"]:
+                raise ValidationError("Only PNG, JPG, JPEG, and WebP images are allowed.")
 
 
 class SerialKeyGenerateForm(FlaskForm):
