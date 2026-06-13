@@ -187,7 +187,8 @@ def pull_products(app) -> int:
         products = data.get("products", [])
 
         try:
-            # Upsert categories
+            # ── Upsert categories ────────────────────────────────────────────
+            server_cat_ids = set()
             for cat_data in categories:
                 cat = Category.query.get(cat_data["id"])
                 if cat is None:
@@ -195,8 +196,16 @@ def pull_products(app) -> int:
                     db.session.add(cat)
                 cat.name = cat_data["name"]
                 cat.display_order = cat_data.get("display_order", 0)
+                server_cat_ids.add(cat_data["id"])
 
-            # Upsert products
+            # Delete categories no longer on server
+            for local_cat in Category.query.all():
+                if local_cat.id not in server_cat_ids:
+                    db.session.delete(local_cat)
+                    logger.info("Removed deleted category id=%s from local DB.", local_cat.id)
+
+            # ── Upsert products ──────────────────────────────────────────────
+            server_product_ids = set()
             count = 0
             for prod_data in products:
                 prod = Product.query.get(prod_data["id"])
@@ -232,7 +241,18 @@ def pull_products(app) -> int:
                             img_exc,
                         )
 
+                server_product_ids.add(prod_data["id"])
                 count += 1
+
+            # ── Delete products removed on server ────────────────────────────
+            for local_prod in Product.query.all():
+                if local_prod.id not in server_product_ids:
+                    logger.info(
+                        "Removing deleted product '%s' (id=%s) from local DB.",
+                        local_prod.name,
+                        local_prod.id,
+                    )
+                    db.session.delete(local_prod)
 
             db.session.commit()
             _log_sync(db, "pull", "success", f"Pulled {count} products.", "desktop")
