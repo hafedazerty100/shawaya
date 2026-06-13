@@ -552,6 +552,19 @@ def serial_keys():
     )
 
 
+@admin_bp.route("/serial_keys/<int:key_id>/revoke", methods=["POST"])
+@login_required
+def revoke_serial_key(key_id: int):
+    key = db.get_or_404(SerialKey, key_id)
+    try:
+        key.is_active = False
+        key.device_id = None
+        db.session.commit()
+        flash(f"Serial key '{key.label or key.id}' revoked.", "success")
+    except Exception as exc:
+        db.session.rollback()
+        logger.error("Serial key revoke failed: %s", exc)
+        flash("Failed to revoke serial key.", "danger")
     return redirect(url_for("admin.serial_keys"))
 
 
