@@ -98,7 +98,7 @@ class ProductForm(FlaskForm):
     )
     # Price entered as dollars (e.g. 4.50) — converted to cents in the route
     price = StringField(
-        "Price ($)",
+        "Price (DA)",
         validators=[DataRequired()],
     )
     image = FileField(

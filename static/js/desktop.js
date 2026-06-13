@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ── Format price ──────────────────────────────────────────────────────────
   function fmt(cents) {
-    return (cents / 100).toFixed(2) + " د.ج";
+    return (cents / 100).toFixed(2) + " DA";
   }
 
   // ── Fetch product catalog ─────────────────────────────────────────────────

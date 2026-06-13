@@ -33,8 +33,8 @@ MAX_IMAGE_WIDTH = 1024  # pixels — resize wider images
 # ─── Price helpers ────────────────────────────────────────────────────────────
 
 def format_price(cents: int) -> str:
-    """Convert an integer cent value to a display string, e.g. 450 → '$4.50'."""
-    return f"${cents / 100:.2f}"
+    """Convert an integer cent value to a display string, e.g. 450 → '4.50 DA'."""
+    return f"{cents / 100:.2f} DA"
 
 
 def dollars_to_cents(dollars: float) -> int:
