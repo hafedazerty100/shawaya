@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let menuData = [];
   let currentCategory = "all";
   let printInProgress = false; // prevent double-tap spam
+  let runningTotalCents = 0;
 
   // Elements
   const productGrid     = document.getElementById("product-grid");
@@ -142,6 +143,10 @@ document.addEventListener("DOMContentLoaded", () => {
       // ── Add to feed ───────────────────────────────────────────────────────
       addToFeed(product, data.order_id);
 
+      // ── Update running total ──────────────────────────────────────────────
+      runningTotalCents += product.price_cents;
+      document.getElementById("total-amount").textContent = fmt(runningTotalCents);
+
       // Trigger background sync (don't await — keep it fast)
       fetch("/api/sync", { method: "POST" }).catch(() => {});
 
@@ -215,6 +220,10 @@ document.addEventListener("DOMContentLoaded", () => {
   btnClearFeed.addEventListener("click", () => {
     ticketFeedItems.querySelectorAll(".feed-item").forEach(el => el.remove());
     feedEmpty.style.display = "flex";
+    
+    // Reset running total
+    runningTotalCents = 0;
+    document.getElementById("total-amount").textContent = fmt(runningTotalCents);
   });
 
   // ── Sync status badge ─────────────────────────────────────────────────────

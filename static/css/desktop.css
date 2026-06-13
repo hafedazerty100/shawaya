@@ -515,3 +515,26 @@ body {
   box-shadow: 0 0 0 3px rgba(245,158,11,.25);
 }
 .alert-danger { background: rgba(239,68,68,.15); color: #f87171; border-color: rgba(239,68,68,.3); }
+
+/* Ticket Feed Total */
+.ticket-feed-total {
+  padding: 16px;
+  background: var(--bg-card);
+  border-top: 2px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+.ticket-feed-total .total-label {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+.ticket-feed-total .total-amount {
+  color: var(--brand);
+  font-size: 1.25rem;
+}
+
