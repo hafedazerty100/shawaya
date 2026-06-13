@@ -152,11 +152,26 @@
 <div class="card admin-card mt-4">
   <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
     <h5 class="mb-0"><i class="bi bi-calendar3 me-2"></i>تفصيل يومي</h5>
-    <div class="btn-group btn-group-sm" role="group">
-      <a href="{{ url_for('admin.dashboard', period='today') }}" class="btn btn-outline-primary {% if period == 'today' %}active{% endif %}">اليوم</a>
-      <a href="{{ url_for('admin.dashboard', period='week') }}" class="btn btn-outline-primary {% if period == 'week' %}active{% endif %}">الأسبوع</a>
-      <a href="{{ url_for('admin.dashboard', period='month') }}" class="btn btn-outline-primary {% if period == 'month' %}active{% endif %}">الشهر</a>
-      <a href="{{ url_for('admin.dashboard', period='all') }}" class="btn btn-outline-primary {% if period == 'all' %}active{% endif %}">كل الوقت</a>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <!-- Date picker for a specific day -->
+      <form method="get" action="{{ url_for('admin.dashboard') }}" class="d-flex align-items-center gap-1">
+        <input type="date" name="date" id="date-picker"
+               value="{{ date_str }}"
+               class="form-control form-control-sm"
+               style="width:160px;"
+               onchange="this.form.submit()"
+               title="اختر يوم محدد">
+        {% if date_str %}
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary" title="مسح التصفية">✕</a>
+        {% endif %}
+      </form>
+      <!-- Period buttons -->
+      <div class="btn-group btn-group-sm" role="group">
+        <a href="{{ url_for('admin.dashboard', period='today') }}" class="btn btn-outline-primary {% if period == 'today' %}active{% endif %}">اليوم</a>
+        <a href="{{ url_for('admin.dashboard', period='week') }}"  class="btn btn-outline-primary {% if period == 'week'  %}active{% endif %}">الأسبوع</a>
+        <a href="{{ url_for('admin.dashboard', period='month') }}" class="btn btn-outline-primary {% if period == 'month' %}active{% endif %}">الشهر</a>
+        <a href="{{ url_for('admin.dashboard', period='all') }}"   class="btn btn-outline-primary {% if period == 'all'   %}active{% endif %}">كل الوقت</a>
+      </div>
     </div>
   </div>
   <div class="card-body p-0">

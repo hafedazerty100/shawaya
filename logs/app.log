@@ -3273,3 +3273,6 @@
 [2026-06-13 11:14:57] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=False).
 [2026-06-13 11:14:57] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=False).
 [2026-06-13 11:30:21] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=False).
+[2026-06-13 12:06:17] INFO app: Starting Coffee Shop POS in 'server' mode (debug=False).
+[2026-06-13 12:06:20] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=False).
+[2026-06-13 12:06:20] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=False).

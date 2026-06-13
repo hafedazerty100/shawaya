@@ -10,12 +10,18 @@ Routes:
   GET  /api/print-receipt/<id>     — Printable receipt HTML (browser window.print)
   POST /api/sync                   — Manually trigger sync cycle
   POST /api/pull-products          — Manually trigger product pull
+
+Auth flow (simple):
+  1. User enters raw serial → desktop hashes it (SHA-256) → sends hash to server.
+  2. Server checks hash in Neon DB → 200 OK if valid.
+  3. Desktop stores the hash in serial.txt.
+  4. On each page load: if hash in file → kiosk is unlocked (checked every 5 min).
+  5. Only locks out if server explicitly says 401/403 (revoked/not found).
 """
 
 import logging
 import os
 import socket
-import uuid
 from datetime import datetime, timezone, timedelta
 
 import requests
@@ -31,83 +37,76 @@ from flask import (
 
 from extensions import db
 from models import Category, Order, OrderItem, Product
-from utils import (
-    format_price,
-    hash_serial,
-    validate_activation_token,
-)
+from utils import format_price, hash_serial
 
 desktop_bp = Blueprint("desktop", __name__)
 logger = logging.getLogger("routes.desktop")
 
-TOKEN_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "serial.txt")
+# Local file that stores the SHA-256 hash of the activated serial
+SERIAL_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "serial.txt")
 
 
 # ─── Activation helpers ───────────────────────────────────────────────────────
 
-def _read_token() -> str:
-    """Read the locally stored activation token, or return ''."""
+def _read_serial_hash() -> str:
+    """Read the stored serial hash from disk, or return ''."""
     try:
-        if os.path.isfile(TOKEN_PATH):
-            with open(TOKEN_PATH, "r") as f:
-                return f.read().strip()
+        if os.path.isfile(SERIAL_PATH):
+            return open(SERIAL_PATH).read().strip()
     except OSError:
         pass
     return ""
 
 
-def _write_token(token: str) -> None:
-    """Persist the activation token to disk."""
-    with open(TOKEN_PATH, "w") as f:
-        f.write(token)
+def _save_serial_hash(serial_hash: str) -> None:
+    """Persist the serial hash to disk."""
+    with open(SERIAL_PATH, "w") as f:
+        f.write(serial_hash)
 
 
-def _clear_token() -> None:
-    """Remove the locally stored activation token."""
-    if os.path.isfile(TOKEN_PATH):
-        os.remove(TOKEN_PATH)
+def _clear_serial_hash() -> None:
+    """Delete the stored serial hash (kiosk needs to re-activate)."""
+    if os.path.isfile(SERIAL_PATH):
+        os.remove(SERIAL_PATH)
 
 
 _last_remote_check: datetime | None = None
-_RECHECK_INTERVAL = timedelta(minutes=5)  # Only hit the server once every 5 min
+_RECHECK_INTERVAL = timedelta(minutes=5)
 
 
 def _is_activated() -> bool:
     """
-    Return True if the kiosk has a valid activation token.
+    Return True if the kiosk has a valid serial hash stored locally.
 
-    Rules (in order):
-      1. No token on disk → False.
-      2. Token is present → local check passes → True by default.
-      3. Every 5 minutes, re-validate with the server.
-         - Server says 200 valid=true → True (update cache).
-         - Server says 401 or 403    → token revoked → clear it → False.
-         - Server is unreachable, sleeping, or returns any other status
-           → keep the kiosk running (benefit of the doubt).
-
-    This means the kiosk ONLY gets locked out if:
-      a) There is no token at all, OR
-      b) The server explicitly revokes the serial (401/403).
-    Network errors and Render cold-starts NEVER log the user out.
+    Rules:
+      1. No serial hash on disk → show activation form.
+      2. Hash exists → unlocked by default.
+      3. Every 5 min, re-check with the server:
+         - 200 OK → stay unlocked, update cache timestamp.
+         - 401/403 → server revoked/deleted the serial → clear hash → lock.
+         - Network error / server sleeping → stay unlocked (benefit of doubt).
     """
     global _last_remote_check
 
-    token = _read_token()
-    if not token or len(token) < 10:
-        return False  # No token stored — must activate
+    serial_hash = _read_serial_hash()
+    if not serial_hash or len(serial_hash) != 64:
+        return False  # No valid serial stored — must activate
 
     now = datetime.now(timezone.utc)
 
-    # Skip server check if we checked recently — local token is enough
+    # Within 5-min cache window — no need to hit the server
     if _last_remote_check and (now - _last_remote_check) < _RECHECK_INTERVAL:
         return True
 
-    # Attempt remote re-validation (non-blocking; we always default to True on failure)
+    # Periodic re-validation against Neon DB
     server_url = current_app.config.get("SERVER_URL", "http://localhost:5000")
     try:
         resp = requests.post(
             f"{server_url}/api/validate-serial",
-            json={"activation_token": token},
+            json={
+                "serial_hash": serial_hash,
+                "device_id": socket.gethostname(),
+            },
             headers={
                 "X-API-KEY": current_app.config.get("SYNC_API_KEY", ""),
                 "Content-Type": "application/json",
@@ -115,23 +114,23 @@ def _is_activated() -> bool:
             timeout=4,
         )
         if resp.status_code == 200 and resp.json().get("valid"):
-            _last_remote_check = now   # Update cache on success
+            _last_remote_check = now
             return True
         if resp.status_code in (401, 403):
-            # Server explicitly revoked this serial key — lock the kiosk
-            logger.warning("Serial key revoked by server (status %d). Clearing token.", resp.status_code)
-            _clear_token()
+            logger.warning(
+                "Serial rejected by server (%d) — clearing local hash.",
+                resp.status_code,
+            )
+            _clear_serial_hash()
             return False
-        # Any other response (500, 502, 503, timeout-after-connect, etc.)
-        # → treat as temporary server issue, keep running
-        logger.debug("Server returned %d during token re-validation — keeping kiosk running.", resp.status_code)
+        # 500, 502, 503, etc. → treat as temporary → stay unlocked
+        logger.debug("Server returned %d during serial check — keeping kiosk running.", resp.status_code)
 
     except requests.RequestException as exc:
-        # Server unreachable (offline, Render sleeping, DNS error, timeout)
-        # → keep running, DO NOT log the user out
-        logger.debug("Server unreachable during token check (%s) — kiosk stays unlocked.", exc)
+        # Offline / Render sleeping → stay unlocked
+        logger.debug("Server unreachable during serial check — kiosk stays unlocked. (%s)", exc)
 
-    return True  # Token exists, server didn't explicitly reject it → stay unlocked
+    return True  # Serial on disk, server didn't explicitly reject it
 
 
 # ─── Routes ───────────────────────────────────────────────────────────────────
@@ -141,26 +140,19 @@ def index():
     """Main ordering page — redirects to /activate if not activated."""
     if not _is_activated():
         return redirect(url_for("desktop.activate"))
-
-    categories = (
-        Category.query.order_by(Category.display_order, Category.name).all()
-    )
+    categories = Category.query.order_by(Category.display_order, Category.name).all()
     return render_template("desktop/index.html", categories=categories)
 
 
 @desktop_bp.route("/activate", methods=["GET", "POST"])
 def activate():
-    """Serial entry and activation page."""
+    """Serial key entry form."""
     error = None
-    success = False
 
     if request.method == "POST":
         raw_serial = request.form.get("serial", "").strip()
-        # Use a stable machine identifier so re-activations always match
-        device_id = request.form.get("device_id", "").strip() or socket.gethostname()
-
         if not raw_serial:
-            error = "Please enter a serial key."
+            error = "أدخل الرمز التسلسلي."
         else:
             serial_hash = hash_serial(raw_serial)
             server_url = current_app.config.get("SERVER_URL", "http://localhost:5000")
@@ -169,7 +161,7 @@ def activate():
                     f"{server_url}/api/validate-serial",
                     json={
                         "serial_hash": serial_hash,
-                        "device_id": device_id,
+                        "device_id": socket.gethostname(),
                     },
                     headers={
                         "X-API-KEY": current_app.config.get("SYNC_API_KEY", ""),
@@ -178,23 +170,20 @@ def activate():
                     timeout=10,
                 )
                 if resp.status_code == 200:
-                    data = resp.json()
-                    token = data.get("activation_token", "")
-                    if token and validate_activation_token(token):
-                        _write_token(token)
-                        success = True
-                        return redirect(url_for("desktop.index"))
-                    else:
-                        error = "Received an invalid activation token from server."
-                elif resp.status_code == 401:
-                    error = "Invalid or already-used serial key."
+                    _save_serial_hash(serial_hash)
+                    return redirect(url_for("desktop.index"))
+                # Use the Arabic error message from the server if available
+                server_error = resp.json().get("error", "")
+                if resp.status_code == 401:
+                    error = server_error or "الرمز التسلسلي غير صحيح."
                 elif resp.status_code == 403:
-                    error = "Serial key has expired or been revoked."
+                    error = server_error or "الرمز التسلسلي منتهي الصلاحية أو تم إلغاؤه."
                 else:
-                    error = f"Server error ({resp.status_code}). Try again later."
-            except requests.RequestException as exc:
-                error = f"Cannot reach the server: {exc}. Check your network connection."
+                    error = f"خطأ في الخادم ({resp.status_code}). حاول مجدداً."
+            except requests.RequestException:
+                error = "لا يمكن الوصول إلى الخادم. تحقق من اتصالك بالإنترنت."
 
+    # Check server connectivity for UI feedback
     online = False
     server_url = current_app.config.get("SERVER_URL", "http://localhost:5000")
     try:
@@ -203,9 +192,7 @@ def activate():
     except requests.RequestException:
         pass
 
-    return render_template(
-        "desktop/activate.html", error=error, success=success, online=online
-    )
+    return render_template("desktop/activate.html", error=error, online=online)
 
 
 @desktop_bp.route("/api/products")

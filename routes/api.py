@@ -4,32 +4,19 @@ routes/api.py — Sync API Blueprint (server-side only).
 Endpoints:
   POST /api/sync/orders      — Accept a batch of orders from a kiosk
   GET  /api/products         — Return full product catalog for desktop pull
-  POST /api/validate-serial  — Validate/activate a serial key; return signed token
+  POST /api/validate-serial  — Validate a serial key against the Neon DB
 
-All endpoints:
-  - Require X-API-KEY header matching SYNC_API_KEY env var
-  - Are rate-limited to 30 requests/minute per IP
-  - Log auth failures to SyncLog
+All endpoints require X-API-KEY header and are rate-limited.
 """
 
-import hmac
 import logging
 from datetime import datetime, timezone
 
-from flask import Blueprint, current_app, jsonify, request
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
+from flask import Blueprint, jsonify, request
 
 from extensions import db, limiter
 from models import Category, Order, OrderItem, Product, SerialKey, SyncLog
-from utils import (
-    api_key_required,
-    format_price,
-    generate_activation_token,
-    hash_serial,
-    validate_activation_token,
-    extract_token_device_id,
-)
+from utils import api_key_required, format_price
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 logger = logging.getLogger("routes.api")
@@ -55,66 +42,53 @@ def _log(direction: str, status: str, detail: str, device_id: str = "") -> None:
 @api_key_required
 def validate_serial():
     """
-    Validates a serial key (or re-validates an existing activation token).
+    Simple serial validation: check if the serial hash exists in the DB.
 
-    Accepts either:
-      A. { "serial_hash": "<sha256>", "device_id": "<id>" }  → First activation
-      B. { "activation_token": "<token>" }                   → Re-validation
+    Accepts: { "serial_hash": "<sha256>", "device_id": "<optional>" }
 
     Returns:
-      200 { "valid": true, "activation_token": "..." }
-      401 { "error": "..." }   Invalid or inactive serial
-      403 { "error": "..." }   Expired or revoked
+      200 { "valid": true }   — Serial found, not expired, not revoked
+      401 { "error": "..." }  — Serial not found
+      403 { "error": "..." }  — Expired or revoked by admin
     """
     data = request.get_json(silent=True) or {}
+    serial_hash = data.get("serial_hash", "").strip()
     device_id = data.get("device_id", request.remote_addr)
 
-    # Case B: token re-validation
-    activation_token = data.get("activation_token")
-    if activation_token:
-        if validate_activation_token(activation_token):
-            return jsonify({"valid": True, "activation_token": activation_token}), 200
-        _log("push", "error", f"Invalid re-validation token from {request.remote_addr}", device_id)
-        return jsonify({"error": "Invalid activation token."}), 401
-
-    # Case A: first activation
-    serial_hash = data.get("serial_hash", "").strip()
     if not serial_hash or len(serial_hash) != 64:
         return jsonify({"error": "Missing or invalid serial_hash."}), 400
 
     key = SerialKey.query.filter_by(serial_hash=serial_hash).first()
 
     if key is None:
-        _log("push", "error", f"Unknown serial from {request.remote_addr}", device_id)
         logger.warning("Unknown serial attempt from IP %s", request.remote_addr)
-        return jsonify({"error": "Invalid serial key."}), 401
+        return jsonify({"error": "الرمز التسلسلي غير صحيح."}), 401
 
+    # Check expiry
     if key.expires_at:
-        expires_at_naive = key.expires_at.replace(tzinfo=None)
-        now_naive = datetime.now(timezone.utc).replace(tzinfo=None)
-        if expires_at_naive < now_naive:
-            _log("push", "error", f"Expired serial from {request.remote_addr}", str(key.id))
-            return jsonify({"error": "Serial key has expired."}), 403
+        now = datetime.now(timezone.utc)
+        expires = key.expires_at if key.expires_at.tzinfo else key.expires_at.replace(tzinfo=timezone.utc)
+        if expires < now:
+            return jsonify({"error": "الرمز التسلسلي منتهي الصلاحية."}), 403
 
-    # Allow re-activation: if the serial was previously activated on another device,
-    # update the device_id and re-issue the token (supports reinstalls and reboots).
-    # To block a key permanently, use the Revoke button in the admin dashboard.
+    # Revoked: was activated before but admin set is_active=False
+    if not key.is_active and key.activated_at is not None:
+        return jsonify({"error": "تم إلغاء الرمز التسلسلي من قِبَل المشرف."}), 403
 
-    # Activate / re-activate
+    # First use or re-activation: mark as active
     try:
         key.is_active = True
         key.activated_at = datetime.now(timezone.utc)
-        key.device_id = device_id
+        if device_id:
+            key.device_id = device_id
         db.session.commit()
     except Exception as exc:
         db.session.rollback()
         logger.error("Failed to activate serial: %s", exc)
-        return jsonify({"error": "Server error during activation."}), 500
+        return jsonify({"error": "خطأ في الخادم."}), 500
 
-    token = generate_activation_token(serial_hash, device_id)
-    _log("push", "success", f"Serial activated for device '{device_id}'", device_id)
-    logger.info("Serial activated: device=%s", device_id)
-    return jsonify({"valid": True, "activation_token": token}), 200
+    _log("push", "success", f"Serial validated for device '{device_id}'", device_id)
+    return jsonify({"valid": True}), 200
 
 
 # ─── Product catalog pull ─────────────────────────────────────────────────────

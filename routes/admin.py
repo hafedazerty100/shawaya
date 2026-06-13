@@ -124,81 +124,105 @@ def dashboard():
     from datetime import timedelta
     from models import OrderItem
 
-    # Determine filter period
+    # ── Period filter ───────────────────────────────────────────────────────
     period = request.args.get("period", "week").lower()
+    date_str = request.args.get("date", "").strip()   # e.g. "2025-06-01"
     now_utc = datetime.now(timezone.utc)
 
-    if period == "today":
+    selected_date = None
+    if date_str:
+        try:
+            selected_date = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            period = "day"
+        except ValueError:
+            date_str = ""
+
+    if selected_date:
+        start_date = selected_date
+        end_date = selected_date + timedelta(days=1)
+    elif period == "today":
         start_date = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = None
     elif period == "month":
         start_date = now_utc - timedelta(days=30)
+        end_date = None
     elif period == "all":
         start_date = datetime.fromtimestamp(0, tz=timezone.utc)
+        end_date = None
     else:
         period = "week"
         start_date = now_utc - timedelta(days=7)
+        end_date = None
 
-    # General today's stats for top badges
+    # ── Today's badges ──────────────────────────────────────────────────────
     today_start = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
     today_orders = Order.query.filter(Order.created_at >= today_start).count()
-    today_revenue_cents = db.session.query(func.sum(Order.total_cents)).filter(Order.created_at >= today_start).scalar() or 0
-    today_revenue = format_price(today_revenue_cents)
-
-    pending_count = Order.query.filter_by(status="pending").count()
-    recent_logs = (
-        SyncLog.query.order_by(SyncLog.timestamp.desc()).limit(10).all()
+    today_revenue_cents = (
+        db.session.query(func.sum(Order.total_cents))
+        .filter(Order.created_at >= today_start)
+        .scalar() or 0
     )
+    today_revenue = format_price(today_revenue_cents)
+    pending_count = Order.query.filter_by(status="pending").count()
+    recent_logs = SyncLog.query.order_by(SyncLog.timestamp.desc()).limit(10).all()
 
-    # Period statistics
-    period_orders = Order.query.filter(Order.created_at >= start_date).count()
-    period_revenue_cents = db.session.query(func.sum(Order.total_cents)).filter(Order.created_at >= start_date).scalar() or 0
+    # ── Period / day stats ──────────────────────────────────────────────────
+    base_q = Order.query.filter(Order.created_at >= start_date)
+    if end_date:
+        base_q = base_q.filter(Order.created_at < end_date)
+
+    period_orders = base_q.count()
+    period_revenue_cents = (
+        db.session.query(func.sum(Order.total_cents))
+        .filter(Order.created_at >= start_date,
+                *([Order.created_at < end_date] if end_date else []))
+        .scalar() or 0
+    )
     period_revenue = format_price(period_revenue_cents)
 
-    # Top selling products in this period
-    top_selling = (
+    # ── Top selling ─────────────────────────────────────────────────────────
+    top_q = (
         db.session.query(
             OrderItem.product_name_snapshot,
             func.sum(OrderItem.quantity).label("total_qty"),
-            func.sum(OrderItem.subtotal_cents).label("total_sales")
+            func.sum(OrderItem.subtotal_cents).label("total_sales"),
         )
         .join(Order)
         .filter(Order.created_at >= start_date)
-        .group_by(OrderItem.product_name_snapshot)
+    )
+    if end_date:
+        top_q = top_q.filter(Order.created_at < end_date)
+    top_selling = (
+        top_q.group_by(OrderItem.product_name_snapshot)
         .order_by(func.sum(OrderItem.quantity).desc())
         .limit(5)
         .all()
     )
-
     formatted_top_selling = [
-        {
-            "name": item[0],
-            "qty": item[1],
-            "sales": format_price(item[2])
-        }
-        for item in top_selling
+        {"name": r[0], "qty": r[1], "sales": format_price(r[2])}
+        for r in top_selling
     ]
 
-    # Daily breakdown for the selected period
+    # ── Daily breakdown ─────────────────────────────────────────────────────
     from sqlalchemy import cast, Date as SADate
-    daily_breakdown = (
+    daily_q = (
         db.session.query(
             cast(Order.created_at, SADate).label("day"),
             func.count(Order.id).label("orders"),
             func.sum(Order.total_cents).label("revenue_cents"),
         )
         .filter(Order.created_at >= start_date)
-        .group_by(cast(Order.created_at, SADate))
+    )
+    if end_date:
+        daily_q = daily_q.filter(Order.created_at < end_date)
+    daily_breakdown = (
+        daily_q.group_by(cast(Order.created_at, SADate))
         .order_by(cast(Order.created_at, SADate).desc())
         .all()
     )
-
     daily_rows = [
-        {
-            "day": str(row.day),
-            "orders": row.orders,
-            "revenue": format_price(row.revenue_cents or 0),
-        }
-        for row in daily_breakdown
+        {"day": str(r.day), "orders": r.orders, "revenue": format_price(r.revenue_cents or 0)}
+        for r in daily_breakdown
     ]
 
     return render_template(
@@ -212,6 +236,7 @@ def dashboard():
         period_revenue=period_revenue,
         top_selling=formatted_top_selling,
         daily_rows=daily_rows,
+        date_str=date_str,
     )
 
 
