@@ -71,18 +71,31 @@ def _clear_token() -> None:
         os.remove(TOKEN_PATH)
 
 
+_last_remote_check: datetime | None = None
+_RECHECK_INTERVAL = timedelta(minutes=5)  # Only hit the server once every 5 min
+
+
 def _is_activated() -> bool:
     """
     Return True if the kiosk has a valid activation token.
 
-    Validates the HMAC signature locally. If the server is reachable,
-    also re-validates remotely. Falls back to grace period if offline.
+    - Validates the HMAC signature locally on every call (fast, no network).
+    - Only contacts the server every 5 minutes to re-validate remotely.
+    - Falls back to grace period if offline.
     """
+    global _last_remote_check
+
     token = _read_token()
     if not token or not validate_activation_token(token):
         return False
 
-    # Attempt periodic remote re-validation (non-blocking; failures are tolerated)
+    now = datetime.now(timezone.utc)
+
+    # Skip remote check if we checked recently
+    if _last_remote_check and (now - _last_remote_check) < _RECHECK_INTERVAL:
+        return True  # Local HMAC already passed above — good enough
+
+    # Attempt periodic remote re-validation
     server_url = current_app.config.get("SERVER_URL", "http://localhost:5000")
     try:
         resp = requests.post(
@@ -95,23 +108,25 @@ def _is_activated() -> bool:
             timeout=3,
         )
         if resp.status_code == 200 and resp.json().get("valid"):
+            _last_remote_check = now
             return True
         elif resp.status_code in (401, 403):
             # Server explicitly rejected — revoke
             _clear_token()
             return False
+        # Any other status (500, etc.) — treat as offline, use grace period
     except requests.RequestException:
-        # Offline — apply grace period logic
-        # Token format: serial_hash:device_id:timestamp:sig
-        try:
-            payload = token.rsplit(":", 1)[0]
-            ts = int(payload.split(":")[2])
-            issued_at = datetime.fromtimestamp(ts, tz=timezone.utc)
-            if datetime.now(timezone.utc) - issued_at < timedelta(days=GRACE_PERIOD_DAYS):
-                return True  # Within grace period — allow offline use
-        except (ValueError, IndexError):
-            pass
-        return False
+        pass  # Offline — fall through to grace period
+
+    # Offline grace period logic
+    try:
+        payload = token.rsplit(":", 1)[0]
+        ts = int(payload.split(":")[2])
+        issued_at = datetime.fromtimestamp(ts, tz=timezone.utc)
+        if now - issued_at < timedelta(days=GRACE_PERIOD_DAYS):
+            return True  # Within grace period — allow offline use
+    except (ValueError, IndexError):
+        pass
 
     return False
 
