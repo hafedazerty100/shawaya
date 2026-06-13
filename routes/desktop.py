@@ -14,6 +14,7 @@ Routes:
 
 import logging
 import os
+import socket
 import uuid
 from datetime import datetime, timezone, timedelta
 
@@ -155,7 +156,8 @@ def activate():
 
     if request.method == "POST":
         raw_serial = request.form.get("serial", "").strip()
-        device_id = request.form.get("device_id", "").strip() or str(uuid.uuid4())[:8]
+        # Use a stable machine identifier so re-activations always match
+        device_id = request.form.get("device_id", "").strip() or socket.gethostname()
 
         if not raw_serial:
             error = "Please enter a serial key."

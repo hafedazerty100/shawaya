@@ -147,4 +147,54 @@
     {% endif %}
   </div>
 </div>
+
+<!-- تفصيل يومي -->
+<div class="card admin-card mt-4">
+  <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h5 class="mb-0"><i class="bi bi-calendar3 me-2"></i>تفصيل يومي</h5>
+    <div class="btn-group btn-group-sm" role="group">
+      <a href="{{ url_for('admin.dashboard', period='today') }}" class="btn btn-outline-primary {% if period == 'today' %}active{% endif %}">اليوم</a>
+      <a href="{{ url_for('admin.dashboard', period='week') }}" class="btn btn-outline-primary {% if period == 'week' %}active{% endif %}">الأسبوع</a>
+      <a href="{{ url_for('admin.dashboard', period='month') }}" class="btn btn-outline-primary {% if period == 'month' %}active{% endif %}">الشهر</a>
+      <a href="{{ url_for('admin.dashboard', period='all') }}" class="btn btn-outline-primary {% if period == 'all' %}active{% endif %}">كل الوقت</a>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    {% if daily_rows %}
+    <div class="table-responsive">
+      <table class="table table-hover admin-table mb-0">
+        <thead>
+          <tr>
+            <th><i class="bi bi-calendar-date me-1"></i>التاريخ</th>
+            <th class="text-center"><i class="bi bi-receipt me-1"></i>عدد الطلبات</th>
+            <th class="text-end"><i class="bi bi-cash me-1"></i>إجمالي المبيعات</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in daily_rows %}
+          <tr {% if loop.index is divisibleby 2 %}style="background: rgba(255,255,255,0.03);"{% endif %}>
+            <td class="fw-semibold">{{ row.day }}</td>
+            <td class="text-center">
+              <span class="badge bg-primary rounded-pill">{{ row.orders }}</span>
+            </td>
+            <td class="text-end fw-bold text-success">{{ row.revenue }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot class="table-active fw-bold">
+          <tr>
+            <td>المجموع</td>
+            <td class="text-center">{{ daily_rows | sum(attribute='orders') }}</td>
+            <td class="text-end">{{ period_revenue }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-4 text-center text-muted">
+      <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>لا توجد طلبات في هذه الفترة.
+    </div>
+    {% endif %}
+  </div>
+</div>
 {% endblock %}

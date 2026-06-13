@@ -178,6 +178,29 @@ def dashboard():
         for item in top_selling
     ]
 
+    # Daily breakdown for the selected period
+    from sqlalchemy import cast, Date as SADate
+    daily_breakdown = (
+        db.session.query(
+            cast(Order.created_at, SADate).label("day"),
+            func.count(Order.id).label("orders"),
+            func.sum(Order.total_cents).label("revenue_cents"),
+        )
+        .filter(Order.created_at >= start_date)
+        .group_by(cast(Order.created_at, SADate))
+        .order_by(cast(Order.created_at, SADate).desc())
+        .all()
+    )
+
+    daily_rows = [
+        {
+            "day": str(row.day),
+            "orders": row.orders,
+            "revenue": format_price(row.revenue_cents or 0),
+        }
+        for row in daily_breakdown
+    ]
+
     return render_template(
         "admin/dashboard.html",
         today_orders=today_orders,
@@ -188,6 +211,7 @@ def dashboard():
         period_orders=period_orders,
         period_revenue=period_revenue,
         top_selling=formatted_top_selling,
+        daily_rows=daily_rows,
     )
 
 

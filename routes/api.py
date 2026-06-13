@@ -96,14 +96,9 @@ def validate_serial():
             _log("push", "error", f"Expired serial from {request.remote_addr}", str(key.id))
             return jsonify({"error": "Serial key has expired."}), 403
 
-    if key.is_active and key.device_id and key.device_id != device_id:
-        # Already activated on a different device
-        _log(
-            "push", "error",
-            f"Serial already active on device '{key.device_id}', attempted by '{device_id}'",
-            device_id,
-        )
-        return jsonify({"error": "Serial key already activated on another device."}), 401
+    # Allow re-activation: if the serial was previously activated on another device,
+    # update the device_id and re-issue the token (supports reinstalls and reboots).
+    # To block a key permanently, use the Revoke button in the admin dashboard.
 
     # Activate / re-activate
     try:
