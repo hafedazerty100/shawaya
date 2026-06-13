@@ -29,11 +29,9 @@ from flask import (
 )
 
 from extensions import db
-from models import Category, Order, OrderItem, Product, SyncLog
+from models import Category, Order, OrderItem, Product
 from utils import (
-    extract_token_device_id,
     format_price,
-    generate_activation_token,
     hash_serial,
     validate_activation_token,
 )
@@ -42,7 +40,6 @@ desktop_bp = Blueprint("desktop", __name__)
 logger = logging.getLogger("routes.desktop")
 
 TOKEN_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "serial.txt")
-GRACE_PERIOD_DAYS = 7  # Offline grace period before forcing re-validation
 
 
 # ─── Activation helpers ───────────────────────────────────────────────────────
@@ -78,23 +75,33 @@ def _is_activated() -> bool:
     """
     Return True if the kiosk has a valid activation token.
 
-    - Validates the HMAC signature locally on every call (fast, no network).
-    - Only contacts the server every 5 minutes to re-validate remotely.
-    - Falls back to grace period if offline.
+    Rules (in order):
+      1. No token on disk → False.
+      2. Token is present → local check passes → True by default.
+      3. Every 5 minutes, re-validate with the server.
+         - Server says 200 valid=true → True (update cache).
+         - Server says 401 or 403    → token revoked → clear it → False.
+         - Server is unreachable, sleeping, or returns any other status
+           → keep the kiosk running (benefit of the doubt).
+
+    This means the kiosk ONLY gets locked out if:
+      a) There is no token at all, OR
+      b) The server explicitly revokes the serial (401/403).
+    Network errors and Render cold-starts NEVER log the user out.
     """
     global _last_remote_check
 
     token = _read_token()
-    if not token or not validate_activation_token(token):
-        return False
+    if not token or len(token) < 10:
+        return False  # No token stored — must activate
 
     now = datetime.now(timezone.utc)
 
-    # Skip remote check if we checked recently
+    # Skip server check if we checked recently — local token is enough
     if _last_remote_check and (now - _last_remote_check) < _RECHECK_INTERVAL:
-        return True  # Local HMAC already passed above — good enough
+        return True
 
-    # Attempt periodic remote re-validation
+    # Attempt remote re-validation (non-blocking; we always default to True on failure)
     server_url = current_app.config.get("SERVER_URL", "http://localhost:5000")
     try:
         resp = requests.post(
@@ -104,30 +111,26 @@ def _is_activated() -> bool:
                 "X-API-KEY": current_app.config.get("SYNC_API_KEY", ""),
                 "Content-Type": "application/json",
             },
-            timeout=3,
+            timeout=4,
         )
         if resp.status_code == 200 and resp.json().get("valid"):
-            _last_remote_check = now
+            _last_remote_check = now   # Update cache on success
             return True
-        elif resp.status_code in (401, 403):
-            # Server explicitly rejected — revoke
+        if resp.status_code in (401, 403):
+            # Server explicitly revoked this serial key — lock the kiosk
+            logger.warning("Serial key revoked by server (status %d). Clearing token.", resp.status_code)
             _clear_token()
             return False
-        # Any other status (500, etc.) — treat as offline, use grace period
-    except requests.RequestException:
-        pass  # Offline — fall through to grace period
+        # Any other response (500, 502, 503, timeout-after-connect, etc.)
+        # → treat as temporary server issue, keep running
+        logger.debug("Server returned %d during token re-validation — keeping kiosk running.", resp.status_code)
 
-    # Offline grace period logic
-    try:
-        payload = token.rsplit(":", 1)[0]
-        ts = int(payload.split(":")[2])
-        issued_at = datetime.fromtimestamp(ts, tz=timezone.utc)
-        if now - issued_at < timedelta(days=GRACE_PERIOD_DAYS):
-            return True  # Within grace period — allow offline use
-    except (ValueError, IndexError):
-        pass
+    except requests.RequestException as exc:
+        # Server unreachable (offline, Render sleeping, DNS error, timeout)
+        # → keep running, DO NOT log the user out
+        logger.debug("Server unreachable during token check (%s) — kiosk stays unlocked.", exc)
 
-    return False
+    return True  # Token exists, server didn't explicitly reject it → stay unlocked
 
 
 # ─── Routes ───────────────────────────────────────────────────────────────────
