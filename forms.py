@@ -120,10 +120,13 @@ class ProductForm(FlaskForm):
 
     def validate_image(self, field):
         """Only validate extension if a file was actually uploaded."""
-        if field.data and hasattr(field.data, "filename") and field.data.filename:
-            ext = field.data.filename.rsplit(".", 1)[-1].lower()
-            if ext not in ["png", "jpg", "jpeg", "webp"]:
-                raise ValidationError("Only PNG, JPG, JPEG, and WebP images are allowed.")
+        # FileStorage is always truthy even when empty — check filename explicitly
+        filename = getattr(field.data, "filename", None) or ""
+        if not filename:
+            return  # No file selected — skip validation (image is optional on edit)
+        ext = filename.rsplit(".", 1)[-1].lower()
+        if ext not in ["png", "jpg", "jpeg", "webp"]:
+            raise ValidationError("Only PNG, JPG, JPEG, and WebP images are allowed.")
 
 
 class SerialKeyGenerateForm(FlaskForm):
