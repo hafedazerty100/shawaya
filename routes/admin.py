@@ -398,6 +398,8 @@ def new_product():
 def edit_product(product_id: int):
     product = db.get_or_404(Product, product_id)
     form = ProductForm(obj=product)
+    if isinstance(form.image.data, str):
+        form.image.data = None
     form.category_id.choices = [
         (c.id, c.name)
         for c in Category.query.order_by(Category.display_order, Category.name).all()

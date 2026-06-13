@@ -38,7 +38,7 @@
             <td>
               {% if product.image %}
                 {% set img_url = product.image if product.image and product.image.startswith('http') else url_for('static', filename='uploads/products/' ~ product.image) %}
-                <img src="{{ img_url }}" alt="{{ product.name }}" class="product-thumb" />
+                <img src="{{ img_url }}" alt="{{ product.name }}" class="product-thumb" onerror="this.onerror=null; this.style.display='none'; this.outerHTML='<div class=&quot;product-thumb-placeholder&quot;><i class=&quot;bi bi-image&quot;></i></div>';" />
               {% else %}
               <div class="product-thumb-placeholder"><i class="bi bi-image"></i></div>
               {% endif %}

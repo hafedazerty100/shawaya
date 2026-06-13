@@ -56,7 +56,7 @@
             <div class="mt-2" id="current-image-wrap">
               <p class="form-text mb-1">الصورة الحالية:</p>
               {% set img_url = product.image if product.image.startswith('http') else url_for('static', filename='uploads/products/' ~ product.image) %}
-              <img src="{{ img_url }}" alt="{{ product.name }}" class="product-image-preview" id="current-image" />
+              <img src="{{ img_url }}" alt="{{ product.name }}" class="product-image-preview" id="current-image" onerror="this.onerror=null; this.style.display='none'; this.outerHTML='<p class=&quot;form-text text-warning small&quot;><i class=&quot;bi bi-exclamation-triangle-fill me-1&quot;></i>لم يتم العثور على ملف الصورة على الخادم (ربما بسبب إعادة التشغيل)، ولكن الاسم لا يزال محفوظاً في قاعدة البيانات.</p>';" />
             </div>
             {% endif %}
           </div>
