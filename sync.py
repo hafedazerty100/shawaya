@@ -240,6 +240,11 @@ def pull_products(app) -> int:
                             remote_image,
                             img_exc,
                         )
+                        # Avoid retrying permanently missing images (4xx errors)
+                        if isinstance(img_exc, requests.exceptions.HTTPError) and img_exc.response is not None and img_exc.response.status_code < 500:
+                            prod.image = remote_image
+                            prod.image_data = b"FAILED"
+                            prod.image_mime = "image/jpeg"
 
                 server_product_ids.add(prod_data["id"])
                 count += 1

@@ -221,7 +221,7 @@ def create_app(mode: str | None = None) -> Flask:
         import os
         
         product = Product.query.filter_by(image=filename).first()
-        if product and product.image_data:
+        if product and product.image_data and product.image_data != b"FAILED":
             return send_file(
                 io.BytesIO(product.image_data),
                 mimetype=product.image_mime or "image/jpeg"
