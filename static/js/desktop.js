@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function fetchProducts() {
     try {
       showLoading(true);
-      const resp = await fetch("/api/products");
+      const resp = await fetch(`/api/products?t=${Date.now()}`);
       if (!resp.ok) throw new Error("فشل تحميل المنتجات");
       menuData = await resp.json();
       renderProducts();

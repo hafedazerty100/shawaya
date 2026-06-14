@@ -223,7 +223,11 @@ def api_products():
                     "products": products,
                 }
             )
-    return jsonify(result)
+    response = jsonify(result)
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 
 
 @desktop_bp.route("/api/orders", methods=["POST"])
