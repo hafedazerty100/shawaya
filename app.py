@@ -195,22 +195,22 @@ def create_app(mode: str | None = None) -> Flask:
         if mode == "server":
             _seed_admin(app)
             
-            # Safe migration for the new image_data columns
-            try:
-                from sqlalchemy import text
-                engine_name = db.engine.name.lower()
-                col_type = "BYTEA" if "postgres" in engine_name or "neon" in engine_name else "BLOB"
-                db.session.execute(text(f"ALTER TABLE products ADD COLUMN image_data {col_type}"))
-                db.session.commit()
-            except Exception:
-                db.session.rollback()
+        # Safe migration for the new image_data columns in both desktop and server mode
+        try:
+            from sqlalchemy import text
+            engine_name = db.engine.name.lower()
+            col_type = "BYTEA" if "postgres" in engine_name or "neon" in engine_name else "BLOB"
+            db.session.execute(text(f"ALTER TABLE products ADD COLUMN image_data {col_type}"))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
 
-            try:
-                from sqlalchemy import text
-                db.session.execute(text("ALTER TABLE products ADD COLUMN image_mime VARCHAR(50)"))
-                db.session.commit()
-            except Exception:
-                db.session.rollback()
+        try:
+            from sqlalchemy import text
+            db.session.execute(text("ALTER TABLE products ADD COLUMN image_mime VARCHAR(50)"))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
 
     # ── Custom Image Route ────────────────────────────────────────────────────
     @app.route('/static/uploads/products/<path:filename>')

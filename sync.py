@@ -219,22 +219,22 @@ def pull_products(app) -> int:
                 prod.price_cents = prod_data["price_cents"]
                 prod.is_active = prod_data.get("is_active", True)
 
-                # Download image only if it has changed or is new
+                # Download image only if it has changed or is new, or if DB bytes are missing (self-healing)
                 remote_image = prod_data.get("image")
-                if remote_image and prod.image != remote_image:
+                if remote_image and (prod.image != remote_image or not getattr(prod, "image_data", None)):
                     image_url = f"{server_url}/static/uploads/products/{remote_image}"
                     try:
                         img_resp = requests.get(image_url, timeout=15)
                         img_resp.raise_for_status()
-                        # Validate with Pillow before saving
-                        img = Image.open(io.BytesIO(img_resp.content))
-                        img.verify()
-                        img = Image.open(io.BytesIO(img_resp.content))
+                        # Save raw bytes directly to avoid RGBA->JPEG conversion errors
                         dest = os.path.join(upload_folder, remote_image)
-                        img.save(dest)
+                        with open(dest, "wb") as f:
+                            f.write(img_resp.content)
                         prod.image = remote_image
-                        logger.info("Downloaded product image: %s", remote_image)
-                    except (UnidentifiedImageError, Exception) as img_exc:
+                        prod.image_data = img_resp.content
+                        prod.image_mime = img_resp.headers.get("Content-Type", "image/jpeg")
+                        logger.info("Downloaded product image and saved to DB: %s", remote_image)
+                    except Exception as img_exc:
                         logger.warning(
                             "Could not download/validate image %s: %s",
                             remote_image,
