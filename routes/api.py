@@ -266,3 +266,20 @@ def pull_orders():
         })
         
     return jsonify({"orders": payload}), 200
+
+
+# ─── Order deletions sync ────────────────────────────────────────────────────
+
+@api_bp.route("/sync/active_order_ids", methods=["GET"])
+@limiter.limit("30 per minute")
+@api_key_required
+def active_order_ids():
+    """
+    Return a list of all active order local_ids on the server.
+    The desktop will use this to delete local orders that were deleted on the server.
+    """
+    # Fetch only local_id to keep payload small
+    orders = db.session.query(Order.local_id).all()
+    local_ids = [o[0] for o in orders if o[0]]
+    
+    return jsonify({"local_ids": local_ids}), 200

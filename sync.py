@@ -360,6 +360,56 @@ def pull_orders_from_server(app) -> int:
             return 0
 
 
+# ─── sync_deleted_orders ──────────────────────────────────────────────────────
+
+def sync_deleted_orders(app) -> int:
+    """
+    Fetch all active order IDs from the server.
+    Delete any local order (that isn't pending) if it was deleted on the server.
+    """
+    from extensions import db
+    from models import Order
+    
+    with app.app_context():
+        server_url = app.config.get("SERVER_URL", "http://localhost:5000")
+        endpoint = f"{server_url}/api/sync/active_order_ids"
+        headers = _get_headers(app)
+        
+        try:
+            resp = requests.get(endpoint, headers=headers, timeout=15)
+            resp.raise_for_status()
+            data = resp.json()
+        except requests.RequestException as exc:
+            logger.error("sync_deleted_orders network error: %s", exc)
+            return 0
+            
+        server_ids = set(data.get("local_ids", []))
+        if not server_ids:
+            return 0 # Safety check: if server says 0 active orders, maybe it's an error. 
+                     # Or maybe all are deleted. But to be safe, we just skip.
+        
+        count = 0
+        try:
+            # Get all non-pending local orders
+            local_synced_orders = Order.query.filter(Order.status != "pending").all()
+            for order in local_synced_orders:
+                if order.local_id and order.local_id not in server_ids:
+                    logger.info("Order %s was deleted on server. Deleting locally.", order.local_id)
+                    db.session.delete(order)
+                    count += 1
+            
+            if count > 0:
+                db.session.commit()
+                _log_sync(db, "sync_deletions", "success", f"Deleted {count} removed orders.", "desktop")
+                
+            return count
+            
+        except Exception as exc:
+            db.session.rollback()
+            logger.error("sync_deleted_orders DB error: %s", exc)
+            return 0
+
+
 # ─── Background sync thread ───────────────────────────────────────────────────
 
 def start_sync_thread(app):
@@ -380,11 +430,13 @@ def start_sync_thread(app):
                 synced = sync_orders(app)
                 pulled = pull_products(app)
                 pulled_orders = pull_orders_from_server(app)
+                deleted_orders = sync_deleted_orders(app)
                 logger.debug(
-                    "Sync cycle: %d orders pushed, %d products pulled, %d orders pulled.",
+                    "Sync cycle: %d orders pushed, %d products pulled, %d orders pulled, %d deleted locally.",
                     synced,
                     pulled,
-                    pulled_orders
+                    pulled_orders,
+                    deleted_orders
                 )
                 consecutive_failures = 0
                 sleep_time = sync_interval
