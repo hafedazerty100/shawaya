@@ -266,6 +266,100 @@ def pull_products(app) -> int:
             return 0
 
 
+# ─── pull_orders_from_server ──────────────────────────────────────────────────
+
+def pull_orders_from_server(app) -> int:
+    """
+    Pull the latest orders from the server that are newer than our most recent order.
+    Returns the number of new orders saved locally.
+    """
+    from extensions import db
+    from models import Order, OrderItem
+    from sqlalchemy import func
+    
+    with app.app_context():
+        # Find the latest created_at date we have locally
+        latest_order = db.session.query(func.max(Order.created_at)).scalar()
+        after_date = latest_order.isoformat() if latest_order else ""
+        
+        server_url = app.config.get("SERVER_URL", "http://localhost:5000")
+        endpoint = f"{server_url}/api/sync/pull_orders"
+        if after_date:
+            endpoint += f"?after_date={after_date}"
+            
+        headers = _get_headers(app)
+        
+        try:
+            resp = requests.get(endpoint, headers=headers, timeout=15)
+            resp.raise_for_status()
+            data = resp.json()
+        except requests.RequestException as exc:
+            _log_sync(db, "pull_orders", "error", f"Network error: {exc}", "desktop")
+            logger.error("pull_orders_from_server network error: %s", exc)
+            return 0
+            
+        orders_data = data.get("orders", [])
+        if not orders_data:
+            return 0
+            
+        count = 0
+        try:
+            for order_data in orders_data:
+                local_id = order_data["local_id"]
+                # Skip if we already have it
+                if Order.query.filter_by(local_id=local_id).first():
+                    continue
+                    
+                created_at_raw = order_data.get("created_at")
+                synced_at_raw = order_data.get("synced_at")
+                
+                try:
+                    created_at = datetime.fromisoformat(created_at_raw) if created_at_raw else datetime.now(timezone.utc)
+                except (ValueError, TypeError):
+                    created_at = datetime.now(timezone.utc)
+                    
+                try:
+                    synced_at = datetime.fromisoformat(synced_at_raw) if synced_at_raw else None
+                except (ValueError, TypeError):
+                    synced_at = None
+
+                new_order = Order(
+                    local_id=local_id,
+                    status=order_data.get("status", "synced"),
+                    total_cents=order_data.get("total_cents", 0),
+                    device_id=order_data.get("device_id", "unknown"),
+                    created_at=created_at,
+                    synced_at=synced_at
+                )
+                db.session.add(new_order)
+                db.session.flush() # Get ID
+                
+                for item_data in order_data.get("items", []):
+                    new_item = OrderItem(
+                        order_id=new_order.id,
+                        product_id=item_data.get("product_id"),
+                        product_name_snapshot=item_data.get("product_name_snapshot", ""),
+                        unit_price_cents_snapshot=item_data.get("unit_price_cents_snapshot", 0),
+                        quantity=item_data.get("quantity", 1),
+                        subtotal_cents=item_data.get("subtotal_cents", 0)
+                    )
+                    db.session.add(new_item)
+                
+                count += 1
+                
+            db.session.commit()
+            if count > 0:
+                _log_sync(db, "pull_orders", "success", f"Pulled {count} new orders.", "desktop")
+                logger.info("pull_orders_from_server: %d new orders pulled.", count)
+            return count
+            
+        except Exception as exc:
+            db.session.rollback()
+            _log_sync(db, "pull_orders", "error", str(exc), "desktop")
+            logger.error("pull_orders_from_server DB error: %s", exc)
+            return 0
+
+
 # ─── Background sync thread ───────────────────────────────────────────────────
 
 def start_sync_thread(app):
@@ -285,10 +379,12 @@ def start_sync_thread(app):
             try:
                 synced = sync_orders(app)
                 pulled = pull_products(app)
+                pulled_orders = pull_orders_from_server(app)
                 logger.debug(
-                    "Sync cycle: %d orders pushed, %d products pulled.",
+                    "Sync cycle: %d orders pushed, %d products pulled, %d orders pulled.",
                     synced,
                     pulled,
+                    pulled_orders
                 )
                 consecutive_failures = 0
                 sleep_time = sync_interval

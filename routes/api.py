@@ -212,3 +212,57 @@ def sync_orders():
     )
 
     return jsonify({"results": results}), 200
+
+
+# ─── Order sync (pull to desktop) ────────────────────────────────────────────
+
+@api_bp.route("/sync/pull_orders", methods=["GET"])
+@limiter.limit("30 per minute")
+@api_key_required
+def pull_orders():
+    """
+    Return orders created after a specific date (for two-way sync).
+    
+    Query params:
+      after_date: ISO-8601 string or empty (if empty, returns last 30 days or similar, 
+                  but to prevent huge payloads, we rely on the client sending this).
+    """
+    after_date_str = request.args.get("after_date", "").strip()
+    
+    query = Order.query
+    
+    if after_date_str:
+        try:
+            after_date = datetime.fromisoformat(after_date_str)
+            # Ensure it is UTC aware if naive
+            if after_date.tzinfo is None:
+                after_date = after_date.replace(tzinfo=timezone.utc)
+            query = query.filter(Order.created_at > after_date)
+        except ValueError:
+            pass
+            
+    # Order by created_at ascending so client gets oldest new orders first
+    orders = query.order_by(Order.created_at.asc()).all()
+    
+    payload = []
+    for order in orders:
+        payload.append({
+            "local_id": order.local_id,
+            "status": order.status,
+            "total_cents": order.total_cents,
+            "created_at": order.created_at.isoformat() if order.created_at else None,
+            "synced_at": order.synced_at.isoformat() if order.synced_at else None,
+            "device_id": order.device_id,
+            "items": [
+                {
+                    "product_id": item.product_id,
+                    "product_name_snapshot": item.product_name_snapshot,
+                    "unit_price_cents_snapshot": item.unit_price_cents_snapshot,
+                    "quantity": item.quantity,
+                    "subtotal_cents": item.subtotal_cents,
+                }
+                for item in order.items
+            ]
+        })
+        
+    return jsonify({"orders": payload}), 200

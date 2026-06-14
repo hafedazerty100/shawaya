@@ -340,3 +340,35 @@ def api_pull_products():
     except Exception as exc:
         logger.error("Manual pull-products failed: %s", exc)
         return jsonify({"error": str(exc)}), 500
+
+
+@desktop_bp.route("/api/revenue")
+def api_revenue():
+    """Return total revenue for a specific date (YYYY-MM-DD), defaulting to today."""
+    date_str = request.args.get("date", "").strip()
+    
+    if date_str:
+        try:
+            target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return jsonify({"error": "Invalid date format. Use YYYY-MM-DD."}), 400
+    else:
+        # Default to today in local time, but we should match UTC for db or whatever timezone they use
+        target_date = datetime.now(timezone.utc).date()
+        
+    # Get all orders from the start of the day to the end of the day
+    start_dt = datetime.combine(target_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+    end_dt = datetime.combine(target_date, datetime.max.time()).replace(tzinfo=timezone.utc)
+    
+    orders = Order.query.filter(
+        Order.created_at >= start_dt,
+        Order.created_at <= end_dt
+    ).all()
+    
+    total_cents = sum(o.total_cents for o in orders)
+    
+    return jsonify({
+        "date": target_date.strftime("%Y-%m-%d"),
+        "total_cents": total_cents,
+        "total_display": format_price(total_cents)
+    }), 200

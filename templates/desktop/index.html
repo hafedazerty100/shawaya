@@ -25,6 +25,9 @@
     </nav>
     <!-- Sync status at the bottom -->
     <div class="sidebar-footer">
+      <button class="btn btn-outline-light w-100 mb-2" id="btn-show-revenue">
+        <i class="bi bi-cash-coin"></i> الإيرادات
+      </button>
       <div class="status-badge" id="sync-status">
         <i class="bi bi-wifi"></i> <span id="sync-label">جاهز</span>
       </div>
@@ -75,6 +78,32 @@
 
 <!-- ── Hidden print iframe ───────────────────────────────────── -->
 <iframe id="print-iframe" style="display:none;"></iframe>
+
+<!-- ── Revenue Modal ─────────────────────────────────────────── -->
+<div class="modal fade" id="revenueModal" tabindex="-1" aria-labelledby="revenueModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background: #2a2a2a; color: white;">
+      <div class="modal-header border-0">
+        <h5 class="modal-title" id="revenueModalLabel"><i class="bi bi-cash-coin"></i> إحصائيات الإيرادات</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="revenue-date" class="form-label">اختر التاريخ (يترك فارغاً لليوم الحالي)</label>
+          <input type="date" class="form-control bg-dark text-white border-secondary" id="revenue-date">
+        </div>
+        <div class="text-center mt-4">
+          <h6 class="text-muted">إجمالي الإيرادات</h6>
+          <h2 class="text-success" id="revenue-result">0.00 DA</h2>
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+        <button type="button" class="btn btn-primary" id="btn-fetch-revenue">عرض الإيرادات</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% endblock %}
 

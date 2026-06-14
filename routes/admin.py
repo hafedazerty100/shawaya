@@ -125,34 +125,47 @@ def dashboard():
     from models import OrderItem
 
     # ── Period filter ───────────────────────────────────────────────────────
-    period = request.args.get("period", "week").lower()
+    period = request.args.get("period", "").lower()
     date_str = request.args.get("date", "").strip()   # e.g. "2025-06-01"
+    start_str = request.args.get("start_date", "").strip()
+    end_str = request.args.get("end_date", "").strip()
     now_utc = datetime.now(timezone.utc)
 
-    selected_date = None
-    if date_str:
+    # First handle custom date range
+    start_date = None
+    end_date = None
+
+    if start_str and end_str:
         try:
-            selected_date = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            start_date = datetime.strptime(start_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            end_date = datetime.strptime(end_str, "%Y-%m-%d").replace(tzinfo=timezone.utc) + timedelta(days=1)
+            period = "custom"
+        except ValueError:
+            pass
+    elif date_str:
+        try:
+            start_date = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            end_date = start_date + timedelta(days=1)
             period = "day"
         except ValueError:
-            date_str = ""
-
-    if selected_date:
-        start_date = selected_date
-        end_date = selected_date + timedelta(days=1)
-    elif period == "today":
-        start_date = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
-        end_date = None
-    elif period == "month":
-        start_date = now_utc - timedelta(days=30)
-        end_date = None
-    elif period == "all":
-        start_date = datetime.fromtimestamp(0, tz=timezone.utc)
-        end_date = None
-    else:
-        period = "week"
-        start_date = now_utc - timedelta(days=7)
-        end_date = None
+            pass
+            
+    # Fallback to period logic
+    if not start_date:
+        if period == "month":
+            start_date = now_utc - timedelta(days=30)
+            end_date = None
+        elif period == "week":
+            start_date = now_utc - timedelta(days=7)
+            end_date = None
+        elif period == "all":
+            start_date = datetime.fromtimestamp(0, tz=timezone.utc)
+            end_date = None
+        else:
+            # Default to today (current day)
+            period = "today"
+            start_date = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_date = None
 
     # ── Today's badges ──────────────────────────────────────────────────────
     today_start = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -270,6 +283,8 @@ def dashboard():
         top_selling=formatted_top_selling,
         daily_rows=daily_rows,
         date_str=date_str,
+        start_str=start_str,
+        end_str=end_str,
         chart_labels=chart_labels,
         chart_revenue=chart_revenue,
         chart_orders=chart_orders,

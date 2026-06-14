@@ -244,6 +244,42 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // ── Revenue feature ───────────────────────────────────────────────────────
+  const btnShowRevenue = document.getElementById("btn-show-revenue");
+  const revenueModal = new bootstrap.Modal(document.getElementById('revenueModal'));
+  const btnFetchRevenue = document.getElementById("btn-fetch-revenue");
+  const inputRevenueDate = document.getElementById("revenue-date");
+  const txtRevenueResult = document.getElementById("revenue-result");
+
+  if (btnShowRevenue) {
+    btnShowRevenue.addEventListener("click", () => {
+      inputRevenueDate.value = ""; // Default empty to show today
+      txtRevenueResult.textContent = "0.00 DA";
+      revenueModal.show();
+    });
+  }
+
+  if (btnFetchRevenue) {
+    btnFetchRevenue.addEventListener("click", async () => {
+      const dateVal = inputRevenueDate.value;
+      txtRevenueResult.textContent = "جاري الحساب...";
+      
+      try {
+        const url = dateVal ? `/api/revenue?date=${dateVal}` : "/api/revenue";
+        const resp = await fetch(url);
+        if (!resp.ok) {
+          const errData = await resp.json();
+          throw new Error(errData.error || "خطأ في جلب الإيرادات");
+        }
+        const data = await resp.json();
+        txtRevenueResult.textContent = data.total_display;
+      } catch (err) {
+        txtRevenueResult.textContent = "خطأ";
+        showToast(err.message, "error");
+      }
+    });
+  }
+
   // ── Boot ──────────────────────────────────────────────────────────────────
   fetchProducts();
 });
