@@ -66,6 +66,8 @@ class Product(db.Model):
     # Stored in cents — e.g. 450 DA → 45000 cents
     price_cents = db.Column(db.Integer, nullable=False)
     image = db.Column(db.String(255), nullable=True)  # UUID-based filename
+    image_data = db.Column(db.LargeBinary, nullable=True) # Actual binary image data
+    image_mime = db.Column(db.String(50), nullable=True) # e.g. 'image/jpeg'
     is_active = db.Column(db.Boolean, nullable=False, default=True)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=_utcnow)
     updated_at = db.Column(

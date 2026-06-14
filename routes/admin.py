@@ -7,6 +7,8 @@ forces a password change before anything else can be accessed.
 
 import logging
 import secrets
+import uuid
+import requests
 from datetime import datetime, timezone
 
 from flask import (
@@ -384,8 +386,22 @@ def new_product():
     if form.validate_on_submit():
         try:
             image_filename = None
+            image_data = None
+            image_mime = None
+            
             if form.image.data and form.image.data.filename:
-                image_filename = save_product_image(form.image.data)
+                image_data = form.image.data.read()
+                image_mime = form.image.data.mimetype
+                image_filename = str(uuid.uuid4()) + ".jpg"
+            elif form.image_url.data:
+                try:
+                    resp = requests.get(form.image_url.data, timeout=5)
+                    resp.raise_for_status()
+                    image_data = resp.content
+                    image_mime = resp.headers.get("Content-Type", "image/jpeg")
+                    image_filename = str(uuid.uuid4()) + ".jpg"
+                except Exception as exc:
+                    flash(f"Could not download image from URL: {exc}", "warning")
 
             product = Product(
                 name=form.name.data.strip(),
@@ -393,6 +409,8 @@ def new_product():
                 category_id=form.category_id.data,
                 price_cents=da_to_cents(float(form.price.data.replace(",", "."))),
                 image=image_filename,
+                image_data=image_data,
+                image_mime=image_mime,
                 is_active=form.is_active.data,
             )
             db.session.add(product)
@@ -426,10 +444,18 @@ def edit_product(product_id: int):
     if form.validate_on_submit():
         try:
             if form.image.data and form.image.data.filename:
-                old_image = product.image
-                product.image = save_product_image(form.image.data)
-                if old_image:
-                    delete_product_image(old_image)
+                product.image_data = form.image.data.read()
+                product.image_mime = form.image.data.mimetype
+                product.image = str(uuid.uuid4()) + ".jpg"
+            elif form.image_url.data:
+                try:
+                    resp = requests.get(form.image_url.data, timeout=5)
+                    resp.raise_for_status()
+                    product.image_data = resp.content
+                    product.image_mime = resp.headers.get("Content-Type", "image/jpeg")
+                    product.image = str(uuid.uuid4()) + ".jpg"
+                except Exception as exc:
+                    flash(f"Could not download image from URL: {exc}", "warning")
 
             product.name = form.name.data.strip()
             product.description = form.description.data.strip() if form.description.data else ""

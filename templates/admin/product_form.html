@@ -43,9 +43,11 @@
           <!-- رفع الصورة مع معاينة مباشرة -->
           <div class="mb-3">
             <label class="form-label fw-semibold">صورة المنتج</label>
-            {{ form.image(class="form-control", accept=".png,.jpg,.jpeg,.webp", id="image-input") }}
+            {{ form.image(class="form-control mb-2", accept=".png,.jpg,.jpeg,.webp", id="image-input") }}
+            {{ form.image_url(class="form-control", placeholder="أو أدخل رابط الصورة (URL)") }}
             <div class="form-text">الحد الأقصى 5 ميغابايت · PNG، JPG، WebP</div>
             {% for err in form.image.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
+            {% for err in form.image_url.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
 
             <!-- معاينة مباشرة -->
             <div id="image-preview-wrap" class="mt-2" style="display:none;">

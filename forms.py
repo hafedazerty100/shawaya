@@ -105,6 +105,10 @@ class ProductForm(FlaskForm):
         "Product Image",
         validators=[FileAllowed(["png", "jpg", "jpeg", "webp"], "Only PNG, JPG, JPEG, and WebP images are allowed.")]
     )
+    image_url = StringField(
+        "Or Image URL",
+        validators=[Optional(), Length(max=2048)]
+    )
     is_active = BooleanField("Active", default=True)
 
     def validate_price(self, field):
