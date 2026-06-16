@@ -387,9 +387,13 @@ def _get_remote_revenue(start_dt, end_dt):
     elif db_url.startswith("postgresql://"):
         db_url = "postgresql+pg8000://" + db_url[len("postgresql://"):]
         
+    # Strip query parameters (like ?sslmode=require) to prevent pg8000 connection errors
+    if "?" in db_url:
+        db_url = db_url.split("?", 1)[0]
+        
     try:
         from sqlalchemy import create_engine, text
-        engine = create_engine(db_url, connect_args={"timeout": 5})
+        engine = create_engine(db_url, connect_args={"ssl_context": True, "timeout": 5})
         with engine.connect() as conn:
             query = text(
                 "SELECT COALESCE(SUM(total_cents), 0) FROM orders "
@@ -400,6 +404,7 @@ def _get_remote_revenue(start_dt, end_dt):
     except Exception as exc:
         logger.warning("Failed to query remote database directly for revenue: %s", exc)
         return None
+
 
 
 @desktop_bp.route("/api/revenue")
