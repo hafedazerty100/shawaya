@@ -3276,3 +3276,477 @@
 [2026-06-13 12:06:17] INFO app: Starting Coffee Shop POS in 'server' mode (debug=False).
 [2026-06-13 12:06:20] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=False).
 [2026-06-13 12:06:20] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=False).
+[2026-06-16 21:57:50] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:51] WARNING utils: API key rejection: IP=127.0.0.1 device=unknown
+[2026-06-16 21:57:51] WARNING utils: API key rejection: IP=127.0.0.1 device=unknown
+[2026-06-16 21:57:51] WARNING utils: API key rejection: IP=127.0.0.1 device=unknown
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:51] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:51] WARNING utils: API key rejection: IP=127.0.0.1 device=unknown
+[2026-06-16 21:57:51] WARNING utils: API key rejection: IP=127.0.0.1 device=unknown
+[2026-06-16 21:57:51] WARNING utils: API key rejection: IP=127.0.0.1 device=unknown
+[2026-06-16 21:57:51] WARNING utils: API key rejection: IP=127.0.0.1 device=unknown
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:51] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:51] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:51] INFO routes.desktop: Created draft order c03934cd-a559-4ad1-8551-8585519b96af (total=500 cents).
+[2026-06-16 21:57:51] INFO routes.desktop: Created draft order c03934cd-a559-4ad1-8551-8585519b96af (total=500 cents).
+[2026-06-16 21:57:51] INFO routes.desktop: Created draft order c03934cd-a559-4ad1-8551-8585519b96af (total=500 cents).
+[2026-06-16 21:57:51] INFO routes.desktop: Created draft order c03934cd-a559-4ad1-8551-8585519b96af (total=500 cents).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:51] INFO routes.desktop: Created draft order 39ff2816-7e07-4c09-a0ac-dfe8c1c107d5 (total=250 cents).
+[2026-06-16 21:57:51] INFO routes.desktop: Created draft order 39ff2816-7e07-4c09-a0ac-dfe8c1c107d5 (total=250 cents).
+[2026-06-16 21:57:51] INFO routes.desktop: Created draft order 39ff2816-7e07-4c09-a0ac-dfe8c1c107d5 (total=250 cents).
+[2026-06-16 21:57:51] INFO routes.desktop: Created draft order 39ff2816-7e07-4c09-a0ac-dfe8c1c107d5 (total=250 cents).
+[2026-06-16 21:57:51] INFO routes.desktop: Created draft order 39ff2816-7e07-4c09-a0ac-dfe8c1c107d5 (total=250 cents).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:51] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO routes.api: Received order e84a0c78-362d-4308-b142-c68bcb89de89 from device test-kiosk.
+[2026-06-16 21:57:52] INFO routes.api: Received order e84a0c78-362d-4308-b142-c68bcb89de89 from device test-kiosk.
+[2026-06-16 21:57:52] INFO routes.api: Received order e84a0c78-362d-4308-b142-c68bcb89de89 from device test-kiosk.
+[2026-06-16 21:57:52] INFO routes.api: Received order e84a0c78-362d-4308-b142-c68bcb89de89 from device test-kiosk.
+[2026-06-16 21:57:52] INFO routes.api: Received order e84a0c78-362d-4308-b142-c68bcb89de89 from device test-kiosk.
+[2026-06-16 21:57:52] INFO routes.api: Received order e84a0c78-362d-4308-b142-c68bcb89de89 from device test-kiosk.
+[2026-06-16 21:57:52] INFO routes.api: Received order e84a0c78-362d-4308-b142-c68bcb89de89 from device test-kiosk.
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:52] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO utils: Saved product image: f33d8045aba34facaff272ae5e886cce.png
+[2026-06-16 21:57:53] INFO utils: Saved product image: f33d8045aba34facaff272ae5e886cce.png
+[2026-06-16 21:57:53] INFO utils: Saved product image: f33d8045aba34facaff272ae5e886cce.png
+[2026-06-16 21:57:53] INFO utils: Saved product image: f33d8045aba34facaff272ae5e886cce.png
+[2026-06-16 21:57:53] INFO utils: Saved product image: f33d8045aba34facaff272ae5e886cce.png
+[2026-06-16 21:57:53] INFO utils: Saved product image: f33d8045aba34facaff272ae5e886cce.png
+[2026-06-16 21:57:53] INFO utils: Saved product image: f33d8045aba34facaff272ae5e886cce.png
+[2026-06-16 21:57:53] INFO utils: Saved product image: f33d8045aba34facaff272ae5e886cce.png
+[2026-06-16 21:57:53] INFO utils: Saved product image: f33d8045aba34facaff272ae5e886cce.png
+[2026-06-16 21:57:53] INFO utils: Saved product image: f33d8045aba34facaff272ae5e886cce.png
+[2026-06-16 21:57:53] INFO utils: Saved product image: f33d8045aba34facaff272ae5e886cce.png
+[2026-06-16 21:57:53] INFO utils: Saved product image: f33d8045aba34facaff272ae5e886cce.png
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO utils: Saved product image: 681b35e39e6546458efba4c166e42b70.jpeg
+[2026-06-16 21:57:53] INFO utils: Saved product image: 681b35e39e6546458efba4c166e42b70.jpeg
+[2026-06-16 21:57:53] INFO utils: Saved product image: 681b35e39e6546458efba4c166e42b70.jpeg
+[2026-06-16 21:57:53] INFO utils: Saved product image: 681b35e39e6546458efba4c166e42b70.jpeg
+[2026-06-16 21:57:53] INFO utils: Saved product image: 681b35e39e6546458efba4c166e42b70.jpeg
+[2026-06-16 21:57:53] INFO utils: Saved product image: 681b35e39e6546458efba4c166e42b70.jpeg
+[2026-06-16 21:57:53] INFO utils: Saved product image: 681b35e39e6546458efba4c166e42b70.jpeg
+[2026-06-16 21:57:53] INFO utils: Saved product image: 681b35e39e6546458efba4c166e42b70.jpeg
+[2026-06-16 21:57:53] INFO utils: Saved product image: 681b35e39e6546458efba4c166e42b70.jpeg
+[2026-06-16 21:57:53] INFO utils: Saved product image: 681b35e39e6546458efba4c166e42b70.jpeg
+[2026-06-16 21:57:53] INFO utils: Saved product image: 681b35e39e6546458efba4c166e42b70.jpeg
+[2026-06-16 21:57:53] INFO utils: Saved product image: 681b35e39e6546458efba4c166e42b70.jpeg
+[2026-06-16 21:57:53] INFO utils: Saved product image: 681b35e39e6546458efba4c166e42b70.jpeg
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:57:53] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:28] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:29] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:29] WARNING utils: API key rejection: IP=127.0.0.1 device=unknown
+[2026-06-16 21:58:29] WARNING utils: API key rejection: IP=127.0.0.1 device=unknown
+[2026-06-16 21:58:29] WARNING utils: API key rejection: IP=127.0.0.1 device=unknown
+[2026-06-16 21:58:29] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:29] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:29] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:29] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:29] WARNING utils: API key rejection: IP=127.0.0.1 device=unknown
+[2026-06-16 21:58:29] WARNING utils: API key rejection: IP=127.0.0.1 device=unknown
+[2026-06-16 21:58:29] WARNING utils: API key rejection: IP=127.0.0.1 device=unknown
+[2026-06-16 21:58:29] WARNING utils: API key rejection: IP=127.0.0.1 device=unknown
+[2026-06-16 21:58:29] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:29] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:29] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:30] INFO routes.desktop: Created draft order 2a2d8a7e-38cc-4720-a7fc-41129aaf0ad0 (total=500 cents).
+[2026-06-16 21:58:30] INFO routes.desktop: Created draft order 2a2d8a7e-38cc-4720-a7fc-41129aaf0ad0 (total=500 cents).
+[2026-06-16 21:58:30] INFO routes.desktop: Created draft order 2a2d8a7e-38cc-4720-a7fc-41129aaf0ad0 (total=500 cents).
+[2026-06-16 21:58:30] INFO routes.desktop: Created draft order 2a2d8a7e-38cc-4720-a7fc-41129aaf0ad0 (total=500 cents).
+[2026-06-16 21:58:30] INFO routes.desktop: Order 1 confirmed and status set to 'pending'.
+[2026-06-16 21:58:30] INFO routes.desktop: Order 1 confirmed and status set to 'pending'.
+[2026-06-16 21:58:30] INFO routes.desktop: Order 1 confirmed and status set to 'pending'.
+[2026-06-16 21:58:30] INFO routes.desktop: Order 1 confirmed and status set to 'pending'.
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:30] INFO routes.desktop: Created draft order 48f60488-45b7-4e6f-a8ee-3ac75ddba169 (total=250 cents).
+[2026-06-16 21:58:30] INFO routes.desktop: Created draft order 48f60488-45b7-4e6f-a8ee-3ac75ddba169 (total=250 cents).
+[2026-06-16 21:58:30] INFO routes.desktop: Created draft order 48f60488-45b7-4e6f-a8ee-3ac75ddba169 (total=250 cents).
+[2026-06-16 21:58:30] INFO routes.desktop: Created draft order 48f60488-45b7-4e6f-a8ee-3ac75ddba169 (total=250 cents).
+[2026-06-16 21:58:30] INFO routes.desktop: Created draft order 48f60488-45b7-4e6f-a8ee-3ac75ddba169 (total=250 cents).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO routes.api: Received order 2659cc6e-22c1-4ede-bd70-137cdfa3a807 from device test-kiosk.
+[2026-06-16 21:58:30] INFO routes.api: Received order 2659cc6e-22c1-4ede-bd70-137cdfa3a807 from device test-kiosk.
+[2026-06-16 21:58:30] INFO routes.api: Received order 2659cc6e-22c1-4ede-bd70-137cdfa3a807 from device test-kiosk.
+[2026-06-16 21:58:30] INFO routes.api: Received order 2659cc6e-22c1-4ede-bd70-137cdfa3a807 from device test-kiosk.
+[2026-06-16 21:58:30] INFO routes.api: Received order 2659cc6e-22c1-4ede-bd70-137cdfa3a807 from device test-kiosk.
+[2026-06-16 21:58:30] INFO routes.api: Received order 2659cc6e-22c1-4ede-bd70-137cdfa3a807 from device test-kiosk.
+[2026-06-16 21:58:30] INFO routes.api: Received order 2659cc6e-22c1-4ede-bd70-137cdfa3a807 from device test-kiosk.
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:30] INFO app: Starting Coffee Shop POS in 'server' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:31] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:31] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:31] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:31] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:31] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:31] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:31] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:31] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:31] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:31] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO utils: Saved product image: 5788483b5ae94572b56f7471423c0c5c.png
+[2026-06-16 21:58:31] INFO utils: Saved product image: 5788483b5ae94572b56f7471423c0c5c.png
+[2026-06-16 21:58:31] INFO utils: Saved product image: 5788483b5ae94572b56f7471423c0c5c.png
+[2026-06-16 21:58:31] INFO utils: Saved product image: 5788483b5ae94572b56f7471423c0c5c.png
+[2026-06-16 21:58:31] INFO utils: Saved product image: 5788483b5ae94572b56f7471423c0c5c.png
+[2026-06-16 21:58:31] INFO utils: Saved product image: 5788483b5ae94572b56f7471423c0c5c.png
+[2026-06-16 21:58:31] INFO utils: Saved product image: 5788483b5ae94572b56f7471423c0c5c.png
+[2026-06-16 21:58:31] INFO utils: Saved product image: 5788483b5ae94572b56f7471423c0c5c.png
+[2026-06-16 21:58:31] INFO utils: Saved product image: 5788483b5ae94572b56f7471423c0c5c.png
+[2026-06-16 21:58:31] INFO utils: Saved product image: 5788483b5ae94572b56f7471423c0c5c.png
+[2026-06-16 21:58:31] INFO utils: Saved product image: 5788483b5ae94572b56f7471423c0c5c.png
+[2026-06-16 21:58:31] INFO utils: Saved product image: 5788483b5ae94572b56f7471423c0c5c.png
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO utils: Saved product image: 97ef3926f82f499998c22cf80d272e11.jpeg
+[2026-06-16 21:58:31] INFO utils: Saved product image: 97ef3926f82f499998c22cf80d272e11.jpeg
+[2026-06-16 21:58:31] INFO utils: Saved product image: 97ef3926f82f499998c22cf80d272e11.jpeg
+[2026-06-16 21:58:31] INFO utils: Saved product image: 97ef3926f82f499998c22cf80d272e11.jpeg
+[2026-06-16 21:58:31] INFO utils: Saved product image: 97ef3926f82f499998c22cf80d272e11.jpeg
+[2026-06-16 21:58:31] INFO utils: Saved product image: 97ef3926f82f499998c22cf80d272e11.jpeg
+[2026-06-16 21:58:31] INFO utils: Saved product image: 97ef3926f82f499998c22cf80d272e11.jpeg
+[2026-06-16 21:58:31] INFO utils: Saved product image: 97ef3926f82f499998c22cf80d272e11.jpeg
+[2026-06-16 21:58:31] INFO utils: Saved product image: 97ef3926f82f499998c22cf80d272e11.jpeg
+[2026-06-16 21:58:31] INFO utils: Saved product image: 97ef3926f82f499998c22cf80d272e11.jpeg
+[2026-06-16 21:58:31] INFO utils: Saved product image: 97ef3926f82f499998c22cf80d272e11.jpeg
+[2026-06-16 21:58:31] INFO utils: Saved product image: 97ef3926f82f499998c22cf80d272e11.jpeg
+[2026-06-16 21:58:31] INFO utils: Saved product image: 97ef3926f82f499998c22cf80d272e11.jpeg
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).
+[2026-06-16 21:58:31] INFO app: Starting Coffee Shop POS in 'desktop' mode (debug=True).

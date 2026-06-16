@@ -42,15 +42,11 @@ def _log(direction: str, status: str, detail: str, device_id: str = "") -> None:
 @api_key_required
 def validate_serial():
     """
-    Simple serial validation: check if the serial hash exists in the DB.
-
-    Accepts: { "serial_hash": "<sha256>", "device_id": "<optional>" }
-
-    Returns:
-      200 { "valid": true }   — Serial found, not expired, not revoked
-      401 { "error": "..." }  — Serial not found
-      403 { "error": "..." }  — Expired or revoked by admin
+    Validate a serial key against the database, check expiry and double-activation,
+    and return a signed activation token.
     """
+    from utils import generate_activation_token
+
     data = request.get_json(silent=True) or {}
     serial_hash = data.get("serial_hash", "").strip()
     device_id = data.get("device_id", request.remote_addr)
@@ -62,18 +58,22 @@ def validate_serial():
 
     if key is None:
         logger.warning("Unknown serial attempt from IP %s", request.remote_addr)
-        return jsonify({"error": "الرمز التسلسلي غير صحيح."}), 401
+        return jsonify({"error": "الرمز التسلسلي غير صحيح (Invalid)."}), 401
 
     # Check expiry
     if key.expires_at:
         now = datetime.now(timezone.utc)
         expires = key.expires_at if key.expires_at.tzinfo else key.expires_at.replace(tzinfo=timezone.utc)
         if expires < now:
-            return jsonify({"error": "الرمز التسلسلي منتهي الصلاحية."}), 403
+            return jsonify({"error": "الرمز التسلسلي منتهي الصلاحية (Expired)."}), 403
+
+    # Prevent double activation
+    if key.is_active and key.device_id and key.device_id != device_id:
+        return jsonify({"error": "هذا الرمز التسلسلي مفعل بالفعل على جهاز آخر (Already activated)."}), 401
 
     # Revoked: was activated before but admin set is_active=False
     if not key.is_active and key.activated_at is not None:
-        return jsonify({"error": "تم إلغاء الرمز التسلسلي من قِبَل المشرف."}), 403
+        return jsonify({"error": "تم إلغاء الرمز التسلسلي من قِبَل المشرف (Revoked)."}), 403
 
     # First use or re-activation: mark as active
     try:
@@ -87,8 +87,10 @@ def validate_serial():
         logger.error("Failed to activate serial: %s", exc)
         return jsonify({"error": "خطأ في الخادم."}), 500
 
+    token = generate_activation_token(serial_hash, device_id)
+
     _log("push", "success", f"Serial validated for device '{device_id}'", device_id)
-    return jsonify({"valid": True}), 200
+    return jsonify({"valid": True, "activation_token": token}), 200
 
 
 # ─── Product catalog pull ─────────────────────────────────────────────────────
@@ -98,7 +100,7 @@ def validate_serial():
 @api_key_required
 def products():
     """Return the full product catalog for desktop pull."""
-    categories = Category.query.order_by(Category.display_order, Category.name).all()
+    categories = Category.query.options(db.joinedload(Category.products)).order_by(Category.display_order, Category.name).all()
     cat_list = [
         {"id": c.id, "name": c.name, "display_order": c.display_order}
         for c in categories
@@ -229,7 +231,7 @@ def pull_orders():
     """
     after_date_str = request.args.get("after_date", "").strip()
     
-    query = Order.query
+    query = Order.query.options(db.joinedload(Order.items))
     
     if after_date_str:
         try:
@@ -283,3 +285,42 @@ def active_order_ids():
     local_ids = [o[0] for o in orders if o[0]]
     
     return jsonify({"local_ids": local_ids}), 200
+
+
+@api_bp.route("/sync/revenue", methods=["GET"])
+@limiter.limit("60 per minute")
+@api_key_required
+def get_revenue():
+    """Return the total revenue on the server for a specific date range."""
+    start_str = request.args.get("start_date", "").strip()
+    end_str = request.args.get("end_date", "").strip()
+    
+    try:
+        if start_str and end_str:
+            start_date = datetime.strptime(start_str, "%Y-%m-%d").date()
+            end_date = datetime.strptime(end_str, "%Y-%m-%d").date()
+        elif start_str:
+            start_date = datetime.strptime(start_str, "%Y-%m-%d").date()
+            end_date = start_date
+        else:
+            # Default to today in UTC
+            start_date = datetime.now(timezone.utc).date()
+            end_date = start_date
+    except ValueError:
+        return jsonify({"error": "Invalid date format. Use YYYY-MM-DD."}), 400
+        
+    start_dt = datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+    end_dt = datetime.combine(end_date, datetime.max.time()).replace(tzinfo=timezone.utc)
+    
+    orders = Order.query.filter(
+        Order.created_at >= start_dt,
+        Order.created_at <= end_dt
+    ).all()
+    
+    total_cents = sum(o.total_cents for o in orders)
+    
+    return jsonify({
+        "start_date": start_date.strftime("%Y-%m-%d"),
+        "end_date": end_date.strftime("%Y-%m-%d"),
+        "total_cents": total_cents
+    }), 200

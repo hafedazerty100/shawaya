@@ -30,18 +30,27 @@ def test_create_order_success(desktop_app, desktop_client):
         ]
     }
 
-    # Post order creation request
+    # Post order creation request (should create as draft)
     resp = desktop_client.post("/api/orders", json=order_payload)
     assert resp.status_code == 201
     data = resp.get_json()
     assert "order_id" in data
     assert data["local_id"] == order_payload["local_id"]
 
-    # Verify db contains correct records
+    # Verify db contains correct draft records
     with desktop_app.app_context():
         order = Order.query.filter_by(local_id=order_payload["local_id"]).first()
         assert order is not None
         assert order.total_cents == 500
+        assert order.status == "draft"
+
+    # Confirm order (after simulated printing)
+    resp_confirm = desktop_client.post(f"/api/orders/{data['order_id']}/confirm")
+    assert resp_confirm.status_code == 200
+
+    # Verify order is now pending
+    with desktop_app.app_context():
+        order = Order.query.filter_by(local_id=order_payload["local_id"]).first()
         assert order.status == "pending"
         assert len(order.items) == 1
         assert order.items[0].product_id == 10

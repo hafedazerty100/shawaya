@@ -111,7 +111,7 @@ def sync_orders(app) -> int:
                 endpoint,
                 json={"orders": payload},
                 headers=headers,
-                timeout=50,
+                timeout=15,
             )
             resp.raise_for_status()
             results = resp.json().get("results", {})
@@ -175,13 +175,13 @@ def pull_products(app) -> int:
         os.makedirs(upload_folder, exist_ok=True)
 
         try:
-            resp = requests.get(endpoint, headers=headers, timeout=50)
+            resp = requests.get(endpoint, headers=headers, timeout=5)
             resp.raise_for_status()
             data = resp.json()
         except requests.RequestException as exc:
             _log_sync(db, "pull", "error", f"Network error: {exc}", "desktop")
             logger.error("pull_products network error: %s", exc)
-            return 0
+            raise exc
 
         categories = data.get("categories", [])
         products = data.get("products", [])
@@ -224,7 +224,7 @@ def pull_products(app) -> int:
                 if remote_image and (prod.image != remote_image or not getattr(prod, "image_data", None)):
                     image_url = f"{server_url}/static/uploads/products/{remote_image}"
                     try:
-                        img_resp = requests.get(image_url, timeout=50)
+                        img_resp = requests.get(image_url, timeout=5)
                         img_resp.raise_for_status()
                         # Save raw bytes directly to avoid RGBA->JPEG conversion errors
                         dest = os.path.join(upload_folder, remote_image)
@@ -295,13 +295,13 @@ def pull_orders_from_server(app) -> int:
         headers = _get_headers(app)
         
         try:
-            resp = requests.get(endpoint, headers=headers, timeout=50)
+            resp = requests.get(endpoint, headers=headers, timeout=5)
             resp.raise_for_status()
             data = resp.json()
         except requests.RequestException as exc:
             _log_sync(db, "pull_orders", "error", f"Network error: {exc}", "desktop")
             logger.error("pull_orders_from_server network error: %s", exc)
-            return 0
+            raise exc
             
         orders_data = data.get("orders", [])
         if not orders_data:
@@ -381,12 +381,12 @@ def sync_deleted_orders(app) -> int:
         headers = _get_headers(app)
         
         try:
-            resp = requests.get(endpoint, headers=headers, timeout=50)
+            resp = requests.get(endpoint, headers=headers, timeout=5)
             resp.raise_for_status()
             data = resp.json()
         except requests.RequestException as exc:
             logger.error("sync_deleted_orders network error: %s", exc)
-            return 0
+            raise exc
             
         server_ids = set(data.get("local_ids", []))
         if not server_ids:
@@ -428,7 +428,7 @@ def start_sync_thread(app):
 
     def _sync_loop():
         consecutive_failures = 0
-        max_backoff = 300  # 5 minutes in seconds
+        max_backoff = 60  # 60 seconds in seconds
 
         while True:
             try:
@@ -445,12 +445,21 @@ def start_sync_thread(app):
                 )
                 consecutive_failures = 0
                 sleep_time = sync_interval
+            except requests.RequestException as exc:
+                consecutive_failures += 1
+                sleep_time = min(sync_interval * (2 ** consecutive_failures), max_backoff)
+                logger.warning(
+                    "Sync cycle network error (#%d consecutive): %s. "
+                    "Sleeping %ds before retry.",
+                    consecutive_failures,
+                    exc,
+                    sleep_time,
+                )
             except Exception as exc:
                 consecutive_failures += 1
-                # Exponential backoff: 30s, 60s, 120s, 240s, 300s, 300s, ...
                 sleep_time = min(sync_interval * (2 ** consecutive_failures), max_backoff)
                 logger.error(
-                    "Sync cycle error (#%d consecutive): %s. "
+                    "Sync cycle unexpected error (#%d consecutive): %s. "
                     "Sleeping %ds before retry.",
                     consecutive_failures,
                     exc,

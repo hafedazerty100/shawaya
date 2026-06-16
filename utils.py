@@ -70,17 +70,19 @@ def generate_activation_token(serial_hash: str, device_id: str) -> str:
 
 def validate_activation_token(token: str) -> bool:
     """
-    Accept any non-empty activation token issued by the server.
-
-    Why no HMAC check here?
-    The server validates the serial key BEFORE issuing the token.
-    The desktop and server run on different machines with different
-    SECRET_KEYs, so cross-machine HMAC verification would always fail.
-    Security is enforced server-side; we just need a non-empty token.
+    Validate the HMAC signature of the activation token locally.
     """
-    if not token or len(token) < 10:
+    if not token:
         return False
-    return True
+    try:
+        parts = token.rsplit(":", 1)
+        if len(parts) != 2:
+            return False
+        payload, sig = parts[0], parts[1]
+        expected_sig = hmac.new(_hmac_key(), payload.encode("utf-8"), hashlib.sha256).hexdigest()
+        return hmac.compare_digest(sig, expected_sig)
+    except Exception:
+        return False
 
 
 def extract_token_device_id(token: str) -> str | None:

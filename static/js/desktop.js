@@ -10,6 +10,28 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentCategory = "all";
   let printInProgress = false; // prevent double-tap spam
   let runningTotalCents = 0;
+  const pendingOrders = {};
+
+  // Listen for order_printed message from receipt iframe to finalize order and update revenue
+  window.addEventListener("message", (event) => {
+    if (event.data && event.data.type === "order_printed") {
+      const orderId = event.data.orderId;
+      const product = pendingOrders[orderId];
+      if (product) {
+        // ── Add to feed ───────────────────────────────────────────────────────
+        addToFeed(product, orderId);
+
+        // ── Update running total ──────────────────────────────────────────────
+        runningTotalCents += product.price_cents;
+        document.getElementById("total-amount").textContent = fmt(runningTotalCents);
+
+        delete pendingOrders[orderId];
+
+        // Trigger background sync (don't await — keep it fast)
+        fetch("/api/sync", { method: "POST" }).catch(() => {});
+      }
+    }
+  });
 
   // Elements
   const productGrid     = document.getElementById("product-grid");
@@ -137,12 +159,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const data = await resp.json();
 
+      // Store in pendingOrders map to match up when printing completes
+      pendingOrders[data.order_id] = product;
+
       // ── Print ticket silently via iframe ──────────────────────────────────
       printTicket(data.order_id, product);
 
     } catch (err) {
       console.error("Order error:", err);
-      showToast("خطأ في تسجيل الطلب", "error");
+      showFlash(product.id, false);
     } finally {
       setTimeout(() => {
         cardEl.classList.remove("card-printing");
@@ -177,8 +202,8 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => toast.remove(), 3000);
   }
 
-  // ── Global callback called by print iframe once printed & confirmed ────────
-  window.onOrderConfirmed = function(orderId, productName, priceCents) {
+  // ── Live ticket feed ──────────────────────────────────────────────────────
+  function addToFeed(product, orderId) {
     feedEmpty.style.display = "none";
     const now = new Date();
     const timeStr = now.toLocaleTimeString("ar-DZ", { hour: "2-digit", minute: "2-digit" });
@@ -188,22 +213,13 @@ document.addEventListener("DOMContentLoaded", () => {
     item.innerHTML = `
       <div class="feed-item__icon"><i class="bi bi-receipt-cutoff"></i></div>
       <div class="feed-item__info">
-        <div class="feed-item__name">${productName}</div>
+        <div class="feed-item__name">${product.name}</div>
         <div class="feed-item__meta">طلب #${orderId} · ${timeStr}</div>
       </div>
       <div class="feed-item__badge">✓</div>
     `;
     ticketFeedItems.insertBefore(item, ticketFeedItems.firstChild);
-
-    // Update running total
-    runningTotalCents += priceCents;
-    document.getElementById("total-amount").textContent = fmt(runningTotalCents);
-
-    showToast(`تم تأكيد وطباعة الطلب #${orderId}`);
-
-    // Trigger background sync immediately to upload this new order
-    fetch("/api/sync", { method: "POST" }).catch(() => {});
-  };
+  }
 
   // ── Category filtering ────────────────────────────────────────────────────
   categoryNav.addEventListener("click", (e) => {

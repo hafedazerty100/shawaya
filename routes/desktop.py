@@ -292,7 +292,7 @@ def api_create_order():
     try:
         order = Order(
             local_id=local_id,
-            status="unprinted",
+            status="draft",
             total_cents=total_cents,
             device_id=device_id,
         )
@@ -304,7 +304,7 @@ def api_create_order():
             db.session.add(item)
 
         db.session.commit()
-        logger.info("Created order %s (total=%d cents, status=unprinted).", local_id, total_cents)
+        logger.info("Created draft order %s (total=%d cents).", local_id, total_cents)
         return jsonify({"order_id": order.id, "local_id": order.local_id}), 201
 
     except Exception as exc:
@@ -314,20 +314,17 @@ def api_create_order():
 
 
 @desktop_bp.route("/api/orders/<int:order_id>/confirm", methods=["POST"])
-def api_confirm_order(order_id: int):
-    """Transition order status from 'unprinted' to 'pending' to register it for sync/revenue."""
-    order = db.get_or_404(Order, order_id)
-    if order.status == "unprinted":
-        try:
-            order.status = "pending"
-            db.session.commit()
-            logger.info("Confirmed and registered order #%d for printing/sync.", order.id)
-            return jsonify({"status": "confirmed"}), 200
-        except Exception as exc:
-            db.session.rollback()
-            logger.error("Failed to confirm order #%d: %s", order_id, exc)
-            return jsonify({"error": "Failed to confirm order."}), 500
-    return jsonify({"status": "already_confirmed"}), 200
+def confirm_order(order_id: int):
+    """Update order status from 'draft' to 'pending' after successful printing."""
+    order = db.session.get(Order, order_id)
+    if not order:
+        return jsonify({"error": "Order not found."}), 404
+    if order.status == "draft":
+        order.status = "pending"
+        db.session.commit()
+        logger.info("Order %d confirmed and status set to 'pending'.", order_id)
+        return jsonify({"success": True}), 200
+    return jsonify({"success": True, "message": "Already confirmed"}), 200
 
 
 @desktop_bp.route("/api/print-receipt/<int:order_id>")
@@ -339,23 +336,14 @@ def print_receipt(order_id: int):
 
 @desktop_bp.route("/api/sync", methods=["POST"])
 def api_sync():
-    """Trigger a full two-way sync cycle synchronously."""
-    from sync import sync_orders, pull_products, pull_orders_from_server, sync_deleted_orders
+    """Manually trigger an order sync cycle."""
+    from sync import sync_orders
 
-    app_obj = current_app._get_current_object()
     try:
-        synced = sync_orders(app_obj)
-        pulled_prods = pull_products(app_obj)
-        pulled_orders = pull_orders_from_server(app_obj)
-        deleted = sync_deleted_orders(app_obj)
-        return jsonify({
-            "synced_orders": synced,
-            "pulled_products": pulled_prods,
-            "pulled_orders": pulled_orders,
-            "deleted_orders": deleted
-        }), 200
+        count = sync_orders(current_app._get_current_object())
+        return jsonify({"synced": count}), 200
     except Exception as exc:
-        logger.error("Sync failed: %s", exc)
+        logger.error("Manual sync failed: %s", exc)
         return jsonify({"error": str(exc)}), 500
 
 
@@ -372,34 +360,88 @@ def api_pull_products():
         return jsonify({"error": str(exc)}), 500
 
 
+def _get_sync_headers():
+    token_path = SERIAL_PATH
+    activation_token = ""
+    try:
+        if os.path.isfile(token_path):
+            with open(token_path, "r") as f:
+                activation_token = f.read().strip()
+    except Exception:
+        pass
+    return {
+        "X-API-KEY": current_app.config.get("SYNC_API_KEY", ""),
+        "X-Activation-Token": activation_token,
+        "Content-Type": "application/json",
+    }
+
+
 @desktop_bp.route("/api/revenue")
 def api_revenue():
-    """Return total revenue for a specific date (YYYY-MM-DD), defaulting to today."""
+    """Return total revenue for a specific date or date range."""
     date_str = request.args.get("date", "").strip()
+    start_str = request.args.get("start_date", "").strip()
+    end_str = request.args.get("end_date", "").strip()
     
-    if date_str:
-        try:
-            target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
-        except ValueError:
-            return jsonify({"error": "Invalid date format. Use YYYY-MM-DD."}), 400
-    else:
-        # Default to today in local time, but we should match UTC for db or whatever timezone they use
-        target_date = datetime.now(timezone.utc).date()
+    try:
+        if start_str and end_str:
+            start_date = datetime.strptime(start_str, "%Y-%m-%d").date()
+            end_date = datetime.strptime(end_str, "%Y-%m-%d").date()
+        elif date_str:
+            start_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+            end_date = start_date
+        else:
+            # Default to today
+            start_date = datetime.now(timezone.utc).date()
+            end_date = start_date
+            
+    except ValueError:
+        return jsonify({"error": "Invalid date format. Use YYYY-MM-DD."}), 400
         
-    # Get all orders from the start of the day to the end of the day
-    start_dt = datetime.combine(target_date, datetime.min.time()).replace(tzinfo=timezone.utc)
-    end_dt = datetime.combine(target_date, datetime.max.time()).replace(tzinfo=timezone.utc)
+    start_dt = datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+    end_dt = datetime.combine(end_date, datetime.max.time()).replace(tzinfo=timezone.utc)
     
-    orders = Order.query.filter(
-        Order.created_at >= start_dt,
-        Order.created_at <= end_dt,
-        Order.status != "unprinted"
-    ).all()
+    # Try fetching from server first
+    server_revenue_cents = 0
+    server_success = False
     
-    total_cents = sum(o.total_cents for o in orders)
-    
+    server_url = current_app.config.get("SERVER_URL", "")
+    if server_url:
+        endpoint = f"{server_url}/api/sync/revenue"
+        headers = _get_sync_headers()
+        params = {}
+        params["start_date"] = start_date.strftime("%Y-%m-%d")
+        params["end_date"] = end_date.strftime("%Y-%m-%d")
+        try:
+            resp = requests.get(endpoint, headers=headers, params=params, timeout=5)
+            if resp.status_code == 200:
+                server_revenue_cents = resp.json().get("total_cents", 0)
+                server_success = True
+            else:
+                logger.warning("Server returned %d for sync revenue: %s", resp.status_code, resp.text)
+        except Exception as exc:
+            logger.warning("Failed to fetch revenue from server: %s", exc)
+            
+    if server_success:
+        # Include any local orders that are NOT yet synced (i.e. status is draft, pending, or failed)
+        local_orders = Order.query.filter(
+            Order.status != "synced",
+            Order.created_at >= start_dt,
+            Order.created_at <= end_dt
+        ).all()
+        total_cents = server_revenue_cents + sum(o.total_cents for o in local_orders)
+    else:
+        # Offline fallback: calculate purely from local DB (excluding draft)
+        local_orders = Order.query.filter(
+            Order.status != "draft",
+            Order.created_at >= start_dt,
+            Order.created_at <= end_dt
+        ).all()
+        total_cents = sum(o.total_cents for o in local_orders)
+        
     return jsonify({
-        "date": target_date.strftime("%Y-%m-%d"),
+        "start_date": start_date.strftime("%Y-%m-%d"),
+        "end_date": end_date.strftime("%Y-%m-%d"),
         "total_cents": total_cents,
         "total_display": format_price(total_cents)
     }), 200

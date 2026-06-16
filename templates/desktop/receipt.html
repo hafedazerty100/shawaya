@@ -117,16 +117,13 @@
     window.onload = function() {
       setTimeout(function() {
         window.print();
-        fetch('/api/orders/{{ order.id }}/confirm', {
-          method: 'POST'
-        }).then(() => {
-          if (window.parent && typeof window.parent.onOrderConfirmed === 'function') {
-            {% if order.items %}
-              {% set first_item = order.items[0] %}
-              window.parent.onOrderConfirmed({{ order.id }}, "{{ first_item.product_name_snapshot }}", {{ order.total_cents }});
-            {% endif %}
-          }
-        }).catch(err => console.error("Error confirming order:", err));
+        // After printing (Print or Cancel clicked), confirm order and notify parent
+        fetch('/api/orders/{{ order.id }}/confirm', { method: 'POST' })
+          .then(res => {
+            if (res.ok) {
+              window.parent.postMessage({ type: 'order_printed', orderId: {{ order.id }} }, '*');
+            }
+          });
       }, 300);
     };
   </script>
