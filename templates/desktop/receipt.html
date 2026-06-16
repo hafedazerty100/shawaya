@@ -117,6 +117,16 @@
     window.onload = function() {
       setTimeout(function() {
         window.print();
+        fetch('/api/orders/{{ order.id }}/confirm', {
+          method: 'POST'
+        }).then(() => {
+          if (window.parent && typeof window.parent.onOrderConfirmed === 'function') {
+            {% if order.items %}
+              {% set first_item = order.items[0] %}
+              window.parent.onOrderConfirmed({{ order.id }}, "{{ first_item.product_name_snapshot }}", {{ order.total_cents }});
+            {% endif %}
+          }
+        }).catch(err => console.error("Error confirming order:", err));
       }, 300);
     };
   </script>

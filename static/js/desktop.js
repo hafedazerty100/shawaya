@@ -140,19 +140,9 @@ document.addEventListener("DOMContentLoaded", () => {
       // ── Print ticket silently via iframe ──────────────────────────────────
       printTicket(data.order_id, product);
 
-      // ── Add to feed ───────────────────────────────────────────────────────
-      addToFeed(product, data.order_id);
-
-      // ── Update running total ──────────────────────────────────────────────
-      runningTotalCents += product.price_cents;
-      document.getElementById("total-amount").textContent = fmt(runningTotalCents);
-
-      // Trigger background sync (don't await — keep it fast)
-      fetch("/api/sync", { method: "POST" }).catch(() => {});
-
     } catch (err) {
       console.error("Order error:", err);
-      showFlash(product.id, false);
+      showToast("خطأ في تسجيل الطلب", "error");
     } finally {
       setTimeout(() => {
         cardEl.classList.remove("card-printing");
@@ -187,8 +177,8 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => toast.remove(), 3000);
   }
 
-  // ── Live ticket feed ──────────────────────────────────────────────────────
-  function addToFeed(product, orderId) {
+  // ── Global callback called by print iframe once printed & confirmed ────────
+  window.onOrderConfirmed = function(orderId, productName, priceCents) {
     feedEmpty.style.display = "none";
     const now = new Date();
     const timeStr = now.toLocaleTimeString("ar-DZ", { hour: "2-digit", minute: "2-digit" });
@@ -198,13 +188,22 @@ document.addEventListener("DOMContentLoaded", () => {
     item.innerHTML = `
       <div class="feed-item__icon"><i class="bi bi-receipt-cutoff"></i></div>
       <div class="feed-item__info">
-        <div class="feed-item__name">${product.name}</div>
+        <div class="feed-item__name">${productName}</div>
         <div class="feed-item__meta">طلب #${orderId} · ${timeStr}</div>
       </div>
       <div class="feed-item__badge">✓</div>
     `;
     ticketFeedItems.insertBefore(item, ticketFeedItems.firstChild);
-  }
+
+    // Update running total
+    runningTotalCents += priceCents;
+    document.getElementById("total-amount").textContent = fmt(runningTotalCents);
+
+    showToast(`تم تأكيد وطباعة الطلب #${orderId}`);
+
+    // Trigger background sync immediately to upload this new order
+    fetch("/api/sync", { method: "POST" }).catch(() => {});
+  };
 
   // ── Category filtering ────────────────────────────────────────────────────
   categoryNav.addEventListener("click", (e) => {

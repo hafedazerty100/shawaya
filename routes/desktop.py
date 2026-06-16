@@ -292,7 +292,7 @@ def api_create_order():
     try:
         order = Order(
             local_id=local_id,
-            status="pending",
+            status="unprinted",
             total_cents=total_cents,
             device_id=device_id,
         )
@@ -304,13 +304,30 @@ def api_create_order():
             db.session.add(item)
 
         db.session.commit()
-        logger.info("Created order %s (total=%d cents).", local_id, total_cents)
+        logger.info("Created order %s (total=%d cents, status=unprinted).", local_id, total_cents)
         return jsonify({"order_id": order.id, "local_id": order.local_id}), 201
 
     except Exception as exc:
         db.session.rollback()
         logger.error("Failed to create order: %s", exc)
         return jsonify({"error": "Failed to save order. Please try again."}), 500
+
+
+@desktop_bp.route("/api/orders/<int:order_id>/confirm", methods=["POST"])
+def api_confirm_order(order_id: int):
+    """Transition order status from 'unprinted' to 'pending' to register it for sync/revenue."""
+    order = db.get_or_404(Order, order_id)
+    if order.status == "unprinted":
+        try:
+            order.status = "pending"
+            db.session.commit()
+            logger.info("Confirmed and registered order #%d for printing/sync.", order.id)
+            return jsonify({"status": "confirmed"}), 200
+        except Exception as exc:
+            db.session.rollback()
+            logger.error("Failed to confirm order #%d: %s", order_id, exc)
+            return jsonify({"error": "Failed to confirm order."}), 500
+    return jsonify({"status": "already_confirmed"}), 200
 
 
 @desktop_bp.route("/api/print-receipt/<int:order_id>")
@@ -322,14 +339,23 @@ def print_receipt(order_id: int):
 
 @desktop_bp.route("/api/sync", methods=["POST"])
 def api_sync():
-    """Manually trigger an order sync cycle."""
-    from sync import sync_orders
+    """Trigger a full two-way sync cycle synchronously."""
+    from sync import sync_orders, pull_products, pull_orders_from_server, sync_deleted_orders
 
+    app_obj = current_app._get_current_object()
     try:
-        count = sync_orders(current_app._get_current_object())
-        return jsonify({"synced": count}), 200
+        synced = sync_orders(app_obj)
+        pulled_prods = pull_products(app_obj)
+        pulled_orders = pull_orders_from_server(app_obj)
+        deleted = sync_deleted_orders(app_obj)
+        return jsonify({
+            "synced_orders": synced,
+            "pulled_products": pulled_prods,
+            "pulled_orders": pulled_orders,
+            "deleted_orders": deleted
+        }), 200
     except Exception as exc:
-        logger.error("Manual sync failed: %s", exc)
+        logger.error("Sync failed: %s", exc)
         return jsonify({"error": str(exc)}), 500
 
 
@@ -366,7 +392,8 @@ def api_revenue():
     
     orders = Order.query.filter(
         Order.created_at >= start_dt,
-        Order.created_at <= end_dt
+        Order.created_at <= end_dt,
+        Order.status != "unprinted"
     ).all()
     
     total_cents = sum(o.total_cents for o in orders)

@@ -111,7 +111,7 @@ def sync_orders(app) -> int:
                 endpoint,
                 json={"orders": payload},
                 headers=headers,
-                timeout=15,
+                timeout=50,
             )
             resp.raise_for_status()
             results = resp.json().get("results", {})
@@ -175,7 +175,7 @@ def pull_products(app) -> int:
         os.makedirs(upload_folder, exist_ok=True)
 
         try:
-            resp = requests.get(endpoint, headers=headers, timeout=15)
+            resp = requests.get(endpoint, headers=headers, timeout=50)
             resp.raise_for_status()
             data = resp.json()
         except requests.RequestException as exc:
@@ -224,7 +224,7 @@ def pull_products(app) -> int:
                 if remote_image and (prod.image != remote_image or not getattr(prod, "image_data", None)):
                     image_url = f"{server_url}/static/uploads/products/{remote_image}"
                     try:
-                        img_resp = requests.get(image_url, timeout=15)
+                        img_resp = requests.get(image_url, timeout=50)
                         img_resp.raise_for_status()
                         # Save raw bytes directly to avoid RGBA->JPEG conversion errors
                         dest = os.path.join(upload_folder, remote_image)
@@ -295,7 +295,7 @@ def pull_orders_from_server(app) -> int:
         headers = _get_headers(app)
         
         try:
-            resp = requests.get(endpoint, headers=headers, timeout=15)
+            resp = requests.get(endpoint, headers=headers, timeout=50)
             resp.raise_for_status()
             data = resp.json()
         except requests.RequestException as exc:
@@ -381,7 +381,7 @@ def sync_deleted_orders(app) -> int:
         headers = _get_headers(app)
         
         try:
-            resp = requests.get(endpoint, headers=headers, timeout=15)
+            resp = requests.get(endpoint, headers=headers, timeout=50)
             resp.raise_for_status()
             data = resp.json()
         except requests.RequestException as exc:
