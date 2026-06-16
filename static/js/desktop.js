@@ -263,12 +263,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnShowRevenue = document.getElementById("btn-show-revenue");
   const revenueModal = new bootstrap.Modal(document.getElementById('revenueModal'));
   const btnFetchRevenue = document.getElementById("btn-fetch-revenue");
-  const inputRevenueDate = document.getElementById("revenue-date");
+  const inputStartDate = document.getElementById("revenue-start-date");
+  const inputEndDate = document.getElementById("revenue-end-date");
   const txtRevenueResult = document.getElementById("revenue-result");
 
   if (btnShowRevenue) {
     btnShowRevenue.addEventListener("click", () => {
-      inputRevenueDate.value = ""; // Default empty to show today
+      inputStartDate.value = ""; // Default empty to show today
+      inputEndDate.value = "";
       txtRevenueResult.textContent = "0.00 DA";
       revenueModal.show();
     });
@@ -276,11 +278,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (btnFetchRevenue) {
     btnFetchRevenue.addEventListener("click", async () => {
-      const dateVal = inputRevenueDate.value;
+      const startVal = inputStartDate.value;
+      const endVal = inputEndDate.value;
       txtRevenueResult.textContent = "جاري الحساب...";
       
       try {
-        const url = dateVal ? `/api/revenue?date=${dateVal}` : "/api/revenue";
+        let url = "/api/revenue";
+        if (startVal || endVal) {
+          const params = new URLSearchParams();
+          if (startVal) params.append("start_date", startVal);
+          if (endVal) params.append("end_date", endVal);
+          url += "?" + params.toString();
+        }
+        
         const resp = await fetch(url);
         if (!resp.ok) {
           const errData = await resp.json();
@@ -294,6 +304,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
 
   // ── Boot ──────────────────────────────────────────────────────────────────
   fetchProducts();
