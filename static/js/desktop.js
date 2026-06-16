@@ -18,6 +18,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const orderId = event.data.orderId;
       const product = pendingOrders[orderId];
       if (product) {
+        // Confirm order via POST to the backend from the stable parent window
+        fetch(`/api/orders/${orderId}/confirm`, { method: "POST" }).catch(() => {});
+
         // ── Add to feed ───────────────────────────────────────────────────────
         addToFeed(product, orderId);
 
@@ -167,7 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     } catch (err) {
       console.error("Order error:", err);
-      showFlash(product.id, false);
+      showToast(err.message || "Failed to place order", "error");
     } finally {
       setTimeout(() => {
         cardEl.classList.remove("card-printing");
