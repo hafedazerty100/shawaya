@@ -175,3 +175,51 @@ def test_server_sync_orders_success(server_app, server_client):
         assert len(order.items) == 1
         assert order.items[0].product_name_snapshot == "Espresso"
         assert order.items[0].quantity == 2
+
+
+def test_api_revenue_endpoint(desktop_app, desktop_client, monkeypatch):
+    """Test desktop /api/revenue with direct Postgres connection mock and fallback."""
+    from datetime import datetime, timezone
+    
+    with desktop_app.app_context():
+        # Setup category and product if not present
+        if not Category.query.get(1):
+            cat = Category(id=1, name="Coffee", display_order=1)
+            db.session.add(cat)
+        if not Product.query.get(10):
+            prod = Product(id=10, category_id=1, name="Espresso", price_cents=250, is_active=True)
+            db.session.add(prod)
+        db.session.commit()
+
+        # Add a local unsynced order
+        local_order = Order(
+            local_id=str(uuid.uuid4()),
+            status="pending",
+            total_cents=500,
+            created_at=datetime.now(timezone.utc)
+        )
+        db.session.add(local_order)
+        db.session.commit()
+
+    # Case 1: Online direct Postgres queries succeed (mock _get_remote_revenue returning 1000 cents)
+    monkeypatch.setattr("routes.desktop._get_remote_revenue", lambda start, end: 1000)
+    resp = desktop_client.get("/api/revenue")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    # local order (500 cents) + mock server (1000 cents) = 1500 cents
+    assert data["total_cents"] == 1500
+    assert data["total_display"] == "15.00 DA"
+
+    # Case 2: Online queries fail, fallback to purely local DB orders
+    monkeypatch.setattr("routes.desktop._get_remote_revenue", lambda start, end: None)
+    class MockResponse:
+        status_code = 404
+        text = "Not found"
+    monkeypatch.setattr("requests.get", lambda *args, **kwargs: MockResponse())
+
+    resp = desktop_client.get("/api/revenue")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["total_cents"] == 500
+    assert data["total_display"] == "5.00 DA"
+
