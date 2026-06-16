@@ -227,3 +227,91 @@ def api_key_required(f):
         return f(*args, **kwargs)
 
     return decorated
+
+
+def check_and_apply_updates():
+    """
+    Check for updates via git fetch and git reset --hard if in a git repository.
+    If updates are available, apply them and restart the process.
+    """
+    import os
+    import sys
+    import subprocess
+    
+    project_dir = os.path.dirname(os.path.abspath(__file__))
+    git_dir = os.path.join(project_dir, ".git")
+    if not os.path.isdir(git_dir):
+        return False
+        
+    try:
+        # 1. Fetch latest changes from remote
+        logger.info("[UPDATE] Checking for updates via git fetch...")
+        subprocess.run(
+            ["git", "fetch", "origin", "main"],
+            cwd=project_dir,
+            capture_output=True,
+            text=True,
+            timeout=15,
+            check=True
+        )
+        
+        # 2. Get local and remote commit hashes
+        local_hash = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=project_dir,
+            capture_output=True,
+            text=True,
+            check=True
+        ).stdout.strip()
+        
+        remote_hash = subprocess.run(
+            ["git", "rev-parse", "origin/main"],
+            cwd=project_dir,
+            capture_output=True,
+            text=True,
+            check=True
+        ).stdout.strip()
+        
+        if local_hash == remote_hash:
+            logger.info("[UPDATE] Already up to date.")
+            return False
+            
+        logger.info(f"[UPDATE] New updates found: {local_hash[:7]} -> {remote_hash[:7]}")
+        logger.info("[UPDATE] Resetting local repository to match origin/main...")
+        
+        # 3. Align local codebase with remote
+        subprocess.run(
+            ["git", "reset", "--hard", "origin/main"],
+            cwd=project_dir,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        
+        # 4. Try installing requirements
+        req_file = os.path.join(project_dir, "requirements_windows.txt")
+        if not os.path.isfile(req_file):
+            req_file = os.path.join(project_dir, "requirements.txt")
+            
+        if os.path.isfile(req_file):
+            try:
+                logger.info("[UPDATE] Installing/updating requirements...")
+                subprocess.run(
+                    [sys.executable, "-m", "pip", "install", "-r", req_file],
+                    cwd=project_dir,
+                    timeout=60,
+                    check=True
+                )
+            except Exception as pip_err:
+                logger.warning(f"[WARNING] Failed to run pip install: {pip_err}")
+                
+        logger.info("[UPDATE] Restarting process to load updated code...")
+        os.execv(sys.executable, [sys.executable] + sys.argv)
+        sys.exit(0)
+        
+    except subprocess.TimeoutExpired:
+        logger.warning("[UPDATE] Git fetch timed out (possibly offline).")
+    except Exception as exc:
+        logger.error(f"[UPDATE] Update check failed: {exc}")
+        
+    return False

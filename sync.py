@@ -429,8 +429,19 @@ def start_sync_thread(app):
     def _sync_loop():
         consecutive_failures = 0
         max_backoff = 60  # 60 seconds in seconds
+        last_update_check = 0
 
         while True:
+            # Periodically check for remote updates (every 5 minutes)
+            now = time.time()
+            if now - last_update_check > 300:
+                last_update_check = now
+                try:
+                    from utils import check_and_apply_updates
+                    check_and_apply_updates()
+                except Exception as u_err:
+                    logger.error("Auto-updater failed during sync loop: %s", u_err)
+
             try:
                 synced = sync_orders(app)
                 pulled = pull_products(app)

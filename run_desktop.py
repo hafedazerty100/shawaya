@@ -15,6 +15,12 @@ load_dotenv()
 
 os.environ.setdefault("APP_MODE", "desktop")
 
+from utils import check_and_apply_updates
+try:
+    check_and_apply_updates()
+except Exception as err:
+    sys.stderr.write(f"[WARNING] Auto-updater failed on boot: {err}\n")
+
 from app import create_app
 from sync import start_sync_thread
 
