@@ -88,9 +88,16 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <div class="mb-3">
-          <label for="revenue-date" class="form-label">اختر التاريخ (يترك فارغاً لليوم الحالي)</label>
-          <input type="date" class="form-control bg-dark text-white border-secondary" id="revenue-date">
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <label for="revenue-start-date" class="form-label">تاريخ البداية</label>
+            <input type="date" class="form-control bg-dark text-white border-secondary" id="revenue-start-date">
+          </div>
+          <div class="col-6">
+            <label for="revenue-end-date" class="form-label">تاريخ النهاية</label>
+            <input type="date" class="form-control bg-dark text-white border-secondary" id="revenue-end-date">
+          </div>
+          <small class="text-muted mt-1">اترك الحقول فارغة لعرض إيرادات اليوم الحالي</small>
         </div>
         <div class="text-center mt-4">
           <h6 class="text-muted">إجمالي الإيرادات</h6>
@@ -104,6 +111,7 @@
     </div>
   </div>
 </div>
+
 
 {% endblock %}
 

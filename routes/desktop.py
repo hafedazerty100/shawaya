@@ -376,6 +376,37 @@ def _get_sync_headers():
     }
 
 
+def _get_remote_revenue(start_dt, end_dt):
+    """Query the remote Neon PostgreSQL database directly for revenue totals when online."""
+    db_url = os.environ.get("DATABASE_URL", "")
+    if not db_url:
+        return None
+        
+    if db_url.startswith("postgres://"):
+        db_url = "postgresql+pg8000://" + db_url[len("postgres://"):]
+    elif db_url.startswith("postgresql://"):
+        db_url = "postgresql+pg8000://" + db_url[len("postgresql://"):]
+        
+    # Strip query parameters (like ?sslmode=require) to prevent pg8000 connection errors
+    if "?" in db_url:
+        db_url = db_url.split("?", 1)[0]
+        
+    try:
+        from sqlalchemy import create_engine, text
+        engine = create_engine(db_url, connect_args={"ssl_context": True, "timeout": 5})
+        with engine.connect() as conn:
+            query = text(
+                "SELECT COALESCE(SUM(total_cents), 0) FROM orders "
+                "WHERE status != 'draft' AND created_at >= :start AND created_at <= :end"
+            )
+            res = conn.execute(query, {"start": start_dt, "end": end_dt}).scalar()
+            return int(res or 0)
+    except Exception as exc:
+        logger.warning("Failed to query remote database directly for revenue: %s", exc)
+        return None
+
+
+
 @desktop_bp.route("/api/revenue")
 def api_revenue():
     """Return total revenue for a specific date or date range."""
@@ -401,26 +432,32 @@ def api_revenue():
     start_dt = datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc)
     end_dt = datetime.combine(end_date, datetime.max.time()).replace(tzinfo=timezone.utc)
     
-    # Try fetching from server first
+    # Try fetching from PostgreSQL database directly first (if online)
     server_revenue_cents = 0
     server_success = False
     
-    server_url = current_app.config.get("SERVER_URL", "")
-    if server_url:
-        endpoint = f"{server_url}/api/sync/revenue"
-        headers = _get_sync_headers()
-        params = {}
-        params["start_date"] = start_date.strftime("%Y-%m-%d")
-        params["end_date"] = end_date.strftime("%Y-%m-%d")
-        try:
-            resp = requests.get(endpoint, headers=headers, params=params, timeout=5)
-            if resp.status_code == 200:
-                server_revenue_cents = resp.json().get("total_cents", 0)
-                server_success = True
-            else:
-                logger.warning("Server returned %d for sync revenue: %s", resp.status_code, resp.text)
-        except Exception as exc:
-            logger.warning("Failed to fetch revenue from server: %s", exc)
+    remote_revenue = _get_remote_revenue(start_dt, end_dt)
+    if remote_revenue is not None:
+        server_revenue_cents = remote_revenue
+        server_success = True
+    else:
+        # Fallback to server API endpoint
+        server_url = current_app.config.get("SERVER_URL", "")
+        if server_url:
+            endpoint = f"{server_url}/api/sync/revenue"
+            headers = _get_sync_headers()
+            params = {}
+            params["start_date"] = start_date.strftime("%Y-%m-%d")
+            params["end_date"] = end_date.strftime("%Y-%m-%d")
+            try:
+                resp = requests.get(endpoint, headers=headers, params=params, timeout=5)
+                if resp.status_code == 200:
+                    server_revenue_cents = resp.json().get("total_cents", 0)
+                    server_success = True
+                else:
+                    logger.warning("Server returned %d for sync revenue: %s", resp.status_code, resp.text)
+            except Exception as exc:
+                logger.warning("Failed to fetch revenue from server: %s", exc)
             
     if server_success:
         # Include any local orders that are NOT yet synced (i.e. status is draft, pending, or failed)
@@ -445,3 +482,4 @@ def api_revenue():
         "total_cents": total_cents,
         "total_display": format_price(total_cents)
     }), 200
+

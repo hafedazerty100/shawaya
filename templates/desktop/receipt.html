@@ -65,6 +65,9 @@
       color: #555;
     }
     @media print {
+      @page {
+        margin-bottom: 60mm; /* Forces 60mm blank feed after last line so paper clears the physical cutter */
+      }
       body { width: auto; padding: 0; }
       .ticket {
         width: 80mm;
@@ -117,13 +120,7 @@
     window.onload = function() {
       setTimeout(function() {
         window.print();
-        // After printing (Print or Cancel clicked), confirm order and notify parent
-        fetch('/api/orders/{{ order.id }}/confirm', { method: 'POST' })
-          .then(res => {
-            if (res.ok) {
-              window.parent.postMessage({ type: 'order_printed', orderId: {{ order.id }} }, '*');
-            }
-          });
+        window.parent.postMessage({ type: 'order_printed', orderId: {{ order.id }} }, '*');
       }, 300);
     };
   </script>
