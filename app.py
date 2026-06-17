@@ -91,11 +91,11 @@ def _initialize_single_db(app: Flask, db_url: str) -> bool:
         return False
 
     with app.app_context():
-        # Remove connection session to clean previous DB state before changing URI
-        db.session.remove()
-        
         original_uri = app.config.get("SQLALCHEMY_DATABASE_URI")
         app.config["SQLALCHEMY_DATABASE_URI"] = db_url
+        
+        # Remove connection session to clean previous DB state AFTER changing URI
+        db.session.remove()
         
         # Clear engines
         if hasattr(db, '_app_engines') and app in db._app_engines:
@@ -133,8 +133,8 @@ def _initialize_single_db(app: Flask, db_url: str) -> bool:
         finally:
             # Clean up connection session before restoring the original configuration
             db.session.remove()
+            app.config["SQLALCHEMY_DATABASE_URI"] = original_uri
             
-        app.config["SQLALCHEMY_DATABASE_URI"] = original_uri
         if hasattr(db, '_app_engines') and app in db._app_engines:
             engines = db._app_engines[app]
             for engine in list(engines.values()):
@@ -155,7 +155,6 @@ def _initialize_db(app: Flask) -> None:
     
     if is_testing or is_desktop:
         with app.app_context():
-            db.session.remove()
             db.create_all()
             if app.config["MODE"] == "server":
                 _seed_admin(app)
@@ -196,14 +195,16 @@ def _initialize_db(app: Flask) -> None:
                 conn.execute(text("SELECT 1"))
             engine.dispose()
             
-            app.config["SQLALCHEMY_DATABASE_URI"] = url
-            import extensions
-            extensions._active_db_index = idx
-            
-            if hasattr(db, '_app_engines') and app in db._app_engines:
-                db._app_engines[app].clear()
+            with app.app_context():
+                app.config["SQLALCHEMY_DATABASE_URI"] = url
+                import extensions
+                extensions._active_db_index = idx
                 
-            db.session.remove()
+                if hasattr(db, '_app_engines') and app in db._app_engines:
+                    db._app_engines[app].clear()
+                    
+                db.session.remove()
+                
             logging.getLogger("app").info("Database startup selected active DB index %d: %s", idx, url.split("@")[-1])
             return
         except Exception as exc:
