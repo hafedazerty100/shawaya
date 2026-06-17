@@ -54,15 +54,20 @@ def switch_to_next_db(app=None) -> str:
         logger.info("Switched SQLALCHEMY_DATABASE_URI to DB index %d: %s", _active_db_index, new_url)
         
         with target_app.app_context():
-            if hasattr(db, '_app_engines'):
-                db._app_engines.clear()
-            if hasattr(db, '_engines'):
-                db._engines.clear()
-            if hasattr(db, 'engines'):
-                try:
-                    db.engines.clear()
-                except Exception:
-                    pass
+            try:
+                if hasattr(db, '_app_engines'):
+                    db._app_engines.clear()
+            except Exception:
+                pass
+            try:
+                if hasattr(db, '_engines'):
+                    db._engines.clear()
+            except Exception:
+                pass
+            try:
+                db.engines.clear()
+            except Exception:
+                pass
         
     return new_url
 
