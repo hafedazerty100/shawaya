@@ -1,0 +1,82 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}إعدادات قواعد البيانات — كافيه 24{% endblock %}
+{% block page_title %}إعدادات قواعد البيانات{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  
+  <!-- Left Side: Configured Databases List -->
+  <div class="col-lg-7">
+    <div class="card admin-card h-100">
+      <div class="card-header border-0 bg-transparent pt-4 px-4 d-flex align-items-center gap-2">
+        <i class="bi bi-hdd-network-fill text-warning fs-4"></i>
+        <h5 class="mb-0 fw-bold">قواعد البيانات الموصولة حالياً</h5>
+      </div>
+      <div class="card-body px-4 pb-4">
+        <p class="text-muted small mb-4">
+          يتم الانتقال تلقائياً إلى قاعدة البيانات التالية في القائمة عند حدوث أي خطأ في الاتصال أو استنفاد الحصة الشهرية.
+        </p>
+        
+        <div class="d-flex flex-column gap-3">
+          {% for url in urls %}
+          <div class="p-3 rounded-3 d-flex align-items-center justify-content-between border border-secondary bg-dark text-white">
+            <div class="d-flex align-items-center gap-3 w-100 overflow-hidden">
+              <span class="badge {% if loop.index0 == 0 %}bg-success{% else %}bg-secondary{% endif %}">
+                {% if loop.index0 == 0 %}رئيسية{% else %}احتياطية #{{ loop.index0 }}{% endif %}
+              </span>
+              <code class="text-warning text-truncate w-100 font-monospace" style="direction: ltr; text-align: left; font-size: 0.85rem;">
+                {{ url }}
+              </code>
+            </div>
+            <i class="bi bi-check-circle-fill text-success ms-2"></i>
+          </div>
+          {% endfor %}
+        </div>
+        
+        <div class="alert alert-info mt-4 mb-0" style="background: rgba(13, 202, 240, 0.05); border-color: rgba(13, 202, 240, 0.2);">
+          <h6 class="fw-bold text-info"><i class="bi bi-info-circle me-2"></i>معلومة هامة لإعادة النشر التلقائي</h6>
+          <p class="small mb-0 mt-2">
+            لكي يقوم النظام بحفظ قاعدة البيانات الجديدة ودفعها تلقائياً إلى GitHub ليقوم Render بإعادة النشر فوراً، يرجى إضافة متغير البيئة <code>GITHUB_TOKEN</code> في إعدادات Render وتعيين رمز الوصول الشخصي (PAT) الخاص بك.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Add Database URL Form -->
+  <div class="col-lg-5">
+    <div class="card admin-card h-100">
+      <div class="card-header border-0 bg-transparent pt-4 px-4 d-flex align-items-center gap-2">
+        <i class="bi bi-plus-circle-fill text-warning fs-4"></i>
+        <h5 class="mb-0 fw-bold">إضافة قاعدة بيانات جديدة</h5>
+      </div>
+      <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('admin.db_settings') }}" novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          
+          <div class="mb-4">
+            <label for="db_url" class="form-label fw-semibold mb-2">رابط اتصال PostgreSQL</label>
+            <textarea 
+              class="form-control font-monospace" 
+              id="db_url" 
+              name="db_url" 
+              rows="5" 
+              placeholder="postgresql://neondb_owner:password@ep-host-name.neon.tech/neondb?sslmode=require"
+              style="direction: ltr; text-align: left; font-size: 0.9rem;"
+              required></textarea>
+            <div class="form-text mt-2 text-muted">
+              يرجى إدخال الرابط الكامل للاتصال بقاعدة بيانات Neon PostgreSQL. سيقوم النظام بالتحقق من الاتصال وتهيئة الجداول تلقائياً قبل حفظها.
+            </div>
+          </div>
+          
+          <button type="submit" class="btn btn-warning w-100 fw-bold py-2 d-flex align-items-center justify-content-center gap-2" style="color: #111;">
+            <i class="bi bi-save2"></i>
+            <span>التحقق والحفظ</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

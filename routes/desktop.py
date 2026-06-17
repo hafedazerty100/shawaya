@@ -485,3 +485,28 @@ def api_revenue():
         "total_display": format_price(total_cents)
     }), 200
 
+
+@desktop_bp.route("/api/sync-all", methods=["POST"])
+def api_sync_all():
+    """Manually trigger all sync tasks (push orders, pull products, pull orders, pull deletions)."""
+    from sync import sync_orders, pull_products, pull_orders_from_server, sync_deleted_orders
+    app_obj = current_app._get_current_object()
+    try:
+        orders_pushed = sync_orders(app_obj)
+        products_pulled = pull_products(app_obj)
+        orders_pulled = pull_orders_from_server(app_obj)
+        deletions_synced = sync_deleted_orders(app_obj)
+        
+        return jsonify({
+            "success": True,
+            "orders_pushed": orders_pushed,
+            "products_pulled": products_pulled,
+            "orders_pulled": orders_pulled,
+            "deletions_synced": deletions_synced,
+            "message": f"تمت المزامنة بنجاح! تم دفع {orders_pushed} طلبات، وسحب {products_pulled} منتجات، وسحب {orders_pulled} طلبات."
+        }), 200
+    except Exception as exc:
+        logger.error("Manual sync-all failed: %s", exc)
+        return jsonify({"success": False, "error": str(exc)}), 500
+
+

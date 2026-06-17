@@ -538,3 +538,10 @@ body {
   font-size: 1.25rem;
 }
 
+/* Custom spin animation for reload/sync icons */
+.bi-spin {
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+

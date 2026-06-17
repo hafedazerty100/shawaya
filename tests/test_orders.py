@@ -223,3 +223,201 @@ def test_api_revenue_endpoint(desktop_app, desktop_client, monkeypatch):
     assert data["total_cents"] == 500
     assert data["total_display"] == "5.00 DA"
 
+
+def test_desktop_sync_all_endpoint(desktop_app, desktop_client, monkeypatch):
+    """Test desktop /api/sync-all endpoint triggers full synchronization pipeline."""
+    # Mock all backend sync steps
+    monkeypatch.setattr("sync.sync_orders", lambda app: 1)
+    monkeypatch.setattr("sync.pull_products", lambda app: 2)
+    monkeypatch.setattr("sync.pull_orders_from_server", lambda app: 3)
+    monkeypatch.setattr("sync.sync_deleted_orders", lambda app: 4)
+
+    resp = desktop_client.post("/api/sync-all")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["success"] is True
+    assert data["orders_pushed"] == 1
+    assert data["products_pulled"] == 2
+    assert data["orders_pulled"] == 3
+    assert data["deletions_synced"] == 4
+    assert "تمت المزامنة بنجاح!" in data["message"]
+
+
+def test_server_sync_databases_endpoint(server_app, server_client, monkeypatch):
+    """Test server /admin/sync-databases manually triggers replication (requires auth)."""
+    from werkzeug.security import generate_password_hash
+    from models import AdminUser
+
+    # 1. Without login should redirect (since @login_required is used)
+    resp = server_client.post("/admin/sync-databases")
+    assert resp.status_code == 302
+
+    # 2. Login
+    with server_app.app_context():
+        admin = AdminUser(
+            username="admin_sync_test",
+            password_hash=generate_password_hash("password123"),
+            must_change_password=False
+        )
+        db.session.add(admin)
+        db.session.commit()
+
+    resp_login = server_client.post("/admin/login", data={
+        "username": "admin_sync_test",
+        "password": "password123"
+    }, follow_redirects=True)
+    assert resp_login.status_code == 200
+
+    # Mock replication call
+    replicate_called = False
+    def mock_replicate():
+        nonlocal replicate_called
+        replicate_called = True
+
+    monkeypatch.setattr("db_sync.replicate_databases", mock_replicate)
+
+    resp_sync = server_client.post("/admin/sync-databases")
+    assert resp_sync.status_code == 200
+    assert resp_sync.get_json()["success"] is True
+    assert replicate_called is True
+
+
+def test_db_settings_endpoint(server_app, server_client, monkeypatch, tmp_path):
+    """Test server /admin/db-settings endpoint (requires login)."""
+    from werkzeug.security import generate_password_hash
+    from models import AdminUser
+    import json
+    import os
+
+    # 1. Login
+    with server_app.app_context():
+        admin = AdminUser(
+            username="admin_settings_test",
+            password_hash=generate_password_hash("password123"),
+            must_change_password=False
+        )
+        db.session.add(admin)
+        db.session.commit()
+
+    resp_login = server_client.post("/admin/login", data={
+        "username": "admin_settings_test",
+        "password": "password123"
+    }, follow_redirects=True)
+    assert resp_login.status_code == 200
+
+    # Mock git committing and database URL config path
+    db_urls_file = tmp_path / "db_urls.json"
+    db_urls_file.write_text("[]", encoding="utf-8")
+    
+    # Patch base_dir in routes.admin to point to our tmp_path
+    monkeypatch.setattr("routes.admin.commit_and_push_db_urls", lambda: True)
+    
+    # Override paths in routes.admin
+    monkeypatch.setattr("routes.admin.urls_file", str(db_urls_file))
+
+    # Mock SQL execution connect and compile checks
+    class MockConnection:
+        def __enter__(self):
+            return self
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            pass
+        def execute(self, *args, **kwargs):
+            class MockResult:
+                def scalar(self):
+                    return 0
+            return MockResult()
+        def commit(self):
+            pass
+    class MockEngine:
+        def connect(self):
+            return MockConnection()
+        def dispose(self):
+            pass
+
+    monkeypatch.setattr("sqlalchemy.create_engine", lambda *args, **kwargs: MockEngine())
+    monkeypatch.setattr("extensions.db.metadata.create_all", lambda *args, **kwargs: None)
+
+    # Post new database URL
+    test_db_url = "postgresql://test_user:pwd@localhost/test_db?sslmode=require"
+    resp_post = server_client.post("/admin/db-settings", data={
+        "db_url": test_db_url
+    }, follow_redirects=True)
+    assert resp_post.status_code == 200
+
+    # Verify that the database url has been written to the mock json file
+    with open(db_urls_file, "r") as f:
+        urls = json.load(f)
+    assert test_db_url in urls
+
+
+def test_daily_revenue_csv_archiver(desktop_app, monkeypatch, tmp_path):
+    """Test daily revenue CSV archiving works correctly on desktop."""
+    from datetime import datetime, timedelta, timezone
+    from models import Category, Product, Order, OrderItem
+    from sync import check_and_generate_daily_archives
+    import csv
+
+    # Set root_path to tmp_path to redirect archive folder creation
+    desktop_app.root_path = str(tmp_path)
+
+    with desktop_app.app_context():
+        # Setup schema
+        cat = Category(id=1, name="Coffee", display_order=1)
+        prod = Product(id=10, category_id=1, name="Espresso", price_cents=250, is_active=True)
+        db.session.add_all([cat, prod])
+        db.session.commit()
+
+        # Add completed order from 1 day ago
+        past_order = Order(
+            id=123,
+            local_id="local-order-123",
+            status="pending",
+            total_cents=500,
+            created_at=datetime.now(timezone.utc) - timedelta(days=1),
+            device_id="Kiosk-Test"
+        )
+        db.session.add(past_order)
+        db.session.commit()
+
+        item = OrderItem(
+            product_id=10,
+            product_name_snapshot="Espresso",
+            unit_price_cents_snapshot=250,
+            quantity=2,
+            subtotal_cents=500,
+            order=past_order
+        )
+        db.session.add(item)
+        db.session.commit()
+
+    # Trigger archiving
+    check_and_generate_daily_archives(desktop_app)
+
+    # Check if CSV was created
+    local_tz = datetime.now().astimezone().tzinfo
+    yesterday = (datetime.now(local_tz) - timedelta(days=1)).date()
+    yesterday_str = yesterday.strftime("%Y-%m-%d")
+    csv_file = tmp_path / "archive" / f"{yesterday_str}.csv"
+    
+    assert csv_file.exists()
+
+    # Read and assert contents
+    with open(csv_file, "r", encoding="utf-8-sig") as f:
+        reader = list(csv.reader(f))
+    
+    # Row 1 is header
+    assert reader[0][0] == "Order ID"
+    assert reader[0][5] == "Product Name"
+    assert reader[0][9] == "Order Total (DA)"
+
+    # Row 2 is data
+    assert reader[1][0] == "123"
+    assert reader[1][1] == "local-order-123"
+    assert reader[1][5] == "Espresso"
+    assert reader[1][6] == "2"
+    assert reader[1][7] == "2.50"
+    assert reader[1][8] == "5.00"
+    assert reader[1][9] == "5.00"
+
+
+

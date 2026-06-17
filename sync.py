@@ -416,6 +416,121 @@ def sync_deleted_orders(app) -> int:
             return 0
 
 
+def check_and_generate_daily_archives(app):
+    """
+    Finds all dates in local history that have orders, checks if an archive CSV
+    exists in the 'archive' folder, and generates it if missing.
+    Excludes the current ongoing day to only archive completed days.
+    """
+    from extensions import db
+    from models import Order
+    import os
+    import csv
+    from datetime import datetime
+
+    with app.app_context():
+        try:
+            # We only run this in desktop mode
+            if app.config.get("MODE") != "desktop":
+                return
+                
+            # Ensure 'archive' directory exists
+            base_dir = app.root_path
+            archive_dir = os.path.join(base_dir, "archive")
+            os.makedirs(archive_dir, exist_ok=True)
+            
+            # Get system local timezone
+            local_tz = datetime.now().astimezone().tzinfo
+            current_local_date = datetime.now(local_tz).date()
+            
+            # Fetch all non-draft orders
+            orders = Order.query.filter(Order.status != "draft").all()
+            if not orders:
+                logger.debug("No orders found to archive.")
+                return
+                
+            # Group orders by their local date
+            orders_by_date = {}
+            from datetime import timezone
+            for o in orders:
+                o_dt = o.created_at
+                if o_dt.tzinfo is None:
+                    o_dt = o_dt.replace(tzinfo=timezone.utc)
+                o_local_dt = o_dt.astimezone(local_tz)
+                o_date = o_local_dt.date()
+                
+                # Exclude the current day as it is still in progress
+                if o_date >= current_local_date:
+                    continue
+                    
+                orders_by_date.setdefault(o_date, []).append(o)
+                
+            # For each past date with orders, check if CSV exists. If not, generate it.
+            for o_date, day_orders in orders_by_date.items():
+                date_str = o_date.strftime("%Y-%m-%d")
+                csv_filename = os.path.join(archive_dir, f"{date_str}.csv")
+                
+                if os.path.exists(csv_filename):
+                    continue
+                    
+                # Generate the daily revenue CSV
+                logger.info("Generating daily revenue archive CSV for %s", date_str)
+                with open(csv_filename, "w", newline="", encoding="utf-8-sig") as csvfile:
+                    writer = csv.writer(csvfile)
+                    # Header
+                    writer.writerow([
+                        "Order ID",
+                        "Local ID",
+                        "Time (Local)",
+                        "Device ID",
+                        "Status",
+                        "Product Name",
+                        "Quantity",
+                        "Unit Price (DA)",
+                        "Subtotal (DA)",
+                        "Order Total (DA)"
+                    ])
+                    
+                    total_revenue_cents = 0
+                    total_orders_count = len(day_orders)
+                    
+                    # Sort orders by time
+                    day_orders.sort(key=lambda x: x.created_at)
+                    
+                    for order in day_orders:
+                        order_time_str = order.created_at.astimezone(local_tz).strftime("%H:%M:%S")
+                        order_total_da = f"{order.total_cents / 100:.2f}"
+                        total_revenue_cents += order.total_cents
+                        
+                        # Write each line item
+                        for idx, item in enumerate(order.items):
+                            unit_price_da = f"{item.unit_price_cents_snapshot / 100:.2f}"
+                            subtotal_da = f"{item.subtotal_cents / 100:.2f}"
+                            
+                            writer.writerow([
+                                order.id,
+                                order.local_id,
+                                order_time_str,
+                                order.device_id or "",
+                                order.status,
+                                item.product_name_snapshot,
+                                item.quantity,
+                                unit_price_da,
+                                subtotal_da,
+                                # Write order total only on the first item line of this order
+                                order_total_da if idx == 0 else ""
+                            ])
+                            
+                    # Write Summary Footer
+                    writer.writerow([])
+                    writer.writerow(["", "", "", "", "", "", "", "", "Total Revenue", f"{total_revenue_cents / 100:.2f} DA"])
+                    writer.writerow(["", "", "", "", "", "", "", "", "Total Orders", total_orders_count])
+                    
+            logger.info("Completed check for daily revenue archives.")
+        except Exception as exc:
+            logger.exception("Failed checking or writing daily revenue archives: %s", exc)
+
+
 # ─── Background sync thread ───────────────────────────────────────────────────
 
 def start_sync_thread(app):
@@ -434,6 +549,7 @@ def start_sync_thread(app):
         last_product_pull = 0
         last_order_pull = 0
         last_deletion_sync = 0
+        last_archive_check = 0
 
         while True:
             now = time.time()
@@ -468,6 +584,11 @@ def start_sync_thread(app):
                 if now - last_deletion_sync > 3600 or last_deletion_sync == 0:
                     deleted_orders = sync_deleted_orders(app)
                     last_deletion_sync = now
+
+                # 5. Daily revenue archives (check every 1 hour - 3600 seconds)
+                if now - last_archive_check > 3600 or last_archive_check == 0:
+                    check_and_generate_daily_archives(app)
+                    last_archive_check = now
 
                 logger.debug(
                     "Sync cycle: %d orders pushed, %d products pulled, %d orders pulled, %d deleted locally.",

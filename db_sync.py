@@ -55,9 +55,10 @@ def replicate_databases():
 
     for idx, (session, _) in sessions.items():
         try:
-            # Merge Admin Users
+            # Merge Admin Users (prioritize custom/changed passwords over default seeded ones)
             for u in session.query(AdminUser).all():
-                if u.username not in merged_admins:
+                existing = merged_admins.get(u.username)
+                if not existing or (not u.must_change_password and existing["must_change_password"]):
                     merged_admins[u.username] = {
                         "username": u.username,
                         "password_hash": u.password_hash,

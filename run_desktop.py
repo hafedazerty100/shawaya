@@ -26,6 +26,14 @@ from sync import start_sync_thread
 
 app = create_app("desktop")
 
+# Run check_and_generate_daily_archives on boot to handle offline/missing days
+try:
+    from sync import check_and_generate_daily_archives
+    check_and_generate_daily_archives(app)
+    print("[KIOSK] Checked and updated daily revenue archives.")
+except Exception as exc:
+    sys.stderr.write(f"[WARNING] Daily revenue archiver failed on boot: {exc}\n")
+
 if __name__ == "__main__":
     debug = os.environ.get("FLASK_DEBUG", "0").strip() == "1"
     port = int(os.environ.get("DESKTOP_PORT", "5001"))
