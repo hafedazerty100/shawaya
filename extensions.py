@@ -23,14 +23,14 @@ DB_URLS = [
     "postgresql://neondb_owner:npg_ATn9EDIkdB8X@ep-shiny-sky-abtyuysv-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 ]
 
-# Prepend the active database URL from environment variables as the primary database
+# Append the database URL from environment variables to the end of the fallback pool
 import os
 env_db_url = os.environ.get("DATABASE_URL", "")
 if env_db_url:
     if env_db_url.startswith("postgres://"):
         env_db_url = "postgresql://" + env_db_url[len("postgres://"):]
     if env_db_url not in DB_URLS:
-        DB_URLS.insert(0, env_db_url)
+        DB_URLS.append(env_db_url)
 
 _active_db_index = 0
 
