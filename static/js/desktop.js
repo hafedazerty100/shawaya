@@ -46,6 +46,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnClearFeed    = document.getElementById("btn-clear-feed");
   const printIframe     = document.getElementById("print-iframe");
 
+  // ── Confirm Order Modal elements & handlers ──────────────────────────────
+  let productToConfirm = null;
+  let elementToConfirm = null;
+  const confirmModalEl = document.getElementById("confirmOrderModal");
+  const confirmModal = confirmModalEl ? new bootstrap.Modal(confirmModalEl) : null;
+  const btnConfirmOrderPrint = document.getElementById("btn-confirm-order-print");
+
+  if (btnConfirmOrderPrint) {
+    btnConfirmOrderPrint.addEventListener("click", () => {
+      if (productToConfirm && elementToConfirm) {
+        if (confirmModal) confirmModal.hide();
+        processInstantOrder(productToConfirm, elementToConfirm);
+      }
+    });
+  }
+
   // ── UUID generator ────────────────────────────────────────────────────────
   function uuid() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -137,6 +153,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ── 1-Click instant order & print ────────────────────────────────────────
   async function instantOrder(product, cardEl) {
+    if (confirmModal) {
+      productToConfirm = product;
+      elementToConfirm = cardEl;
+      document.getElementById("confirm-product-name").textContent = product.name;
+      document.getElementById("confirm-product-price").textContent = product.price_display;
+      confirmModal.show();
+    } else {
+      processInstantOrder(product, cardEl);
+    }
+  }
+
+  async function processInstantOrder(product, cardEl) {
     if (printInProgress) return;
     printInProgress = true;
 

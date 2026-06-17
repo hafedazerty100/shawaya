@@ -112,6 +112,7 @@ def _is_activated() -> bool:
                 "Content-Type": "application/json",
             },
             timeout=4,
+            verify=current_app.config.get("VERIFY_SSL", True),
         )
         if resp.status_code == 200 and resp.json().get("valid"):
             _last_remote_check = now
@@ -168,6 +169,7 @@ def activate():
                         "Content-Type": "application/json",
                     },
                     timeout=10,
+                    verify=current_app.config.get("VERIFY_SSL", True),
                 )
                 if resp.status_code == 200:
                     _save_serial_hash(serial_hash)
@@ -187,7 +189,7 @@ def activate():
     online = False
     server_url = current_app.config.get("SERVER_URL", "http://localhost:5000")
     try:
-        requests.get(server_url, timeout=2)
+        requests.get(server_url, timeout=2, verify=current_app.config.get("VERIFY_SSL", True))
         online = True
     except requests.RequestException:
         pass
@@ -450,7 +452,7 @@ def api_revenue():
             params["start_date"] = start_date.strftime("%Y-%m-%d")
             params["end_date"] = end_date.strftime("%Y-%m-%d")
             try:
-                resp = requests.get(endpoint, headers=headers, params=params, timeout=5)
+                resp = requests.get(endpoint, headers=headers, params=params, timeout=5, verify=current_app.config.get("VERIFY_SSL", True))
                 if resp.status_code == 200:
                     server_revenue_cents = resp.json().get("total_cents", 0)
                     server_success = True

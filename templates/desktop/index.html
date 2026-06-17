@@ -79,6 +79,27 @@
 <!-- ── Hidden print iframe ───────────────────────────────────── -->
 <iframe id="print-iframe" style="display:none;"></iframe>
 
+<!-- ── Confirm Order Modal ──────────────────────────────────────── -->
+<div class="modal fade" id="confirmOrderModal" tabindex="-1" aria-labelledby="confirmOrderModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background: #2a2a2a; color: white; border: 1px solid var(--border); border-radius: var(--radius);">
+      <div class="modal-header border-0">
+        <h5 class="modal-title" id="confirmOrderModalLabel"><i class="bi bi-question-circle text-warning fs-4 me-2"></i> تأكيد الطلب والطباعة</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <h4 class="mb-2" id="confirm-product-name">---</h4>
+        <h3 class="text-warning fw-bold mb-0" id="confirm-product-price">0.00 DA</h3>
+        <p class="text-muted small mt-3">هل أنت متأكد من طباعة وتأكيد هذا الطلب؟</p>
+      </div>
+      <div class="modal-footer border-0 d-flex gap-2">
+        <button type="button" class="btn btn-secondary flex-grow-1" data-bs-dismiss="modal">إلغاء</button>
+        <button type="button" class="btn btn-warning flex-grow-1" id="btn-confirm-order-print" style="color: #111; font-weight: bold;">تأكيد وطباعة</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ── Revenue Modal ─────────────────────────────────────────── -->
 <div class="modal fade" id="revenueModal" tabindex="-1" aria-labelledby="revenueModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">

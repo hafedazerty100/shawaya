@@ -181,6 +181,10 @@ def create_app(mode: str | None = None) -> Flask:
     cfg = DevelopmentConfig() if debug else ProductionConfig()
     app.config.from_object(cfg)
 
+    if not app.config.get("VERIFY_SSL", True):
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
     # Set database URI based on mode
     app.config["SQLALCHEMY_DATABASE_URI"] = cfg.get_database_uri(mode)
 
@@ -238,7 +242,8 @@ def create_app(mode: str | None = None) -> Flask:
     # ── Create tables + seed admin (server mode only) ─────────────────────────
     _initialize_db(app)
 
-    if mode == "server":
+    import sys
+    if mode == "server" and not app.config.get("TESTING") and "pytest" not in sys.modules:
         try:
             from db_sync import replicate_databases
             import threading

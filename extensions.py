@@ -41,11 +41,18 @@ def switch_to_next_db(app=None) -> str:
     global _active_db_index
     from flask import current_app
     import sqlalchemy as sa
+    import sys
+    import os
     
     target_app = app or (current_app._get_current_object() if current_app else None)
-    if target_app and (target_app.config.get("MODE") == "desktop" or target_app.config.get("TESTING")):
+    is_testing = (
+        "pytest" in sys.modules or 
+        os.environ.get("TESTING") == "True" or 
+        (target_app and (target_app.config.get("TESTING") or target_app.config.get("MODE") == "desktop"))
+    )
+    if is_testing:
         # SQLite local database or test suite does not have fallback options
-        return target_app.config.get("SQLALCHEMY_DATABASE_URI", "")
+        return target_app.config.get("SQLALCHEMY_DATABASE_URI", "") if target_app else ""
         
     _active_db_index = (_active_db_index + 1) % len(DB_URLS)
     new_url = DB_URLS[_active_db_index]
@@ -101,9 +108,15 @@ def switch_to_next_db(app=None) -> str:
 class FailoverSession(Session):
     def execute(self, statement, *args, **kwargs):
         from flask import current_app
-        disable_failover = current_app and (current_app.config.get("MODE") == "desktop" or current_app.config.get("TESTING"))
+        import sys
+        import os
+        is_testing = (
+            "pytest" in sys.modules or 
+            os.environ.get("TESTING") == "True" or 
+            (current_app and (current_app.config.get("TESTING") or current_app.config.get("MODE") == "desktop"))
+        )
         
-        retries = 1 if disable_failover else len(DB_URLS)
+        retries = 1 if is_testing else len(DB_URLS)
         for attempt in range(retries):
             try:
                 return super().execute(statement, *args, **kwargs)
@@ -120,9 +133,15 @@ class FailoverSession(Session):
 
     def commit(self):
         from flask import current_app
-        disable_failover = current_app and (current_app.config.get("MODE") == "desktop" or current_app.config.get("TESTING"))
+        import sys
+        import os
+        is_testing = (
+            "pytest" in sys.modules or 
+            os.environ.get("TESTING") == "True" or 
+            (current_app and (current_app.config.get("TESTING") or current_app.config.get("MODE") == "desktop"))
+        )
         
-        retries = 1 if disable_failover else len(DB_URLS)
+        retries = 1 if is_testing else len(DB_URLS)
         for attempt in range(retries):
             try:
                 super().commit()
