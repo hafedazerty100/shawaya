@@ -16,12 +16,29 @@ from flask_limiter.util import get_remote_address
 
 logger = logging.getLogger("db_failover")
 
-# Multi-DB fallback accounts provided by user
-DB_URLS = [
+# Multi-DB fallback accounts provided by user — loaded dynamically from JSON
+import json
+import os
+
+DEFAULT_DB_URLS = [
     "postgresql://neondb_owner:npg_DWMBL10dhXkj@ep-lingering-resonance-abun03tf-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
     "postgresql://neondb_owner:npg_VbFmLnR0ThP5@ep-super-sound-ab5v2qrt-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
     "postgresql://neondb_owner:npg_ATn9EDIkdB8X@ep-shiny-sky-abtyuysv-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 ]
+
+base_dir = os.path.abspath(os.path.dirname(__file__))
+urls_file = os.path.join(base_dir, "db_urls.json")
+
+if os.path.exists(urls_file):
+    try:
+        with open(urls_file, "r", encoding="utf-8") as f:
+            DB_URLS = json.load(f)
+            if not isinstance(DB_URLS, list):
+                DB_URLS = list(DEFAULT_DB_URLS)
+    except Exception:
+        DB_URLS = list(DEFAULT_DB_URLS)
+else:
+    DB_URLS = list(DEFAULT_DB_URLS)
 
 # Append the database URL from environment variables to the end of the fallback pool
 import os

@@ -6,6 +6,7 @@ forces a password change before anything else can be accessed.
 """
 
 import logging
+import os
 import secrets
 import uuid
 import requests
@@ -879,4 +880,150 @@ def sync_databases():
     except Exception as exc:
         logger.error("Manual database sync failed: %s", exc)
         return jsonify({"success": False, "message": f"فشلت المزامنة: {str(exc)}"}), 500
+
+
+def mask_db_url(url: str) -> str:
+    """Mask credentials in database connection string."""
+    try:
+        from sqlalchemy.engine import make_url
+        parsed = make_url(url)
+        password = "***" if parsed.password else None
+        return f"{parsed.drivername}://{parsed.username}:{password}@{parsed.host}/{parsed.database}"
+    except Exception:
+        if "@" in url:
+            parts = url.split("@")
+            prefix = parts[0]
+            suffix = parts[1]
+            if ":" in prefix:
+                prefix_parts = prefix.split(":")
+                return f"{prefix_parts[0]}:{prefix_parts[1]}:***@{suffix}"
+        return url
+
+
+# Module-level variables for configuration file management (supports test monkeypatching)
+DB_CONFIG_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+urls_file = os.path.join(DB_CONFIG_DIR, "db_urls.json")
+
+
+def commit_and_push_db_urls():
+    """Commit the updated db_urls.json file and push it to GitHub."""
+    import subprocess
+    import os
+    import logging
+
+    logger = logging.getLogger("routes.admin.db_git")
+    try:
+        if not os.path.exists(urls_file):
+            logger.warning("db_urls.json not found in %s", DB_CONFIG_DIR)
+            return False
+            
+        # Configure git identity locally
+        subprocess.run(["git", "config", "user.name", "Coffee POS Server"], cwd=DB_CONFIG_DIR, capture_output=True)
+        subprocess.run(["git", "config", "user.email", "server@coffee24h.local"], cwd=DB_CONFIG_DIR, capture_output=True)
+        
+        # Add and commit
+        subprocess.run(["git", "add", "db_urls.json"], cwd=DB_CONFIG_DIR, capture_output=True)
+        res = subprocess.run(["git", "commit", "-m", "chore: add new database URL dynamically"], cwd=DB_CONFIG_DIR, capture_output=True, text=True)
+        
+        if "nothing to commit" in res.stdout or "no changes added to commit" in res.stdout:
+            logger.info("No changes to commit for db_urls.json")
+            return True
+            
+        # Push to remote
+        github_token = os.environ.get("GITHUB_TOKEN")
+        if github_token:
+            remote_url = f"https://{github_token}@github.com/hafedazerty100/Coffee_H24.git"
+            push_res = subprocess.run(["git", "push", remote_url, "main"], cwd=DB_CONFIG_DIR, capture_output=True, text=True)
+            logger.info("Git push with token result: %s", push_res.stdout)
+        else:
+            push_res = subprocess.run(["git", "push", "origin", "main"], cwd=DB_CONFIG_DIR, capture_output=True, text=True)
+            logger.info("Git push standard result: %s", push_res.stdout)
+            
+        return True
+    except Exception as exc:
+        logger.exception("Failed to commit and push db_urls.json: %s", exc)
+        return False
+
+
+@admin_bp.route("/db-settings", methods=["GET", "POST"])
+@login_required
+def db_settings():
+    """Manage multi-database connections and add new connection strings dynamically."""
+    from extensions import DB_URLS
+    from flask import current_app
+    import json
+    import os
+    from sqlalchemy import create_engine, text
+
+    if request.method == "POST":
+        new_url = request.form.get("db_url", "").strip()
+        if not new_url:
+            flash("يرجى إدخال عنوان قاعدة البيانات.", "danger")
+            return redirect(url_for("admin.db_settings"))
+
+        if not (new_url.startswith("postgresql://") or new_url.startswith("postgres://")):
+            flash("عنوان قاعدة البيانات غير صالح. يجب أن يبدأ بـ postgresql://", "danger")
+            return redirect(url_for("admin.db_settings"))
+
+        # Reformat postgres:// to postgresql:// if needed for SQLAlchemy compatibility
+        formatted_url = new_url
+        if formatted_url.startswith("postgres://"):
+            formatted_url = "postgresql://" + formatted_url[len("postgres://"):]
+
+        # Verify reachability & initialize schema
+        try:
+            # 1. Connectivity check
+            engine = create_engine(formatted_url, connect_args={"connect_timeout": 5})
+            with engine.connect() as conn:
+                conn.execute(text("SELECT 1"))
+            
+            # 2. Re-create all tables
+            from extensions import db
+            db.metadata.create_all(bind=engine)
+            
+            # 3. Seed default admin if missing
+            with engine.connect() as conn:
+                res = conn.execute(text("SELECT COUNT(*) FROM admin_users"))
+                count = res.scalar()
+                if count == 0:
+                    from werkzeug.security import generate_password_hash
+                    username = current_app.config.get("ADMIN_DEFAULT_USERNAME", "admin")
+                    password = current_app.config.get("ADMIN_DEFAULT_PASSWORD", "changeme123")
+                    pw_hash = generate_password_hash(password)
+                    conn.execute(
+                        text("INSERT INTO admin_users (username, password_hash, must_change_password) VALUES (:u, :p, :m)"),
+                        {"u": username, "p": pw_hash, "m": (password == "changeme123")}
+                    )
+                    conn.commit()
+            
+            engine.dispose()
+        except Exception as exc:
+            logger.error("Failed to connect or initialize new database: %s", exc)
+            flash(f"فشل الاتصال بقاعدة البيانات الجديدة أو تهيئتها: {str(exc)}", "danger")
+            return redirect(url_for("admin.db_settings"))
+
+        # Add to list and save if not already present
+        if formatted_url not in DB_URLS:
+            DB_URLS.append(formatted_url)
+            
+        try:
+            with open(urls_file, "w", encoding="utf-8") as f:
+                json.dump(DB_URLS, f, indent=2)
+        except Exception as exc:
+            logger.error("Failed to write to db_urls.json: %s", exc)
+            flash("فشل حفظ إعدادات قاعدة البيانات محلياً.", "danger")
+            return redirect(url_for("admin.db_settings"))
+
+        # Git commit and push
+        pushed = commit_and_push_db_urls()
+        if pushed:
+            flash("تمت إضافة قاعدة البيانات بنجاح! جاري إعادة بناء ونشر المشروع لتفعيلها...", "success")
+        else:
+            flash("تم حفظ قاعدة البيانات محلياً، ولكن فشل دفع التحديثات إلى مستودع Git.", "warning")
+
+        return redirect(url_for("admin.db_settings"))
+
+    # Masked URLs for display
+    masked_urls = [mask_db_url(url) for url in DB_URLS]
+    return render_template("admin/db_settings.html", urls=masked_urls)
 

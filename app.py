@@ -195,9 +195,31 @@ def _initialize_db(app: Flask) -> None:
         except Exception as exc:
             logging.getLogger("app").warning("Active DB candidate index %d (%s) is unreachable: %s", idx, url.split("@")[-1], exc)
             
-    if not initialized_any:
-        logging.getLogger("app").critical("All database instances failed to initialize during startup!")
-        raise RuntimeError("No database instances reachable during startup.")
+    # If we got here, it means we couldn't connect to any DB in DB_URLS.
+    logging.getLogger("app").critical("All configured PostgreSQL databases are currently unreachable! Falling back to local SQLite database.")
+    fallback_sqlite = f"sqlite:///{os.path.join(os.path.abspath(os.path.dirname(__file__)), 'server_data.db')}"
+    with app.app_context():
+        app.config["SQLALCHEMY_DATABASE_URI"] = fallback_sqlite
+        from extensions import rebuild_db_engines
+        rebuild_db_engines(app)
+        db.create_all()
+        _seed_admin(app)
+        
+        # Migrations on SQLite
+        try:
+            from sqlalchemy import text
+            db.session.execute(text("ALTER TABLE products ADD COLUMN image_data BLOB"))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+        try:
+            from sqlalchemy import text
+            db.session.execute(text("ALTER TABLE products ADD COLUMN image_mime VARCHAR(50)"))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            
+        db.session.remove()
 
 
 def _register_error_handlers(app: Flask) -> None:
@@ -249,15 +271,15 @@ def create_app(mode: str | None = None) -> Flask:
     """
     app = Flask(__name__)
 
-    # ── Determine run mode ────────────────────────────────────────────────────
-    if mode is None:
-        mode = os.environ.get("APP_MODE", "server").lower()
-    app.config["MODE"] = mode
-
     # ── Load config ───────────────────────────────────────────────────────────
     debug = os.environ.get("FLASK_DEBUG", "0").strip() == "1"
     cfg = DevelopmentConfig() if debug else ProductionConfig()
     app.config.from_object(cfg)
+
+    # ── Determine run mode ────────────────────────────────────────────────────
+    if mode is None:
+        mode = os.environ.get("APP_MODE", "server").lower()
+    app.config["MODE"] = mode
 
     # Set database URI based on mode
     app.config["SQLALCHEMY_DATABASE_URI"] = cfg.get_database_uri(mode)
