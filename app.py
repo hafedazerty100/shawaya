@@ -76,6 +76,52 @@ def _seed_admin(app: Flask) -> None:
             logging.getLogger("app").error("Failed to seed admin: %s", exc)
 
 
+def _initialize_db(app: Flask) -> None:
+    """Run migrations and database startup checks with failover support for suspended DBs."""
+    from extensions import DB_URLS, switch_to_next_db
+    is_desktop = app.config.get("MODE") == "desktop"
+    retries = 1 if is_desktop else len(DB_URLS)
+    
+    for attempt in range(retries):
+        try:
+            with app.app_context():
+                db.create_all()
+                if app.config["MODE"] == "server":
+                    _seed_admin(app)
+                    
+                # Safe migration for new image columns
+                try:
+                    from sqlalchemy import text
+                    engine_name = db.engine.name.lower()
+                    col_type = "BYTEA" if "postgres" in engine_name or "neon" in engine_name else "BLOB"
+                    db.session.execute(text(f"ALTER TABLE products ADD COLUMN image_data {col_type}"))
+                    db.session.commit()
+                except Exception:
+                    db.session.rollback()
+
+                try:
+                    from sqlalchemy import text
+                    db.session.execute(text("ALTER TABLE products ADD COLUMN image_mime VARCHAR(50)"))
+                    db.session.commit()
+                except Exception:
+                    db.session.rollback()
+                    
+                logging.getLogger("app").info("Database startup initialization completed successfully.")
+                return
+        except Exception as exc:
+            if attempt < retries - 1:
+                logging.getLogger("app").warning(
+                    "Startup database initialization failed on current DB: %s. Swapping connection...",
+                    exc
+                )
+                switch_to_next_db(app)
+            else:
+                logging.getLogger("app").critical(
+                    "All database instances failed to initialize during startup!"
+                )
+                raise exc
+
+
 def _register_error_handlers(app: Flask) -> None:
     """Register JSON error handlers for /api/* and HTML handlers for everything else."""
 
@@ -190,27 +236,28 @@ def create_app(mode: str | None = None) -> Flask:
     app.jinja_env.globals["hasattr"] = hasattr
 
     # ── Create tables + seed admin (server mode only) ─────────────────────────
-    with app.app_context():
-        db.create_all()
-        if mode == "server":
-            _seed_admin(app)
-            
-        # Safe migration for the new image_data columns in both desktop and server mode
-        try:
-            from sqlalchemy import text
-            engine_name = db.engine.name.lower()
-            col_type = "BYTEA" if "postgres" in engine_name or "neon" in engine_name else "BLOB"
-            db.session.execute(text(f"ALTER TABLE products ADD COLUMN image_data {col_type}"))
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
+    _initialize_db(app)
 
+    if mode == "server":
         try:
-            from sqlalchemy import text
-            db.session.execute(text("ALTER TABLE products ADD COLUMN image_mime VARCHAR(50)"))
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
+            from db_sync import replicate_databases
+            import threading
+            import time
+
+            def _run_replication():
+                time.sleep(30)
+                while True:
+                    try:
+                        replicate_databases()
+                    except Exception as err:
+                        logging.getLogger("db_sync").error("Background db replication thread error: %s", err)
+                    time.sleep(3600)
+
+            thread = threading.Thread(target=_run_replication, daemon=True, name="DbReplication")
+            thread.start()
+            logger.info("Database replication scheduler thread started successfully.")
+        except Exception as exc:
+            logger.error("Failed to start database replication thread: %s", exc)
 
     # ── Custom Image Route ────────────────────────────────────────────────────
     @app.route('/static/uploads/products/<path:filename>')
