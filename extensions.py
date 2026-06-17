@@ -37,10 +37,55 @@ _active_db_index = 0
 def get_active_db_index() -> int:
     return _active_db_index
 
+def rebuild_db_engines(target_app) -> None:
+    import sqlalchemy as sa
+    if not target_app:
+        return
+    with target_app.app_context():
+        # Rebuild the engines for target_app based on the updated config
+        if hasattr(db, '_app_engines') and target_app in db._app_engines:
+            engines = db._app_engines[target_app]
+            for engine in list(engines.values()):
+                try:
+                    engine.dispose()
+                except Exception:
+                    pass
+            engines.clear()
+        else:
+            if not hasattr(db, '_app_engines'):
+                db._app_engines = {}
+            db._app_engines.setdefault(target_app, {})
+            engines = db._app_engines[target_app]
+
+        basic_uri = target_app.config.get("SQLALCHEMY_DATABASE_URI")
+        basic_engine_options = db._engine_options.copy()
+        basic_engine_options.update(target_app.config.get("SQLALCHEMY_ENGINE_OPTIONS", {}))
+        echo = target_app.config.get("SQLALCHEMY_ECHO", False)
+        config_binds = target_app.config.get("SQLALCHEMY_BINDS", {})
+        
+        engine_options = {}
+        for key, value in config_binds.items():
+            engine_options[key] = db._engine_options.copy()
+            if isinstance(value, (str, sa.engine.URL)):
+                engine_options[key]["url"] = value
+            else:
+                engine_options[key].update(value)
+                
+        if basic_uri is not None:
+            basic_engine_options["url"] = basic_uri
+        if "url" in basic_engine_options:
+            engine_options.setdefault(None, {}).update(basic_engine_options)
+            
+        for key, options in engine_options.items():
+            db._make_metadata(key)
+            options.setdefault("echo", echo)
+            options.setdefault("echo_pool", echo)
+            db._apply_driver_defaults(options, target_app)
+            engines[key] = db._make_engine(key, options, target_app)
+
 def switch_to_next_db(app=None) -> str:
     global _active_db_index
     from flask import current_app
-    import sqlalchemy as sa
     import sys
     
     target_app = app or (current_app._get_current_object() if current_app else None)
@@ -55,48 +100,7 @@ def switch_to_next_db(app=None) -> str:
     if target_app:
         target_app.config["SQLALCHEMY_DATABASE_URI"] = new_url
         logger.info("Switched SQLALCHEMY_DATABASE_URI to DB index %d: %s", _active_db_index, new_url)
-        
-        with target_app.app_context():
-            # Rebuild the engines for target_app based on the updated config
-            if hasattr(db, '_app_engines') and target_app in db._app_engines:
-                engines = db._app_engines[target_app]
-                for engine in list(engines.values()):
-                    try:
-                        engine.dispose()
-                    except Exception:
-                        pass
-                engines.clear()
-            else:
-                if not hasattr(db, '_app_engines'):
-                    db._app_engines = {}
-                db._app_engines.setdefault(target_app, {})
-                engines = db._app_engines[target_app]
-
-            basic_uri = target_app.config.get("SQLALCHEMY_DATABASE_URI")
-            basic_engine_options = db._engine_options.copy()
-            basic_engine_options.update(target_app.config.get("SQLALCHEMY_ENGINE_OPTIONS", {}))
-            echo = target_app.config.get("SQLALCHEMY_ECHO", False)
-            config_binds = target_app.config.get("SQLALCHEMY_BINDS", {})
-            
-            engine_options = {}
-            for key, value in config_binds.items():
-                engine_options[key] = db._engine_options.copy()
-                if isinstance(value, (str, sa.engine.URL)):
-                    engine_options[key]["url"] = value
-                else:
-                    engine_options[key].update(value)
-                    
-            if basic_uri is not None:
-                basic_engine_options["url"] = basic_uri
-            if "url" in basic_engine_options:
-                engine_options.setdefault(None, {}).update(basic_engine_options)
-                
-            for key, options in engine_options.items():
-                db._make_metadata(key)
-                options.setdefault("echo", echo)
-                options.setdefault("echo_pool", echo)
-                db._apply_driver_defaults(options, target_app)
-                engines[key] = db._make_engine(key, options, target_app)
+        rebuild_db_engines(target_app)
         
     return new_url
 

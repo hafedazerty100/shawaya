@@ -97,15 +97,8 @@ def _initialize_single_db(app: Flask, db_url: str) -> bool:
         # Remove connection session to clean previous DB state AFTER changing URI
         db.session.remove()
         
-        # Clear engines
-        if hasattr(db, '_app_engines') and app in db._app_engines:
-            engines = db._app_engines[app]
-            for engine in list(engines.values()):
-                try:
-                    engine.dispose()
-                except Exception:
-                    pass
-            engines.clear()
+        from extensions import rebuild_db_engines
+        rebuild_db_engines(app)
         
         try:
             db.create_all()
@@ -128,21 +121,13 @@ def _initialize_single_db(app: Flask, db_url: str) -> bool:
             logging.getLogger("app").info("Successfully initialized schema on DB: %s", db_url.split("@")[-1])
             success = True
         except Exception as exc:
-            logging.getLogger("app").error("Failed to initialize schema on DB %s: %s", db_url.split("@")[-1], exc)
+            logging.getLogger("app").exception("Failed to initialize schema on DB %s", db_url.split("@")[-1])
             success = False
         finally:
             # Clean up connection session before restoring the original configuration
             db.session.remove()
             app.config["SQLALCHEMY_DATABASE_URI"] = original_uri
-            
-        if hasattr(db, '_app_engines') and app in db._app_engines:
-            engines = db._app_engines[app]
-            for engine in list(engines.values()):
-                try:
-                    engine.dispose()
-                except Exception:
-                    pass
-            engines.clear()
+            rebuild_db_engines(app)
             
         return success
 
@@ -200,9 +185,9 @@ def _initialize_db(app: Flask) -> None:
                 import extensions
                 extensions._active_db_index = idx
                 
-                if hasattr(db, '_app_engines') and app in db._app_engines:
-                    db._app_engines[app].clear()
-                    
+                from extensions import rebuild_db_engines
+                rebuild_db_engines(app)
+                
                 db.session.remove()
                 
             logging.getLogger("app").info("Database startup selected active DB index %d: %s", idx, url.split("@")[-1])
