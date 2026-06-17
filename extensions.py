@@ -40,6 +40,7 @@ def get_active_db_index() -> int:
 def switch_to_next_db(app=None) -> str:
     global _active_db_index
     from flask import current_app
+    import sqlalchemy as sa
     
     target_app = app or (current_app._get_current_object() if current_app else None)
     if target_app and target_app.config.get("MODE") == "desktop":
@@ -54,32 +55,58 @@ def switch_to_next_db(app=None) -> str:
         logger.info("Switched SQLALCHEMY_DATABASE_URI to DB index %d: %s", _active_db_index, new_url)
         
         with target_app.app_context():
-            try:
-                if hasattr(db, '_app_engines'):
-                    db._app_engines.clear()
-            except Exception:
-                pass
-            try:
-                if hasattr(db, '_engines'):
-                    db._engines.clear()
-            except Exception:
-                pass
-            try:
-                db.engines.clear()
-            except Exception:
-                pass
+            # Rebuild the engines for target_app based on the updated config
+            if hasattr(db, '_app_engines') and target_app in db._app_engines:
+                engines = db._app_engines[target_app]
+                for engine in list(engines.values()):
+                    try:
+                        engine.dispose()
+                    except Exception:
+                        pass
+                engines.clear()
+            else:
+                if not hasattr(db, '_app_engines'):
+                    db._app_engines = {}
+                db._app_engines.setdefault(target_app, {})
+                engines = db._app_engines[target_app]
+
+            basic_uri = target_app.config.get("SQLALCHEMY_DATABASE_URI")
+            basic_engine_options = db._engine_options.copy()
+            basic_engine_options.update(target_app.config.get("SQLALCHEMY_ENGINE_OPTIONS", {}))
+            echo = target_app.config.get("SQLALCHEMY_ECHO", False)
+            config_binds = target_app.config.get("SQLALCHEMY_BINDS", {})
+            
+            engine_options = {}
+            for key, value in config_binds.items():
+                engine_options[key] = db._engine_options.copy()
+                if isinstance(value, (str, sa.engine.URL)):
+                    engine_options[key]["url"] = value
+                else:
+                    engine_options[key].update(value)
+                    
+            if basic_uri is not None:
+                basic_engine_options["url"] = basic_uri
+            if "url" in basic_engine_options:
+                engine_options.setdefault(None, {}).update(basic_engine_options)
+                
+            for key, options in engine_options.items():
+                db._make_metadata(key)
+                options.setdefault("echo", echo)
+                options.setdefault("echo_pool", echo)
+                db._apply_driver_defaults(options, target_app)
+                engines[key] = db._make_engine(key, options, target_app)
         
     return new_url
 
 class FailoverSession(Session):
-    def execute(self, statement, params=None, bind=None, **kwargs):
+    def execute(self, statement, *args, **kwargs):
         from flask import current_app
         is_desktop = current_app and current_app.config.get("MODE") == "desktop"
         
         retries = 1 if is_desktop else len(DB_URLS)
         for attempt in range(retries):
             try:
-                return super().execute(statement, params, bind, **kwargs)
+                return super().execute(statement, *args, **kwargs)
             except (OperationalError, InterfaceError, DatabaseError) as exc:
                 if attempt < retries - 1:
                     logger.warning("DB failover triggered during execute on index %d: %s", _active_db_index, exc)
