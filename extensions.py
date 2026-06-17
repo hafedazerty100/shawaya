@@ -43,8 +43,8 @@ def switch_to_next_db(app=None) -> str:
     import sqlalchemy as sa
     
     target_app = app or (current_app._get_current_object() if current_app else None)
-    if target_app and target_app.config.get("MODE") == "desktop":
-        # SQLite local database does not have fallback options
+    if target_app and (target_app.config.get("MODE") == "desktop" or target_app.config.get("TESTING")):
+        # SQLite local database or test suite does not have fallback options
         return target_app.config.get("SQLALCHEMY_DATABASE_URI", "")
         
     _active_db_index = (_active_db_index + 1) % len(DB_URLS)
@@ -101,13 +101,13 @@ def switch_to_next_db(app=None) -> str:
 class FailoverSession(Session):
     def execute(self, statement, *args, **kwargs):
         from flask import current_app
-        is_desktop = current_app and current_app.config.get("MODE") == "desktop"
+        disable_failover = current_app and (current_app.config.get("MODE") == "desktop" or current_app.config.get("TESTING"))
         
-        retries = 1 if is_desktop else len(DB_URLS)
+        retries = 1 if disable_failover else len(DB_URLS)
         for attempt in range(retries):
             try:
                 return super().execute(statement, *args, **kwargs)
-            except (OperationalError, InterfaceError, DatabaseError) as exc:
+            except (OperationalError, InterfaceError) as exc:
                 if attempt < retries - 1:
                     logger.warning("DB failover triggered during execute on index %d: %s", _active_db_index, exc)
                     switch_to_next_db()
@@ -120,14 +120,14 @@ class FailoverSession(Session):
 
     def commit(self):
         from flask import current_app
-        is_desktop = current_app and current_app.config.get("MODE") == "desktop"
+        disable_failover = current_app and (current_app.config.get("MODE") == "desktop" or current_app.config.get("TESTING"))
         
-        retries = 1 if is_desktop else len(DB_URLS)
+        retries = 1 if disable_failover else len(DB_URLS)
         for attempt in range(retries):
             try:
                 super().commit()
                 return
-            except (OperationalError, InterfaceError, DatabaseError) as exc:
+            except (OperationalError, InterfaceError) as exc:
                 if attempt < retries - 1:
                     logger.warning("DB failover triggered during commit on index %d: %s", _active_db_index, exc)
                     switch_to_next_db()
