@@ -6,7 +6,7 @@ Includes custom SQLAlchemy FailoverSession to rotate between Neon instances.
 
 import logging
 from flask_sqlalchemy import SQLAlchemy
-from flask_sqlalchemy.session import SignallingSession
+from flask_sqlalchemy.session import Session
 from sqlalchemy.exc import OperationalError, InterfaceError, DatabaseError
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -61,7 +61,7 @@ def switch_to_next_db(app=None) -> str:
         
     return new_url
 
-class FailoverSession(SignallingSession):
+class FailoverSession(Session):
     def execute(self, statement, params=None, bind=None, **kwargs):
         from flask import current_app
         is_desktop = current_app and current_app.config.get("MODE") == "desktop"
