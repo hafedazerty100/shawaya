@@ -6,7 +6,7 @@ to merge and sync products, categories, orders, order items, serial keys, and ad
 """
 
 import logging
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from extensions import DB_URLS
 from models import AdminUser, Category, Product, Order, OrderItem, SerialKey
@@ -21,7 +21,7 @@ def get_session(url: str):
         Session = sessionmaker(bind=engine)
         session = Session()
         # Verify connection works
-        session.execute("SELECT 1")
+        session.execute(text("SELECT 1"))
         return session, engine
     except Exception as exc:
         logger.warning("Database at %s is currently unreachable: %s", url.split("@")[-1], exc)
