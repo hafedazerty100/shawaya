@@ -91,6 +91,9 @@ def _initialize_single_db(app: Flask, db_url: str) -> bool:
         return False
 
     with app.app_context():
+        # Remove connection session to clean previous DB state before changing URI
+        db.session.remove()
+        
         original_uri = app.config.get("SQLALCHEMY_DATABASE_URI")
         app.config["SQLALCHEMY_DATABASE_URI"] = db_url
         
@@ -127,6 +130,9 @@ def _initialize_single_db(app: Flask, db_url: str) -> bool:
         except Exception as exc:
             logging.getLogger("app").error("Failed to initialize schema on DB %s: %s", db_url.split("@")[-1], exc)
             success = False
+        finally:
+            # Clean up connection session before restoring the original configuration
+            db.session.remove()
             
         app.config["SQLALCHEMY_DATABASE_URI"] = original_uri
         if hasattr(db, '_app_engines') and app in db._app_engines:
@@ -149,6 +155,7 @@ def _initialize_db(app: Flask) -> None:
     
     if is_testing or is_desktop:
         with app.app_context():
+            db.session.remove()
             db.create_all()
             if app.config["MODE"] == "server":
                 _seed_admin(app)
@@ -164,6 +171,7 @@ def _initialize_db(app: Flask) -> None:
                 db.session.commit()
             except Exception:
                 db.session.rollback()
+            db.session.remove()
         return
 
     from extensions import DB_URLS
@@ -195,6 +203,7 @@ def _initialize_db(app: Flask) -> None:
             if hasattr(db, '_app_engines') and app in db._app_engines:
                 db._app_engines[app].clear()
                 
+            db.session.remove()
             logging.getLogger("app").info("Database startup selected active DB index %d: %s", idx, url.split("@")[-1])
             return
         except Exception as exc:
