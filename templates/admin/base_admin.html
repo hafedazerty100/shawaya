@@ -91,7 +91,11 @@
         </button>
         <h2 class="page-title">{% block page_title %}{% endblock %}</h2>
       </div>
-      <div>
+      <div class="d-flex align-items-center gap-2">
+        <button id="btn-sync-databases" class="btn btn-outline-warning btn-sm d-flex align-items-center gap-2 px-3" style="height: 38px; font-weight: 600; border-radius: 999px;" aria-label="مزامنة السيرفر">
+          <i id="sync-databases-icon" class="bi bi-arrow-repeat"></i>
+          <span>مزامنة السيرفر</span>
+        </button>
         <button id="theme-toggle" class="btn btn-outline-secondary btn-sm rounded-circle p-2" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" aria-label="تبديل السمة">
           <i id="theme-toggle-icon" class="bi bi-moon-stars-fill"></i>
         </button>

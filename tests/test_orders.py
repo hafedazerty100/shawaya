@@ -223,3 +223,62 @@ def test_api_revenue_endpoint(desktop_app, desktop_client, monkeypatch):
     assert data["total_cents"] == 500
     assert data["total_display"] == "5.00 DA"
 
+
+def test_desktop_sync_all_endpoint(desktop_app, desktop_client, monkeypatch):
+    """Test desktop /api/sync-all endpoint triggers full synchronization pipeline."""
+    # Mock all backend sync steps
+    monkeypatch.setattr("sync.sync_orders", lambda app: 1)
+    monkeypatch.setattr("sync.pull_products", lambda app: 2)
+    monkeypatch.setattr("sync.pull_orders_from_server", lambda app: 3)
+    monkeypatch.setattr("sync.sync_deleted_orders", lambda app: 4)
+
+    resp = desktop_client.post("/api/sync-all")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["success"] is True
+    assert data["orders_pushed"] == 1
+    assert data["products_pulled"] == 2
+    assert data["orders_pulled"] == 3
+    assert data["deletions_synced"] == 4
+    assert "تمت المزامنة بنجاح!" in data["message"]
+
+
+def test_server_sync_databases_endpoint(server_app, server_client, monkeypatch):
+    """Test server /admin/sync-databases manually triggers replication (requires auth)."""
+    from werkzeug.security import generate_password_hash
+    from models import AdminUser
+
+    # 1. Without login should redirect (since @login_required is used)
+    resp = server_client.post("/admin/sync-databases")
+    assert resp.status_code == 302
+
+    # 2. Login
+    with server_app.app_context():
+        admin = AdminUser(
+            username="admin_sync_test",
+            password_hash=generate_password_hash("password123"),
+            must_change_password=False
+        )
+        db.session.add(admin)
+        db.session.commit()
+
+    resp_login = server_client.post("/admin/login", data={
+        "username": "admin_sync_test",
+        "password": "password123"
+    }, follow_redirects=True)
+    assert resp_login.status_code == 200
+
+    # Mock replication call
+    replicate_called = False
+    def mock_replicate():
+        nonlocal replicate_called
+        replicate_called = True
+
+    monkeypatch.setattr("db_sync.replicate_databases", mock_replicate)
+
+    resp_sync = server_client.post("/admin/sync-databases")
+    assert resp_sync.status_code == 200
+    assert resp_sync.get_json()["success"] is True
+    assert replicate_called is True
+
+

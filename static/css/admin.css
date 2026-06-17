@@ -487,4 +487,14 @@ body.admin-body {
     display: flex;
   }
 }
+/* Custom spin animation for reload/sync icons */
+.bi-spin {
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
 
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

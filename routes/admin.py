@@ -865,3 +865,18 @@ def db_delete_row(table_name: str, row_id: int):
         flash("Failed to delete row due to database constraints.", "danger")
 
     return redirect(url_for("admin.db_browser", table=table_name))
+
+
+@admin_bp.route("/sync-databases", methods=["POST"])
+@login_required
+def sync_databases():
+    """Manually trigger master-master database replication across all 3 databases."""
+    from flask import jsonify
+    from db_sync import replicate_databases
+    try:
+        replicate_databases()
+        return jsonify({"success": True, "message": "تمت مزامنة قواعد البيانات بنجاح."}), 200
+    except Exception as exc:
+        logger.error("Manual database sync failed: %s", exc)
+        return jsonify({"success": False, "message": f"فشلت المزامنة: {str(exc)}"}), 500
+

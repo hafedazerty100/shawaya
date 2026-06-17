@@ -262,6 +262,51 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // ── Manual Sync Now button ────────────────────────────────────────────────
+  const btnManualSync = document.getElementById("btn-manual-sync");
+  const btnManualSyncIcon = document.getElementById("btn-manual-sync-icon");
+
+  if (btnManualSync) {
+    btnManualSync.addEventListener("click", async () => {
+      btnManualSync.disabled = true;
+      if (btnManualSyncIcon) btnManualSyncIcon.classList.add("bi-spin");
+      syncLabel.textContent = "يتزامن…";
+      syncStatusBadge.classList.add("syncing");
+
+      try {
+        const resp = await fetch("/api/sync-all", { method: "POST" });
+        if (!resp.ok) {
+          const errData = await resp.json();
+          throw new Error(errData.error || "خطأ في المزامنة");
+        }
+        const data = await resp.json();
+        
+        syncLabel.textContent = "تم التزامن";
+        showToast(data.message || "تمت المزامنة بنجاح", "success");
+        await fetchProducts();
+        
+        setTimeout(() => {
+          syncLabel.textContent = "جاهز";
+          syncStatusBadge.classList.remove("syncing");
+        }, 3000);
+      } catch (err) {
+        console.error("Manual sync failed:", err);
+        syncLabel.textContent = "خطأ";
+        syncStatusBadge.classList.remove("syncing");
+        syncStatusBadge.classList.add("error");
+        showToast(err.message || "فشلت المزامنة", "error");
+        
+        setTimeout(() => {
+          syncLabel.textContent = "جاهز";
+          syncStatusBadge.classList.remove("error");
+        }, 5000);
+      } finally {
+        btnManualSync.disabled = false;
+        if (btnManualSyncIcon) btnManualSyncIcon.classList.remove("bi-spin");
+      }
+    });
+  }
+
   // ── Revenue feature ───────────────────────────────────────────────────────
   const btnShowRevenue = document.getElementById("btn-show-revenue");
   const revenueModal = new bootstrap.Modal(document.getElementById('revenueModal'));
