@@ -428,13 +428,16 @@ def start_sync_thread(app):
 
     def _sync_loop():
         consecutive_failures = 0
-        max_backoff = 60  # 60 seconds in seconds
+        max_backoff = 60  # 60 seconds max backoff
         last_update_check = 0
+        last_product_pull = 0
+        last_order_pull = 0
+        last_deletion_sync = 0
 
         while True:
-            # Periodically check for remote updates (every 5 minutes)
             now = time.time()
-            if now - last_update_check > 300:
+            # Periodically check for remote updates (every 1 hour - 3600 seconds)
+            if now - last_update_check > 3600:
                 last_update_check = now
                 try:
                     from utils import check_and_apply_updates
@@ -443,10 +446,28 @@ def start_sync_thread(app):
                     logger.error("Auto-updater failed during sync loop: %s", u_err)
 
             try:
+                # 1. PUSH pending orders (runs every sync_interval, typically 30 seconds)
+                # It only contacts the server if there are actually pending orders locally.
                 synced = sync_orders(app)
-                pulled = pull_products(app)
-                pulled_orders = pull_orders_from_server(app)
-                deleted_orders = sync_deleted_orders(app)
+
+                # 2. PULL products (every 30 minutes - 1800 seconds)
+                pulled = 0
+                if now - last_product_pull > 1800 or last_product_pull == 0:
+                    pulled = pull_products(app)
+                    last_product_pull = now
+
+                # 3. PULL new orders from server (every 5 minutes - 300 seconds)
+                pulled_orders = 0
+                if now - last_order_pull > 300 or last_order_pull == 0:
+                    pulled_orders = pull_orders_from_server(app)
+                    last_order_pull = now
+
+                # 4. Sync deleted orders (every 60 minutes - 3600 seconds)
+                deleted_orders = 0
+                if now - last_deletion_sync > 3600 or last_deletion_sync == 0:
+                    deleted_orders = sync_deleted_orders(app)
+                    last_deletion_sync = now
+
                 logger.debug(
                     "Sync cycle: %d orders pushed, %d products pulled, %d orders pulled, %d deleted locally.",
                     synced,
