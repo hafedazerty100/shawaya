@@ -23,8 +23,12 @@
       </button>
       {% endfor %}
     </nav>
-    <!-- Sync status at the bottom -->
+    <!-- Sync status & controls at the bottom -->
     <div class="sidebar-footer">
+      <!-- Orders History button -->
+      <button class="btn btn-outline-light w-100 mb-2" id="btn-show-history" title="عرض سجل الطلبات">
+        <i class="bi bi-clock-history"></i> سجل الطلبات
+      </button>
       <button class="btn btn-outline-light w-100 mb-2" id="btn-show-revenue">
         <i class="bi bi-cash-coin"></i> الإيرادات
       </button>
@@ -43,7 +47,7 @@
     <header class="product-header">
       <h1 class="product-heading">اختر الطلب</h1>
       <div class="ticket-mode-badge">
-        <i class="bi bi-lightning-fill"></i> نقرة واحدة = طباعة فورية
+        <i class="bi bi-cart3"></i> أضف للسلة، ثم اطبع
       </div>
     </header>
     <div class="product-grid" id="product-grid">
@@ -56,25 +60,41 @@
     </div>
   </main>
 
-  <!-- ── Live Ticket Feed ──────────────────────────────────────── -->
-  <aside class="ticket-feed" id="ticket-feed">
-    <div class="ticket-feed-header">
-      <i class="bi bi-printer-fill"></i>
-      <span>التذاكر المطبوعة</span>
-      <button class="btn-clear" id="btn-clear-feed" title="مسح السجل">
+  <!-- ── Cart Panel (right sidebar) ──────────────────────────── -->
+  <aside class="cart-panel" id="cart-panel">
+    <div class="cart-panel-header">
+      <i class="bi bi-cart3"></i>
+      <span>سلة الطلب</span>
+      <button class="btn-clear" id="btn-clear-cart" title="مسح السلة">
         <i class="bi bi-trash3"></i>
       </button>
     </div>
-    <div class="ticket-feed-items" id="ticket-feed-items">
-      <div class="feed-empty" id="feed-empty">
-        <i class="bi bi-receipt"></i>
-        <p>لا توجد طلبات بعد</p>
-        <small>انقر على أي منتج للطباعة الفورية</small>
+
+    <!-- Cart items list -->
+    <div class="cart-items" id="cart-items">
+      <div class="cart-empty" id="cart-empty">
+        <i class="bi bi-cart-x"></i>
+        <p>السلة فارغة</p>
+        <small>انقر على أي منتج لإضافته</small>
       </div>
     </div>
-    <div class="ticket-feed-total" id="ticket-feed-total">
-      <span class="total-label">المجموع الإجمالي:</span>
-      <span class="total-amount" id="total-amount">0.00 DA</span>
+
+    <!-- Cart total -->
+    <div class="cart-total" id="cart-total-bar">
+      <span class="total-label">المجموع:</span>
+      <span class="total-amount" id="cart-total-amount">0.00 DA</span>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="cart-actions" id="cart-actions">
+      <button class="btn-print-slips" id="btn-print-slips" disabled>
+        <i class="bi bi-printer"></i>
+        <span>تذاكر البارستا</span>
+      </button>
+      <button class="btn-print-invoice" id="btn-print-invoice" disabled>
+        <i class="bi bi-file-earmark-text"></i>
+        <span>فاتورة الطاولة</span>
+      </button>
     </div>
   </aside>
 
@@ -83,24 +103,25 @@
 <!-- ── Hidden print iframe ───────────────────────────────────── -->
 <iframe id="print-iframe" style="display:none;"></iframe>
 
-<!-- ── Confirm Order Modal ──────────────────────────────────────── -->
-<div class="modal fade" id="confirmOrderModal" tabindex="-1" aria-labelledby="confirmOrderModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content" style="background: #2a2a2a; color: white; border: 1px solid var(--border); border-radius: var(--radius);">
-      <div class="modal-header border-0">
-        <h5 class="modal-title" id="confirmOrderModalLabel"><i class="bi bi-question-circle text-warning fs-4 me-2"></i> تأكيد الطلب والطباعة</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body text-center py-4">
-        <h4 class="mb-2" id="confirm-product-name">---</h4>
-        <h3 class="text-warning fw-bold mb-0" id="confirm-product-price">0.00 DA</h3>
-        <p class="text-muted small mt-3">هل أنت متأكد من طباعة وتأكيد هذا الطلب؟</p>
-      </div>
-      <div class="modal-footer border-0 d-flex gap-2">
-        <button type="button" class="btn btn-secondary flex-grow-1" data-bs-dismiss="modal">إلغاء</button>
-        <button type="button" class="btn btn-warning flex-grow-1" id="btn-confirm-order-print" style="color: #111; font-weight: bold;">تأكيد وطباعة</button>
-      </div>
-    </div>
+<!-- ── Orders History Slide Panel ──────────────────────────── -->
+<div class="history-overlay" id="history-overlay" aria-hidden="true"></div>
+<div class="history-panel" id="history-panel" role="dialog" aria-label="سجل الطلبات">
+  <div class="history-panel-header">
+    <span><i class="bi bi-clock-history"></i> سجل الطلبات</span>
+    <button class="history-close" id="btn-close-history" aria-label="إغلاق"><i class="bi bi-x-lg"></i></button>
+  </div>
+  <div class="history-date-filter">
+    <label for="history-date">اختر التاريخ:</label>
+    <input type="date" id="history-date">
+  </div>
+  <div class="history-loading" id="history-loading">
+    <div class="spinner-border text-warning spinner-border-sm" role="status"></div>
+    <span>جاري التحميل…</span>
+  </div>
+  <div class="history-list" id="history-list"></div>
+  <div class="history-empty" id="history-empty" style="display:none;">
+    <i class="bi bi-inbox"></i>
+    <p>لا توجد طلبات لهذا اليوم</p>
   </div>
 </div>
 
@@ -136,7 +157,6 @@
     </div>
   </div>
 </div>
-
 
 {% endblock %}
 

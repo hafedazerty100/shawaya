@@ -350,13 +350,14 @@ def create_app(mode: str | None = None) -> Flask:
             import time
 
             def _run_replication():
+                interval = int(os.environ.get("DB_REPLICATION_INTERVAL", "10800"))
                 time.sleep(30)
                 while True:
                     try:
                         replicate_databases()
                     except Exception as err:
                         logging.getLogger("db_sync").error("Background db replication thread error: %s", err)
-                    time.sleep(3600)
+                    time.sleep(interval)
 
             thread = threading.Thread(target=_run_replication, daemon=True, name="DbReplication")
             thread.start()

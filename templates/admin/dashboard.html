@@ -23,7 +23,7 @@
 
 {% block content %}
 <!-- تصدير التقارير السريعة & فلترة -->
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
   <div class="d-flex align-items-center gap-2">
     <a href="{{ url_for('admin.export_orders') }}" class="btn btn-sm btn-primary">
       <i class="bi bi-file-earmark-spreadsheet me-1"></i>تصدير جميع الطلبات (CSV)
@@ -35,7 +35,7 @@
   <div class="text-muted small">آخر تحديث: {{ datetime.now().strftime('%H:%M:%S') if datetime else '' }}</div>
 </div>
 
-<div class="collapse mb-4" id="exportFilter">
+<div class="collapse mb-3" id="exportFilter">
   <div class="card admin-card card-body">
     <form method="get" action="{{ url_for('admin.export_orders') }}" class="row g-3 align-items-end">
       <div class="col-sm-5">
@@ -53,14 +53,50 @@
   </div>
 </div>
 
+<!-- تصفية الفترات والتاريخ -->
+<div class="card admin-card mb-4">
+  <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <!-- Quick Periods -->
+    <div class="d-flex align-items-center gap-2">
+      <span class="text-muted small">تصفية الفترة:</span>
+      <div class="btn-group btn-group-sm" role="group">
+        <a href="{{ url_for('admin.dashboard', period='today') }}" class="btn btn-sm {% if period == 'today' %}btn-primary{% else %}btn-outline-secondary{% endif %}">اليوم</a>
+        <a href="{{ url_for('admin.dashboard', period='week') }}" class="btn btn-sm {% if period == 'week' %}btn-primary{% else %}btn-outline-secondary{% endif %}">الأسبوع</a>
+        <a href="{{ url_for('admin.dashboard', period='month') }}" class="btn btn-sm {% if period == 'month' %}btn-primary{% else %}btn-outline-secondary{% endif %}">الشهر</a>
+        <a href="{{ url_for('admin.dashboard', period='all') }}" class="btn btn-sm {% if period == 'all' %}btn-primary{% else %}btn-outline-secondary{% endif %}">الكل</a>
+      </div>
+    </div>
+    <!-- Custom Date Range -->
+    <form method="get" action="{{ url_for('admin.dashboard') }}" class="d-flex align-items-center gap-2 flex-wrap mb-0">
+      <div class="d-flex align-items-center gap-1">
+        <span class="text-muted small">من</span>
+        <input type="date" name="start_date" value="{{ start_str if start_str else '' }}" class="form-control form-control-sm" style="width:135px;">
+      </div>
+      <div class="d-flex align-items-center gap-1">
+        <span class="text-muted small">إلى</span>
+        <input type="date" name="end_date" value="{{ end_str if end_str else '' }}" class="form-control form-control-sm" style="width:135px;">
+      </div>
+      <button type="submit" class="btn btn-sm btn-primary">تصفية</button>
+      {% if period == 'custom' or start_str or end_str or date_str %}
+      <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary" title="إلغاء التصفية">✕</a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
 <!-- بطاقات الإحصاءات -->
 <div class="row g-4 mb-4">
   <div class="col-sm-6 col-xl-3">
     <div class="stat-card stat-card--blue">
       <div class="stat-icon"><i class="bi bi-receipt-cutoff"></i></div>
       <div class="stat-body">
+        {% if period == 'today' %}
         <div class="stat-value">{{ today_orders }}</div>
         <div class="stat-label">طلبات اليوم</div>
+        {% else %}
+        <div class="stat-value">{{ period_orders }}</div>
+        <div class="stat-label">طلبات الفترة</div>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -68,8 +104,13 @@
     <div class="stat-card stat-card--green">
       <div class="stat-icon"><i class="bi bi-cash-coin"></i></div>
       <div class="stat-body">
+        {% if period == 'today' %}
         <div class="stat-value">{{ today_revenue }}</div>
         <div class="stat-label">إيرادات اليوم</div>
+        {% else %}
+        <div class="stat-value">{{ period_revenue }}</div>
+        <div class="stat-label">إيرادات الفترة</div>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -99,12 +140,6 @@
     <div class="card admin-card h-100">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0"><i class="bi bi-activity me-2"></i>منحنى المبيعات والطلبات</h5>
-        <div class="btn-group btn-group-sm" role="group">
-          <a href="{{ url_for('admin.dashboard', period='today') }}" class="btn btn-outline-primary {% if period == 'today' %}active{% endif %}">اليوم</a>
-          <a href="{{ url_for('admin.dashboard', period='week') }}" class="btn btn-outline-primary {% if period == 'week' %}active{% endif %}">الأسبوع</a>
-          <a href="{{ url_for('admin.dashboard', period='month') }}" class="btn btn-outline-primary {% if period == 'month' %}active{% endif %}">الشهر</a>
-          <a href="{{ url_for('admin.dashboard', period='all') }}" class="btn btn-outline-primary {% if period == 'all' %}active{% endif %}">الكل</a>
-        </div>
       </div>
       <div class="card-body">
         <div class="chart-container">
@@ -151,22 +186,8 @@
   <!-- تفصيل يومي -->
   <div class="col-lg-7">
     <div class="card admin-card h-100">
-      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0"><i class="bi bi-calendar3 me-2"></i>تفصيل المبيعات باليوم</h5>
-        <form method="get" action="{{ url_for('admin.dashboard') }}" class="d-flex align-items-center gap-2 flex-wrap">
-          <div class="d-flex align-items-center gap-1">
-            <span class="text-muted small">من</span>
-            <input type="date" name="start_date" id="start-date-picker" value="{{ start_str if start_str else date_str }}" class="form-control form-control-sm" style="width:130px;">
-          </div>
-          <div class="d-flex align-items-center gap-1">
-            <span class="text-muted small">إلى</span>
-            <input type="date" name="end_date" id="end-date-picker" value="{{ end_str if end_str else date_str }}" class="form-control form-control-sm" style="width:130px;">
-          </div>
-          <button type="submit" class="btn btn-sm btn-primary">تصفية</button>
-          {% if start_str or end_str or date_str %}
-          <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary">✕</a>
-          {% endif %}
-        </form>
       </div>
       <div class="card-body p-0">
         {% if daily_rows %}

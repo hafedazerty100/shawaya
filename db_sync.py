@@ -1,26 +1,44 @@
 """
-db_sync.py — Master-master replication/sync scheduler for the 3 Neon database instances.
+db_sync.py — Master-master replication/sync scheduler for the Neon database instances.
 
 Runs in a background thread on the server, connecting to each database instance
 to merge and sync products, categories, orders, order items, serial keys, and admin users.
+
+STORAGE OPTIMIZATION:
+  image_data (BYTEA) is intentionally EXCLUDED from replication. Images are stored
+  in the primary database only and served via the Flask app. Replicating raw binary
+  blobs across all replicas would exhaust the Neon 5GB free tier extremely fast.
+  Each replica stores only the image filename reference.
+
+CONNECTION OPTIMIZATION:
+  Uses NullPool for replication engines to prevent idle connection leaks.
+  Each cycle opens exactly len(DB_URLS) connections and closes all of them before sleeping.
 """
 
 import logging
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 from extensions import DB_URLS
 from models import AdminUser, Category, Product, Order, OrderItem, SerialKey
 
 logger = logging.getLogger("db_sync")
 
 def get_session(url: str):
-    """Attempt connection and return a custom SQLAlchemy session and engine."""
+    """Attempt connection and return a raw SQLAlchemy session and engine.
+
+    Uses NullPool to ensure connections are closed immediately after use,
+    preventing connection exhaustion on Neon's free tier.
+    """
     try:
-        # 5 seconds timeout to prevent blocking thread on dead endpoints
-        engine = create_engine(url, pool_pre_ping=True, connect_args={"connect_timeout": 5})
+        engine = create_engine(
+            url,
+            poolclass=NullPool,  # Never keep idle connections — critical for Neon limits
+            connect_args={"connect_timeout": 5},
+        )
         Session = sessionmaker(bind=engine)
         session = Session()
-        # Verify connection works
+        # Verify connection works before proceeding
         session.execute(text("SELECT 1"))
         return session, engine
     except Exception as exc:
@@ -28,7 +46,11 @@ def get_session(url: str):
         return None, None
 
 def replicate_databases():
-    """Consolidate and write records across all online Neon databases."""
+    """Consolidate and write records across all online Neon databases.
+
+    NOTE: image_data is intentionally excluded from replication to conserve storage.
+    Only the image filename (reference) is synced. Images are served from the primary DB.
+    """
     logger.info("Starting master-master database replication cycle...")
     
     # 1. Connect to all online DBs
@@ -40,7 +62,6 @@ def replicate_databases():
             
     if len(sessions) < 2:
         logger.warning("Replication skipped: less than 2 database accounts are currently online/reachable.")
-        # Disconnect any single online session
         for s, e in sessions.values():
             s.close()
             e.dispose()
@@ -76,6 +97,7 @@ def replicate_databases():
                     }
                     
             # Merge Products (keep latest version by updated_at)
+            # NOTE: image_data is intentionally excluded — see module docstring
             for p in session.query(Product).all():
                 existing = merged_products.get(p.id)
                 if not existing or (p.updated_at and existing["updated_at"] and p.updated_at > existing["updated_at"]):
@@ -85,12 +107,13 @@ def replicate_databases():
                         "name": p.name,
                         "description": p.description,
                         "price_cents": p.price_cents,
-                        "image": p.image,
+                        "image": p.image,          # Filename reference only
                         "is_active": p.is_active,
                         "created_at": p.created_at,
                         "updated_at": p.updated_at,
-                        "image_data": p.image_data,
-                        "image_mime": p.image_mime
+                        # image_data and image_mime are DELIBERATELY excluded here.
+                        # Replicating raw binary blobs across 3 Neon accounts wastes
+                        # ~3x storage and is the #1 cause of hitting the 5GB limit fast.
                     }
                     
             # Merge Orders and their items (preserve "synced" status)
@@ -153,7 +176,7 @@ def replicate_databases():
 
             # Sync Categories
             for cat_id, data in merged_categories.items():
-                cat = session.query(Category).get(cat_id)
+                cat = session.get(Category, cat_id)
                 if not cat:
                     cat = Category(
                         id=data["id"],
@@ -166,12 +189,12 @@ def replicate_databases():
                     cat.display_order = data["display_order"]
             session.flush()
 
-            # Sync Products
+            # Sync Products (image_data excluded — see module docstring)
             for prod_id, data in merged_products.items():
                 # Enforce FK constraints
-                if not session.query(Category).get(data["category_id"]):
+                if not session.get(Category, data["category_id"]):
                     continue
-                prod = session.query(Product).get(prod_id)
+                prod = session.get(Product, prod_id)
                 if not prod:
                     prod = Product(
                         id=data["id"],
@@ -183,8 +206,7 @@ def replicate_databases():
                         is_active=data["is_active"],
                         created_at=data["created_at"],
                         updated_at=data["updated_at"],
-                        image_data=data["image_data"],
-                        image_mime=data["image_mime"]
+                        # image_data intentionally NOT set here — see module docstring
                     )
                     session.add(prod)
                 else:
@@ -195,8 +217,7 @@ def replicate_databases():
                     prod.image = data["image"]
                     prod.is_active = data["is_active"]
                     prod.updated_at = data["updated_at"]
-                    prod.image_data = data["image_data"]
-                    prod.image_mime = data["image_mime"]
+                    # image_data intentionally NOT updated here — see module docstring
             session.flush()
 
             # Sync Serial Keys
@@ -255,7 +276,7 @@ def replicate_databases():
             session.rollback()
             logger.error("Replication writing failed on DB index %d: %s", idx, write_exc)
 
-    # 4. Cleanup resources
+    # 4. Cleanup resources — NullPool ensures connections are fully closed
     for s, e in sessions.values():
         s.close()
         e.dispose()

@@ -500,10 +500,29 @@ def delete_product(product_id: int):
 @login_required
 def orders():
     status_filter = request.args.get("status", "").strip()
+    start_str = request.args.get("start_date", "").strip()
+    end_str = request.args.get("end_date", "").strip()
     page = request.args.get("page", 1, type=int)
+
     query = Order.query
     if status_filter in ("pending", "synced", "failed"):
         query = query.filter_by(status=status_filter)
+
+    if start_str:
+        try:
+            start_date = datetime.strptime(start_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            query = query.filter(Order.created_at >= start_date)
+        except ValueError:
+            pass
+
+    if end_str:
+        try:
+            end_date = datetime.strptime(end_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            from datetime import timedelta
+            query = query.filter(Order.created_at < end_date + timedelta(days=1))
+        except ValueError:
+            pass
+
     pagination = query.order_by(Order.created_at.desc()).paginate(
         page=page, per_page=ITEMS_PER_PAGE, error_out=False
     )
@@ -512,6 +531,8 @@ def orders():
         orders=pagination.items,
         pagination=pagination,
         status_filter=status_filter,
+        start_str=start_str,
+        end_str=end_str,
     )
 
 

@@ -183,10 +183,10 @@ def test_api_revenue_endpoint(desktop_app, desktop_client, monkeypatch):
     
     with desktop_app.app_context():
         # Setup category and product if not present
-        if not Category.query.get(1):
+        if not db.session.get(Category, 1):
             cat = Category(id=1, name="Coffee", display_order=1)
             db.session.add(cat)
-        if not Product.query.get(10):
+        if not db.session.get(Product, 10):
             prod = Product(id=10, category_id=1, name="Espresso", price_cents=250, is_active=True)
             db.session.add(prod)
         db.session.commit()
@@ -418,6 +418,70 @@ def test_daily_revenue_csv_archiver(desktop_app, monkeypatch, tmp_path):
     assert reader[1][7] == "2.50"
     assert reader[1][8] == "5.00"
     assert reader[1][9] == "5.00"
+
+
+def test_api_orders_history_date_filtering(desktop_app, desktop_client):
+    """Test desktop /api/orders/history with date query parameters."""
+    from datetime import datetime, timezone, timedelta
+    from models import Category, Product, Order, OrderItem
+
+    with desktop_app.app_context():
+        # Clean up database
+        OrderItem.query.delete()
+        Order.query.delete()
+        Category.query.delete()
+        Product.query.delete()
+        db.session.commit()
+
+        cat = Category(id=1, name="Coffee", display_order=1)
+        prod = Product(id=10, category_id=1, name="Espresso", price_cents=250, is_active=True)
+        db.session.add_all([cat, prod])
+        db.session.commit()
+
+        # Add order today
+        order_today = Order(
+            id=201,
+            local_id="order-201",
+            status="pending",
+            total_cents=250,
+            created_at=datetime.now(timezone.utc),
+            device_id="Kiosk-Test"
+        )
+        db.session.add(order_today)
+        db.session.commit()
+
+        # Add order yesterday
+        order_yesterday = Order(
+            id=202,
+            local_id="order-202",
+            status="pending",
+            total_cents=500,
+            created_at=datetime.now(timezone.utc) - timedelta(days=1),
+            device_id="Kiosk-Test"
+        )
+        db.session.add(order_yesterday)
+        db.session.commit()
+
+    # Case 1: Fetch default (today)
+    resp = desktop_client.get("/api/orders/history")
+    assert resp.status_code == 200
+    orders = resp.json
+    assert len(orders) == 1
+    assert orders[0]["id"] == 201
+
+    # Case 2: Fetch yesterday's date
+    yesterday_str = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
+    resp = desktop_client.get(f"/api/orders/history?date={yesterday_str}")
+    assert resp.status_code == 200
+    orders = resp.json
+    assert len(orders) == 1
+    assert orders[0]["id"] == 202
+
+    # Case 3: Invalid date format
+    resp = desktop_client.get("/api/orders/history?date=invalid-date")
+    assert resp.status_code == 400
+    assert "Invalid date format" in resp.json["error"]
+
 
 
 

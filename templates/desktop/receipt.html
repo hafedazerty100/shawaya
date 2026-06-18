@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>تذكرة الطلب #{{ order.id }}</title>
+  <title>{% if mode == 'invoice' %}فاتورة الطاولة #{{ order.id }}{% else %}تذكرة الطلب #{{ order.id }}{% endif %}</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -12,13 +12,14 @@
       color: #000;
       background: #fff;
     }
+
+    /* ── Barista Slip (mode = 'slip' / default) ──────────────────────────── */
     .ticket {
       width: 80mm;
       padding: 6mm 4mm;
       margin: 0 auto;
-      page-break-after: always; /* Force separate page for each ticket unit */
+      page-break-after: always;
     }
-    /* Remove page break on the absolute last ticket to avoid printing a blank page */
     .ticket:last-child {
       page-break-after: avoid;
     }
@@ -64,12 +65,74 @@
       font-size: 11px;
       color: #555;
     }
+    .dev-credit {
+      text-align: center;
+      margin-top: 6px;
+      font-size: 10px;
+      color: #888;
+      border-top: 1px dotted #ccc;
+      padding-top: 4px;
+    }
+
+    /* ── Consolidated Invoice (mode = 'invoice') ─────────────────────────── */
+    .invoice {
+      width: 80mm;
+      padding: 6mm 4mm;
+      margin: 0 auto;
+    }
+    .invoice-header {
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .invoice-title {
+      font-size: 14px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 2px;
+    }
+    .invoice-items {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 6px 0;
+      font-size: 12px;
+    }
+    .invoice-items th {
+      text-align: right;
+      font-weight: bold;
+      border-bottom: 1px solid #000;
+      padding: 3px 2px;
+      font-size: 11px;
+    }
+    .invoice-items td {
+      padding: 4px 2px;
+      vertical-align: top;
+    }
+    .invoice-items tr:not(:last-child) td {
+      border-bottom: 1px dotted #ccc;
+    }
+    .item-name-col { width: 45%; }
+    .item-qty-col  { width: 10%; text-align: center; }
+    .item-price-col{ width: 20%; text-align: left; }
+    .item-sub-col  { width: 25%; text-align: left; }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 16px;
+      font-weight: bold;
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 2px solid #000;
+    }
+    .total-label { font-size: 16px; }
+    .total-amount { font-size: 18px; }
+
     @media print {
       @page {
-        margin-bottom: 60mm; /* Forces 60mm blank feed after last line so paper clears the physical cutter */
+        margin-bottom: 60mm;
       }
       body { width: auto; padding: 0; }
-      .ticket {
+      .ticket, .invoice {
         width: 80mm;
         margin: 0;
         padding: 4mm;
@@ -78,14 +141,79 @@
   </style>
 </head>
 <body>
+
+{% if mode == 'invoice' %}
+  {# ── Consolidated Table Invoice ─────────────────────────────────────── #}
+  <div class="invoice">
+    <div class="invoice-header">
+      <div class="shop-name">☕ مقهى 24 ساعة</div>
+      <div class="shop-tagline">مفتوح طوال اليوم، كل يوم</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="invoice-title" style="text-align:center; margin-bottom:4px;">فاتورة الطاولة</div>
+
+    <div class="meta-row">
+      <span>رقم الفاتورة:</span>
+      <span>#{{ order.id }}</span>
+    </div>
+    <div class="meta-row">
+      <span>التاريخ:</span>
+      <span>{{ order.created_at.strftime('%d/%m/%Y') }}</span>
+    </div>
+    <div class="meta-row">
+      <span>الوقت:</span>
+      <span>{{ order.created_at.strftime('%H:%M') }}</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <table class="invoice-items">
+      <thead>
+        <tr>
+          <th class="item-name-col">الصنف</th>
+          <th class="item-qty-col">كمية</th>
+          <th class="item-price-col">سعر</th>
+          <th class="item-sub-col">المجموع</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in order.items %}
+        <tr>
+          <td class="item-name-col">{{ item.product_name_snapshot }}</td>
+          <td class="item-qty-col">{{ item.quantity }}</td>
+          <td class="item-price-col">{{ format_price(item.unit_price_cents_snapshot) }}</td>
+          <td class="item-sub-col">{{ format_price(item.subtotal_cents) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="divider"></div>
+
+    <div class="total-row">
+      <span class="total-label">الإجمالي:</span>
+      <span class="total-amount">{{ format_price(order.total_cents) }}</span>
+    </div>
+
+    <div class="footer-text" style="margin-top:12px;">
+      <p>شكراً لزيارتكم!</p>
+      <p>نتمنى لكم تجربة ممتعة ☕</p>
+    </div>
+    <div class="dev-credit">devoloped by hafed 0549604185</div>
+  </div>
+
+{% else %}
+  {# ── Barista Slip (one slip per item × quantity) ──────────────────────── #}
   {% for item in order.items %}
     {% for i in range(item.quantity) %}
       <div class="ticket">
         <div class="shop-name">☕ مقهى 24 ساعة</div>
         <div class="shop-tagline">مفتوح طوال اليوم، كل يوم</div>
-        
+
         <div class="divider"></div>
-        
+
         <div class="meta-row">
           <span>رقم الطلب:</span>
           <span>#{{ order.id }}</span>
@@ -98,32 +226,33 @@
           <span>الوقت:</span>
           <span>{{ order.created_at.strftime('%H:%M:%S') }}</span>
         </div>
-        
+
         <div class="divider"></div>
-        
+
         <div class="product-section">
           <div class="product-name">{{ item.product_name_snapshot }}</div>
           <div class="product-price">{{ format_price(item.unit_price_cents_snapshot) }}</div>
         </div>
-        
+
         <div class="divider"></div>
-        
+
         <div class="footer-text">
           <p>تذكرة رقم {{ loop.index }} من {{ item.quantity }}</p>
           <p>شكراً لزيارتكم!</p>
         </div>
+        <div class="dev-credit">devoloped by hafed 0549604185</div>
       </div>
     {% endfor %}
   {% endfor %}
+{% endif %}
 
   <script>
     window.onload = function() {
       setTimeout(function() {
         window.print();
-        window.parent.postMessage({ type: 'order_printed', orderId: {{ order.id }} }, '*');
+        window.parent.postMessage({ type: 'order_printed', orderId: {{ order.id }}, mode: '{{ mode or "slip" }}' }, '*');
       }, 300);
     };
   </script>
 </body>
 </html>
-

@@ -15,11 +15,15 @@ load_dotenv()
 
 os.environ.setdefault("APP_MODE", "desktop")
 
-from utils import check_and_apply_updates
-try:
-    check_and_apply_updates()
-except Exception as err:
-    sys.stderr.write(f"[WARNING] Auto-updater failed on boot: {err}\n")
+# Auto-updater: git pull latest commit on startup.
+# Only runs when AUTO_UPDATE=1 is set in .env — safe for production desktops.
+# During development, leave AUTO_UPDATE=0 (default) to protect local edits.
+if os.environ.get("AUTO_UPDATE", "0") == "1":
+    from utils import check_and_apply_updates
+    try:
+        check_and_apply_updates()
+    except Exception as err:
+        sys.stderr.write(f"[WARNING] Auto-updater failed on boot: {err}\n")
 
 from app import create_app
 from sync import start_sync_thread

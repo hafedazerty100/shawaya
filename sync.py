@@ -191,7 +191,7 @@ def pull_products(app) -> int:
             # ── Upsert categories ────────────────────────────────────────────
             server_cat_ids = set()
             for cat_data in categories:
-                cat = Category.query.get(cat_data["id"])
+                cat = db.session.get(Category, cat_data["id"])
                 if cat is None:
                     cat = Category(id=cat_data["id"])
                     db.session.add(cat)
@@ -209,7 +209,7 @@ def pull_products(app) -> int:
             server_product_ids = set()
             count = 0
             for prod_data in products:
-                prod = Product.query.get(prod_data["id"])
+                prod = db.session.get(Product, prod_data["id"])
                 if prod is None:
                     prod = Product(id=prod_data["id"])
                     db.session.add(prod)
@@ -535,96 +535,108 @@ def check_and_generate_daily_archives(app):
 
 def start_sync_thread(app):
     """
-    Start a daemon background thread that repeatedly syncs orders and products.
+    Background daemon thread: LOCAL SQLite is the primary store, Neon is the hourly backup.
 
-    Uses exponential backoff on consecutive failures (max 5 minutes).
-    One failed cycle does NOT kill the thread.
+    Strategy — Store Locally, Sync Hourly:
+    ┌─────────────────────────────────────────────────────────────────┐
+    │  Every order/action → written instantly to local SQLite (fast) │
+    │  Every 60 minutes   → batch push/pull with Neon (minimal data) │
+    │  Manual button      → sync immediately on demand               │
+    └─────────────────────────────────────────────────────────────────┘
+
+    Transfer budget estimate (hourly intervals):
+      - Push orders:    ~48 KB/day   →  ~1.5 MB/month
+      - Pull products:  ~1.2 MB/day  →  ~36 MB/month
+      - Pull orders:    ~240 KB/day  →  ~7 MB/month
+      - Archive (local):  0 KB       →  0 MB/month
+      ─────────────────────────────────────────────
+      Total Neon transfer:            ~45 MB/month
+      (vs ~4.5 GB/month with 30-second intervals)
+
+    Neon free tier: 5 GB/month → this uses less than 1% of quota.
     """
-    sync_interval = app.config.get("SYNC_INTERVAL", 30)
+    # All network sync tasks run every SYNC_HOURLY_INTERVAL seconds (default: 3600 = 1 hour)
+    SYNC_HOURLY_INTERVAL = int(os.environ.get("SYNC_HOURLY_INTERVAL", 3600))
 
     def _sync_loop():
-        consecutive_failures = 0
-        max_backoff = 60  # 60 seconds max backoff
-        last_update_check = 0
-        last_product_pull = 0
-        last_order_pull = 0
-        last_deletion_sync = 0
+        last_update_check  = 0
+        last_network_sync  = 0   # covers: push orders + pull products + pull orders + deleted
         last_archive_check = 0
+
+        # Offset the first network sync by 60 seconds after startup so the app
+        # is fully ready before making any Neon connections.
+        first_sync_delay = 60
+        startup_time = time.time()
 
         while True:
             now = time.time()
-            # Periodically check for remote updates (every 1 hour - 3600 seconds)
-            if now - last_update_check > 3600:
+
+            # ── Auto-updater (git pull) — opt-in via AUTO_UPDATE=1 in .env ──────
+            if os.environ.get("AUTO_UPDATE", "0") == "1" and now - last_update_check > 3600:
                 last_update_check = now
                 try:
                     from utils import check_and_apply_updates
                     check_and_apply_updates()
                 except Exception as u_err:
-                    logger.error("Auto-updater failed during sync loop: %s", u_err)
+                    logger.error("Auto-updater failed: %s", u_err)
 
-            try:
-                # 1. PUSH pending orders (runs every sync_interval, typically 30 seconds)
-                # It only contacts the server if there are actually pending orders locally.
-                synced = sync_orders(app)
+            # ── Hourly Neon sync (all 4 network tasks in one batch) ──────────────
+            time_since_last = now - last_network_sync
+            startup_delay_passed = (now - startup_time) >= first_sync_delay
 
-                # 2. PULL products (every 30 minutes - 1800 seconds)
-                pulled = 0
-                if now - last_product_pull > 1800 or last_product_pull == 0:
-                    pulled = pull_products(app)
-                    last_product_pull = now
+            if startup_delay_passed and (last_network_sync == 0 or time_since_last >= SYNC_HOURLY_INTERVAL):
+                last_network_sync = now
+                logger.info("Starting hourly Neon sync batch...")
 
-                # 3. PULL new orders from server (every 5 minutes - 300 seconds)
-                pulled_orders = 0
-                if now - last_order_pull > 300 or last_order_pull == 0:
+                # 1. Push any locally pending orders to the server
+                try:
+                    synced = sync_orders(app)
+                    logger.info("Hourly sync: pushed %d orders.", synced)
+                except Exception as exc:
+                    logger.error("Hourly sync — push orders failed: %s", exc)
+
+                # 2. Pull latest product catalog (only upserts changed items)
+                try:
+                    pulled_products = pull_products(app)
+                    logger.info("Hourly sync: pulled %d products.", pulled_products)
+                except Exception as exc:
+                    logger.error("Hourly sync — pull products failed: %s", exc)
+
+                # 3. Pull any new orders from other devices
+                try:
                     pulled_orders = pull_orders_from_server(app)
-                    last_order_pull = now
+                    logger.info("Hourly sync: pulled %d new orders.", pulled_orders)
+                except Exception as exc:
+                    logger.error("Hourly sync — pull orders failed: %s", exc)
 
-                # 4. Sync deleted orders (every 60 minutes - 3600 seconds)
-                deleted_orders = 0
-                if now - last_deletion_sync > 3600 or last_deletion_sync == 0:
-                    deleted_orders = sync_deleted_orders(app)
-                    last_deletion_sync = now
+                # 4. Sync deleted orders
+                try:
+                    deleted = sync_deleted_orders(app)
+                    logger.info("Hourly sync: synced %d deletions.", deleted)
+                except Exception as exc:
+                    logger.error("Hourly sync — deleted orders failed: %s", exc)
 
-                # 5. Daily revenue archives (check every 1 hour - 3600 seconds)
-                if now - last_archive_check > 3600 or last_archive_check == 0:
+                logger.info("Hourly Neon sync batch complete. Next sync in %ds.", SYNC_HOURLY_INTERVAL)
+
+            # ── Daily revenue CSV archive — LOCAL ONLY, no network ───────────────
+            if now - last_archive_check > 3600 or last_archive_check == 0:
+                try:
                     check_and_generate_daily_archives(app)
                     last_archive_check = now
+                except Exception as arc_err:
+                    logger.error("Daily archive check failed: %s", arc_err)
 
-                logger.debug(
-                    "Sync cycle: %d orders pushed, %d products pulled, %d orders pulled, %d deleted locally.",
-                    synced,
-                    pulled,
-                    pulled_orders,
-                    deleted_orders
-                )
-                consecutive_failures = 0
-                sleep_time = sync_interval
-            except requests.RequestException as exc:
-                consecutive_failures += 1
-                sleep_time = min(sync_interval * (2 ** consecutive_failures), max_backoff)
-                logger.warning(
-                    "Sync cycle network error (#%d consecutive): %s. "
-                    "Sleeping %ds before retry.",
-                    consecutive_failures,
-                    exc,
-                    sleep_time,
-                )
-            except Exception as exc:
-                consecutive_failures += 1
-                sleep_time = min(sync_interval * (2 ** consecutive_failures), max_backoff)
-                logger.error(
-                    "Sync cycle unexpected error (#%d consecutive): %s. "
-                    "Sleeping %ds before retry.",
-                    consecutive_failures,
-                    exc,
-                    sleep_time,
-                )
-
-            time.sleep(sleep_time)
+            # Sleep 60 seconds between iterations — coarse polling is fine
+            # since the actual work only fires once per hour
+            time.sleep(60)
 
     thread = threading.Thread(target=_sync_loop, daemon=True, name="SyncThread")
     thread.start()
     logger.info(
-        "Background sync thread started (interval=%ds).", sync_interval
+        "Background sync thread started — local SQLite primary, Neon syncs every %ds (~%dm). "
+        "Use 'مزامنة الآن' button for immediate sync.",
+        SYNC_HOURLY_INTERVAL,
+        SYNC_HOURLY_INTERVAL // 60,
     )
     return thread
+

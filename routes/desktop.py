@@ -510,3 +510,59 @@ def api_sync_all():
         return jsonify({"success": False, "error": str(exc)}), 500
 
 
+@desktop_bp.route("/api/print-invoice/<int:order_id>")
+def print_invoice(order_id: int):
+    """Return a consolidated table invoice — all items on one page with grand total.
+
+    Designed for the outdoor seating workflow: the server collects all items
+    the customer orders, then prints one invoice at the end showing everything.
+    """
+    order = db.get_or_404(Order, order_id)
+    return render_template("desktop/receipt.html", order=order, mode="invoice")
+
+
+@desktop_bp.route("/api/orders/history")
+def api_orders_history():
+    """Return confirmed (non-draft) orders for a specific date (or today) for the history slide panel."""
+    date_str = request.args.get("date", "").strip()
+    if date_str:
+        try:
+            target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return jsonify({"error": "Invalid date format. Use YYYY-MM-DD."}), 400
+    else:
+        target_date = datetime.now(timezone.utc).date()
+
+    start_dt = datetime.combine(target_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+    end_dt = datetime.combine(target_date, datetime.max.time()).replace(tzinfo=timezone.utc)
+
+    orders = (
+        Order.query
+        .filter(Order.status != "draft", Order.created_at >= start_dt, Order.created_at <= end_dt)
+        .order_by(Order.created_at.desc())
+        .limit(100)
+        .all()
+    )
+    result = []
+    for order in orders:
+        result.append({
+            "id": order.id,
+            "local_id": order.local_id,
+            "status": order.status,
+            "total_cents": order.total_cents,
+            "total_display": format_price(order.total_cents),
+            "created_at": order.created_at.strftime("%H:%M") if order.created_at else "",
+            "items": [
+                {
+                    "name": item.product_name_snapshot,
+                    "qty": item.quantity,
+                    "unit_price": format_price(item.unit_price_cents_snapshot),
+                    "subtotal": format_price(item.subtotal_cents),
+                }
+                for item in order.items
+            ],
+        })
+    return jsonify(result), 200
+
+
+

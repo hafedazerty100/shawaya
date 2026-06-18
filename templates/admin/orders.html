@@ -3,24 +3,51 @@
 {% block page_title %}الطلبات{% endblock %}
 
 {% block content %}
-<!-- فلتر الحالة -->
-<div class="d-flex gap-2 mb-4 flex-wrap">
-  <a href="{{ url_for('admin.orders') }}"
-     class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-outline-secondary{% endif %}">
-    الكل
-  </a>
-  <a href="{{ url_for('admin.orders', status='pending') }}"
-     class="btn btn-sm {% if status_filter == 'pending' %}btn-warning{% else %}btn-outline-secondary{% endif %}">
-    قيد الانتظار
-  </a>
-  <a href="{{ url_for('admin.orders', status='synced') }}"
-     class="btn btn-sm {% if status_filter == 'synced' %}btn-success{% else %}btn-outline-secondary{% endif %}">
-    تمت المزامنة
-  </a>
-  <a href="{{ url_for('admin.orders', status='failed') }}"
-     class="btn btn-sm {% if status_filter == 'failed' %}btn-danger{% else %}btn-outline-secondary{% endif %}">
-    فشل
-  </a>
+<!-- فلتر التاريخ والحالة -->
+<div class="card admin-card mb-4">
+  <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <!-- Status Filter -->
+    <div class="d-flex align-items-center gap-2">
+      <span class="text-muted small">الحالة:</span>
+      <div class="btn-group btn-group-sm" role="group">
+        <a href="{{ url_for('admin.orders', status='', start_date=start_str, end_date=end_str) }}"
+           class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+          الكل
+        </a>
+        <a href="{{ url_for('admin.orders', status='pending', start_date=start_str, end_date=end_str) }}"
+           class="btn btn-sm {% if status_filter == 'pending' %}btn-warning text-dark fw-bold{% else %}btn-outline-secondary{% endif %}">
+          قيد الانتظار
+        </a>
+        <a href="{{ url_for('admin.orders', status='synced', start_date=start_str, end_date=end_str) }}"
+           class="btn btn-sm {% if status_filter == 'synced' %}btn-success{% else %}btn-outline-secondary{% endif %}">
+          تمت المزامنة
+        </a>
+        <a href="{{ url_for('admin.orders', status='failed', start_date=start_str, end_date=end_str) }}"
+           class="btn btn-sm {% if status_filter == 'failed' %}btn-danger{% else %}btn-outline-secondary{% endif %}">
+          فشل
+        </a>
+      </div>
+    </div>
+
+    <!-- Date Filter -->
+    <form method="get" action="{{ url_for('admin.orders') }}" class="d-flex align-items-center gap-2 flex-wrap mb-0">
+      {% if status_filter %}
+      <input type="hidden" name="status" value="{{ status_filter }}">
+      {% endif %}
+      <div class="d-flex align-items-center gap-1">
+        <span class="text-muted small">من</span>
+        <input type="date" name="start_date" value="{{ start_str if start_str else '' }}" class="form-control form-control-sm" style="width:135px;">
+      </div>
+      <div class="d-flex align-items-center gap-1">
+        <span class="text-muted small">إلى</span>
+        <input type="date" name="end_date" value="{{ end_str if end_str else '' }}" class="form-control form-control-sm" style="width:135px;">
+      </div>
+      <button type="submit" class="btn btn-sm btn-primary">تصفية</button>
+      {% if start_str or end_str %}
+      <a href="{{ url_for('admin.orders', status=status_filter) }}" class="btn btn-sm btn-outline-secondary" title="إلغاء التصفية">✕</a>
+      {% endif %}
+    </form>
+  </div>
 </div>
 
 <div class="card admin-card">
@@ -86,7 +113,7 @@
         <ul class="pagination pagination-sm mb-0">
           {% if pagination.has_prev %}
           <li class="page-item">
-            <a class="page-link" href="{{ url_for('admin.orders', page=pagination.prev_num, status=status_filter) }}">
+            <a class="page-link" href="{{ url_for('admin.orders', page=pagination.prev_num, status=status_filter, start_date=start_str, end_date=end_str) }}">
               <i class="bi bi-chevron-right"></i>
             </a>
           </li>
@@ -94,7 +121,7 @@
           {% for pg in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
             {% if pg %}
             <li class="page-item {% if pg == pagination.page %}active{% endif %}">
-              <a class="page-link" href="{{ url_for('admin.orders', page=pg, status=status_filter) }}">{{ pg }}</a>
+              <a class="page-link" href="{{ url_for('admin.orders', page=pg, status=status_filter, start_date=start_str, end_date=end_str) }}">{{ pg }}</a>
             </li>
             {% else %}
             <li class="page-item disabled"><span class="page-link">…</span></li>
@@ -102,7 +129,7 @@
           {% endfor %}
           {% if pagination.has_next %}
           <li class="page-item">
-            <a class="page-link" href="{{ url_for('admin.orders', page=pagination.next_num, status=status_filter) }}">
+            <a class="page-link" href="{{ url_for('admin.orders', page=pagination.next_num, status=status_filter, start_date=start_str, end_date=end_str) }}">
               <i class="bi bi-chevron-left"></i>
             </a>
           </li>

@@ -6,6 +6,7 @@ Never hardcode secrets here; add them to .env (gitignored).
 """
 
 import os
+import sys
 from dotenv import load_dotenv
 
 # Load .env file before anything else reads os.environ
@@ -77,6 +78,11 @@ class Config:
     SESSION_COOKIE_SAMESITE = "Lax"
     # Secure flag overridden per subclass
     SESSION_COOKIE_SECURE = False
+
+    # ── Remote auto-update (desktop only) ───────────────────────────────────────
+    # Set AUTO_UPDATE=1 in .env to enable git pull on startup/hourly sync.
+    # Leave as 0 (default) to protect local development edits from being wiped.
+    AUTO_UPDATE: bool = os.environ.get("AUTO_UPDATE", "0").strip() == "1"
 
     # ── Rate limiting ─────────────────────────────────────────────────────────
     RATELIMIT_STORAGE_URL = "memory://"

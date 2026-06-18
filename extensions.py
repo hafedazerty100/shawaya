@@ -2,52 +2,66 @@
 extensions.py — Flask extension instances (unbound from app) with multi-DB failover.
 
 Includes custom SQLAlchemy FailoverSession to rotate between Neon instances.
+
+SECURITY: DB credentials are NEVER hardcoded here. They are loaded from:
+  1. db_urls.json (local file, in .gitignore)
+  2. DATABASE_URL environment variable (set by Render/Fly/Railway)
 """
 
+import json
 import logging
+import os
+
+from flask_login import LoginManager
+from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_sqlalchemy.session import Session
-from sqlalchemy.exc import OperationalError, InterfaceError, DatabaseError
-from flask_migrate import Migrate
-from flask_login import LoginManager
 from flask_wtf import CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from sqlalchemy.exc import OperationalError, InterfaceError, DatabaseError
 
 logger = logging.getLogger("db_failover")
 
-# Multi-DB fallback accounts provided by user — loaded dynamically from JSON
-import json
-import os
-
-DEFAULT_DB_URLS = [
-    "postgresql://neondb_owner:npg_DWMBL10dhXkj@ep-lingering-resonance-abun03tf-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
-    "postgresql://neondb_owner:npg_VbFmLnR0ThP5@ep-super-sound-ab5v2qrt-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
-    "postgresql://neondb_owner:npg_ATn9EDIkdB8X@ep-shiny-sky-abtyuysv-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
-]
-
+# ── Load DB URLs from gitignored file (NEVER hardcode credentials here) ─────
 base_dir = os.path.abspath(os.path.dirname(__file__))
 urls_file = os.path.join(base_dir, "db_urls.json")
 
+DB_URLS: list[str] = []
+
+# 1. Load from db_urls.json (persisted via admin UI, gitignored)
 if os.path.exists(urls_file):
     try:
         with open(urls_file, "r", encoding="utf-8") as f:
-            DB_URLS = json.load(f)
-            if not isinstance(DB_URLS, list):
-                DB_URLS = list(DEFAULT_DB_URLS)
-    except Exception:
-        DB_URLS = list(DEFAULT_DB_URLS)
-else:
-    DB_URLS = list(DEFAULT_DB_URLS)
+            loaded = json.load(f)
+            if isinstance(loaded, list):
+                DB_URLS = list(loaded)
+    except Exception as _e:
+        logger.warning("Could not load db_urls.json: %s", _e)
 
-# Append the database URL from environment variables to the end of the fallback pool
-import os
-env_db_url = os.environ.get("DATABASE_URL", "")
-if env_db_url:
-    if env_db_url.startswith("postgres://"):
-        env_db_url = "postgresql://" + env_db_url[len("postgres://"):]
-    if env_db_url not in DB_URLS:
-        DB_URLS.append(env_db_url)
+# 1.5 Load from DB_URLS_LIST environment variable (persists across Render restarts)
+_env_urls_list = os.environ.get("DB_URLS_LIST", "").strip()
+if _env_urls_list:
+    try:
+        loaded = json.loads(_env_urls_list)
+        if isinstance(loaded, list):
+            for url in loaded:
+                if url not in DB_URLS:
+                    DB_URLS.append(url)
+    except Exception:
+        # Fallback to comma-separated list
+        for url in _env_urls_list.split(","):
+            url = url.strip()
+            if url and url not in DB_URLS:
+                DB_URLS.append(url)
+
+# 2. Always include DATABASE_URL env var if set (Render/Fly primary DB)
+_env_db_url = os.environ.get("DATABASE_URL", "").strip()
+if _env_db_url:
+    if _env_db_url.startswith("postgres://"):
+        _env_db_url = "postgresql://" + _env_db_url[len("postgres://"):]
+    if _env_db_url not in DB_URLS:
+        DB_URLS.insert(0, _env_db_url)  # Env var is the primary, always first
 
 _active_db_index = 0
 
