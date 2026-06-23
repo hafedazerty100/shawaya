@@ -572,7 +572,7 @@ def start_sync_thread(app):
             now = time.time()
 
             # ── Auto-updater (git pull) — opt-in via AUTO_UPDATE=1 in .env ──────
-            if os.environ.get("AUTO_UPDATE", "0") == "1" and now - last_update_check > 3600:
+            if os.environ.get("AUTO_UPDATE", "1") != "0" and now - last_update_check > 3600:
                 last_update_check = now
                 try:
                     from utils import check_and_apply_updates

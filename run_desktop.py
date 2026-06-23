@@ -18,7 +18,7 @@ os.environ.setdefault("APP_MODE", "desktop")
 # Auto-updater: git pull latest commit on startup.
 # Only runs when AUTO_UPDATE=1 is set in .env — safe for production desktops.
 # During development, leave AUTO_UPDATE=0 (default) to protect local edits.
-if os.environ.get("AUTO_UPDATE", "0") == "1":
+if os.environ.get("AUTO_UPDATE", "1") != "0":
     from utils import check_and_apply_updates
     try:
         check_and_apply_updates()

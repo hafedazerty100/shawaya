@@ -82,7 +82,7 @@ class Config:
     # ── Remote auto-update (desktop only) ───────────────────────────────────────
     # Set AUTO_UPDATE=1 in .env to enable git pull on startup/hourly sync.
     # Leave as 0 (default) to protect local development edits from being wiped.
-    AUTO_UPDATE: bool = os.environ.get("AUTO_UPDATE", "0").strip() == "1"
+    AUTO_UPDATE: bool = os.environ.get("AUTO_UPDATE", "1").strip() != "0"
 
     # ── Rate limiting ─────────────────────────────────────────────────────────
     RATELIMIT_STORAGE_URL = "memory://"
