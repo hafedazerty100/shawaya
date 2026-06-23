@@ -48,6 +48,10 @@
       font-weight: bold;
       margin-bottom: 2px;
     }
+    .meta-row.inline {
+      justify-content: flex-start;
+      gap: 8px;
+    }
     .product-section {
       text-align: center;
       padding: 8px 0;
@@ -167,11 +171,11 @@
       <span>رقم الفاتورة:</span>
       <span>#{{ order.id }}</span>
     </div>
-    <div class="meta-row">
+    <div class="meta-row inline">
       <span>التاريخ:</span>
       <span>{{ order.created_at.strftime('%d/%m/%Y') }}</span>
     </div>
-    <div class="meta-row">
+    <div class="meta-row inline">
       <span>الوقت:</span>
       <span>{{ order.created_at.strftime('%H:%M') }}</span>
     </div>
@@ -227,11 +231,11 @@
           <span>رقم الطلب:</span>
           <span>#{{ order.id }}</span>
         </div>
-        <div class="meta-row">
+        <div class="meta-row inline">
           <span>التاريخ:</span>
           <span>{{ order.created_at.strftime('%d/%m/%Y') }}</span>
         </div>
-        <div class="meta-row">
+        <div class="meta-row inline">
           <span>الوقت:</span>
           <span>{{ order.created_at.strftime('%H:%M:%S') }}</span>
         </div>
