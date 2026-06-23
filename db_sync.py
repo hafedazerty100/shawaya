@@ -31,10 +31,14 @@ def get_session(url: str):
     preventing connection exhaustion on Neon's free tier.
     """
     try:
+        connect_args = {}
+        if "sqlite" not in url:
+            connect_args["connect_timeout"] = 5
+
         engine = create_engine(
             url,
             poolclass=NullPool,  # Never keep idle connections — critical for Neon limits
-            connect_args={"connect_timeout": 5},
+            connect_args=connect_args,
         )
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -269,6 +273,18 @@ def replicate_databases():
                 else:
                     order.status = data["status"]
                     order.synced_at = data["synced_at"]
+            
+            # Reset postgres sequences to prevent IntegrityError on new inserts
+            if "sqlite" not in str(session.bind.url):
+                for table in ["products", "categories", "orders", "order_items", "serial_keys", "admin_users"]:
+                    try:
+                        session.execute(text(
+                            f"SELECT setval(seq, COALESCE((SELECT MAX(id) FROM {table}), 1)) "
+                            f"FROM (SELECT pg_get_serial_sequence('{table}', 'id') AS seq) s "
+                            f"WHERE seq IS NOT NULL"
+                        ))
+                    except Exception as seq_exc:
+                        logger.warning("Failed to reset sequence for table %s: %s", table, seq_exc)
             
             session.commit()
             logger.info("Successfully replicated data to database index %d.", idx)

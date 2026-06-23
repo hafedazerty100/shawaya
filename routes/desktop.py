@@ -379,33 +379,13 @@ def _get_sync_headers():
 
 
 def _get_remote_revenue(start_dt, end_dt):
-    """Query the remote Neon PostgreSQL database directly for revenue totals when online."""
-    db_url = os.environ.get("DATABASE_URL", "")
-    if not db_url:
-        return None
-        
-    if db_url.startswith("postgres://"):
-        db_url = "postgresql+pg8000://" + db_url[len("postgres://"):]
-    elif db_url.startswith("postgresql://"):
-        db_url = "postgresql+pg8000://" + db_url[len("postgresql://"):]
-        
-    # Strip query parameters (like ?sslmode=require) to prevent pg8000 connection errors
-    if "?" in db_url:
-        db_url = db_url.split("?", 1)[0]
-        
-    try:
-        from sqlalchemy import create_engine, text
-        engine = create_engine(db_url, connect_args={"ssl_context": True, "timeout": 5})
-        with engine.connect() as conn:
-            query = text(
-                "SELECT COALESCE(SUM(total_cents), 0) FROM orders "
-                "WHERE status != 'draft' AND created_at >= :start AND created_at <= :end"
-            )
-            res = conn.execute(query, {"start": start_dt, "end": end_dt}).scalar()
-            return int(res or 0)
-    except Exception as exc:
-        logger.warning("Failed to query remote database directly for revenue: %s", exc)
-        return None
+    """Query the remote Neon PostgreSQL database directly for revenue totals when online.
+    
+    Disabled: Desktop kiosks should always query the server API instead of making direct
+    PostgreSQL database connections. This prevents data transfer quota exhaustion on the
+    Neon database and avoids exposing DB credentials to kiosk clients.
+    """
+    return None
 
 
 

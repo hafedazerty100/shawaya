@@ -483,5 +483,62 @@ def test_api_orders_history_date_filtering(desktop_app, desktop_client):
     assert "Invalid date format" in resp.json["error"]
 
 
+def test_replicate_databases_executes(monkeypatch, server_app, tmp_path):
+    """Test that replicate_databases executes, merges data, and handles SQLite session URLs without crash."""
+    import os
+    import extensions
+    from db_sync import replicate_databases
+    from models import Category
+
+    # Mock DB_URLS with two file-based sqlite URIs
+    db_file1 = os.path.join(tmp_path, "test_db1.db")
+    db_file2 = os.path.join(tmp_path, "test_db2.db")
+    db_url1 = f"sqlite:///{db_file1}"
+    db_url2 = f"sqlite:///{db_file2}"
+    monkeypatch.setattr(extensions, "DB_URLS", [db_url1, db_url2])
+    monkeypatch.setattr("db_sync.DB_URLS", [db_url1, db_url2])
+
+    # Pre-populate some categories in main app db to check merge/sync flow
+    with server_app.app_context():
+        # Setup schema on test databases
+        from sqlalchemy import create_engine
+        engine1 = create_engine(db_url1)
+        engine2 = create_engine(db_url2)
+        from extensions import db
+        db.metadata.create_all(bind=engine1)
+        db.metadata.create_all(bind=engine2)
+
+        # Write different categories to both DBs
+        from sqlalchemy.orm import sessionmaker
+        Session1 = sessionmaker(bind=engine1)
+        Session2 = sessionmaker(bind=engine2)
+        s1 = Session1()
+        s2 = Session2()
+
+        s1.add(Category(id=1, name="Coffee", display_order=1))
+        s1.commit()
+        s2.add(Category(id=2, name="Tea", display_order=2))
+        s2.commit()
+
+        s1.close()
+        s2.close()
+
+        # Run replicate_databases
+        replicate_databases()
+
+        # Verify that both Category 1 and Category 2 are now present in both DBs
+        s1 = Session1()
+        s2 = Session2()
+        cats1 = s1.query(Category).all()
+        cats2 = s2.query(Category).all()
+        assert len(cats1) == 2
+        assert len(cats2) == 2
+        s1.close()
+        s2.close()
+        engine1.dispose()
+        engine2.dispose()
+
+
+
 
 
