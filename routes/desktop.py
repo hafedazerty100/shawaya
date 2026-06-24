@@ -445,9 +445,9 @@ def api_revenue():
                 logger.warning("Failed to fetch revenue from server: %s", exc)
             
     if server_success:
-        # Include any local orders that are NOT yet synced (i.e. status is draft, pending, or failed)
+        # Include any local orders that are confirmed but NOT yet synced (i.e. status is pending or failed)
         local_orders = Order.query.filter(
-            Order.status != "synced",
+            Order.status.in_(["pending", "failed"]),
             Order.created_at >= start_dt,
             Order.created_at <= end_dt
         ).all()
