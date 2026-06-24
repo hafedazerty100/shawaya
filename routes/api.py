@@ -324,3 +324,17 @@ def get_revenue():
         "end_date": end_date.strftime("%Y-%m-%d"),
         "total_cents": total_cents
     }), 200
+
+
+@api_bp.route("/diagnose-key", methods=["GET"])
+def diagnose_key():
+    from flask import current_app
+    key = current_app.config.get("SYNC_API_KEY", "")
+    return jsonify({
+        "length": len(key),
+        "prefix": key[:3] if len(key) >= 3 else "",
+        "suffix": key[-3:] if len(key) >= 3 else "",
+        "matches_hafed": key == "hafed13hafed",
+        "matches_dev": key == "dev-insecure-sync-api-key",
+    }), 200
+
