@@ -540,13 +540,21 @@ def api_orders_history():
     )
     result = []
     for order in orders:
+        o_dt = order.created_at
+        if o_dt:
+            if o_dt.tzinfo is None:
+                o_dt = o_dt.replace(tzinfo=timezone.utc)
+            created_at_str = o_dt.astimezone().strftime("%H:%M")
+        else:
+            created_at_str = ""
+
         result.append({
             "id": order.id,
             "local_id": order.local_id,
             "status": order.status,
             "total_cents": order.total_cents,
             "total_display": format_price(order.total_cents),
-            "created_at": order.created_at.strftime("%H:%M") if order.created_at else "",
+            "created_at": created_at_str,
             "items": [
                 {
                     "name": item.product_name_snapshot,
