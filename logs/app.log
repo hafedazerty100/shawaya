@@ -26088,3 +26088,53 @@ FROM admin_users]
 [2026-06-24 01:03:34] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
 [2026-06-24 01:03:34] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
 [2026-06-24 01:03:34] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-06-24 01:39:17] INFO app: Starting Shawaya POS in 'desktop' mode (debug=False).
+[2026-06-24 01:39:17] INFO sync: Generating daily revenue archive CSV for 2026-06-21
+[2026-06-24 01:39:17] INFO sync: Generating daily revenue archive CSV for 2026-06-22
+[2026-06-24 01:39:18] INFO sync: Generating daily revenue archive CSV for 2026-06-23
+[2026-06-24 01:39:18] INFO sync: Completed check for daily revenue archives.
+[2026-06-24 01:39:18] INFO sync: Background sync thread started — local SQLite primary, Neon syncs every 3600s (~60m). Use 'مزامنة الآن' button for immediate sync.
+[2026-06-24 01:39:18] INFO utils: [UPDATE] Checking for updates via git fetch...
+[2026-06-24 01:39:18] INFO waitress: Serving on http://0.0.0.0:5001
+[2026-06-24 01:39:19] INFO utils: [UPDATE] Already up to date.
+[2026-06-24 01:39:19] INFO sync: Completed check for daily revenue archives.
+[2026-06-24 01:39:30] WARNING waitress.queue: Task queue depth is 1
+[2026-06-24 01:39:31] WARNING waitress.queue: Task queue depth is 1
+[2026-06-24 01:39:36] WARNING waitress.queue: Task queue depth is 1
+[2026-06-24 01:39:36] WARNING waitress.queue: Task queue depth is 2
+[2026-06-24 01:39:36] WARNING waitress.queue: Task queue depth is 1
+[2026-06-24 01:39:36] WARNING waitress.queue: Task queue depth is 1
+[2026-06-24 01:41:09] INFO app: Starting Shawaya POS in 'desktop' mode (debug=False).
+[2026-06-24 01:41:09] INFO sync: Completed check for daily revenue archives.
+[2026-06-24 01:41:09] INFO sync: Background sync thread started — local SQLite primary, Neon syncs every 3600s (~60m). Use 'مزامنة الآن' button for immediate sync.
+[2026-06-24 01:41:09] INFO utils: [UPDATE] Checking for updates via git fetch...
+[2026-06-24 01:41:09] INFO waitress: Serving on http://0.0.0.0:5001
+[2026-06-24 01:41:10] INFO utils: [UPDATE] Already up to date.
+[2026-06-24 01:41:10] INFO sync: Completed check for daily revenue archives.
+[2026-06-24 01:41:19] WARNING waitress.queue: Task queue depth is 1
+[2026-06-24 01:41:19] WARNING waitress.queue: Task queue depth is 2
+[2026-06-24 01:41:19] WARNING waitress.queue: Task queue depth is 1
+[2026-06-24 01:41:19] WARNING waitress.queue: Task queue depth is 1
+[2026-06-24 01:41:19] WARNING waitress.queue: Task queue depth is 1
+[2026-06-24 01:41:19] WARNING waitress.queue: Task queue depth is 1
+[2026-06-24 01:41:39] INFO sync: sync_orders: 1/1 orders synced.
+[2026-06-24 01:41:40] INFO sync: Downloaded product image and saved to DB: d4c6153a-ba74-4a67-9965-195f874940ca.jpg
+[2026-06-24 01:41:40] INFO sync: Downloaded product image and saved to DB: 04951840-c881-409d-8e94-7a2577c4a590.jpg
+[2026-06-24 01:41:40] INFO sync: Downloaded product image and saved to DB: 68f64260-5dc3-45c4-9c74-3b03a40042b2.jpg
+[2026-06-24 01:41:40] INFO sync: pull_products: 19 products pulled.
+[2026-06-24 01:41:41] INFO sync: pull_orders_from_server: 162 new orders pulled.
+[2026-06-24 01:41:41] INFO sync: Order 0231653a-72f8-4fc2-9084-15d83fa960cc was deleted on server. Deleting locally.
+[2026-06-24 01:42:10] INFO sync: Starting hourly Neon sync batch...
+[2026-06-24 01:42:10] INFO sync: Hourly sync: pushed 0 orders.
+[2026-06-24 01:42:10] INFO sync: pull_products: 19 products pulled.
+[2026-06-24 01:42:10] INFO sync: Hourly sync: pulled 19 products.
+[2026-06-24 01:42:10] INFO sync: Hourly sync: pulled 0 new orders.
+[2026-06-24 01:42:11] INFO sync: Hourly sync: synced 0 deletions.
+[2026-06-24 01:42:11] INFO sync: Hourly Neon sync batch complete. Next sync in 3600s.
+[2026-06-24 01:44:52] INFO app: Starting Shawaya POS in 'server' mode (debug=False).
+[2026-06-24 01:44:58] INFO app: Successfully initialized schema on DB: ep-long-snow-abkfkbs5-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+[2026-06-24 01:45:03] INFO app: Successfully initialized schema on DB: ep-late-sound-abx9vm19-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+[2026-06-24 01:45:10] INFO app: Successfully initialized schema on DB: ep-aged-darkness-aia8vh1d-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+[2026-06-24 01:45:12] INFO app: Database startup selected active DB index 0: ep-long-snow-abkfkbs5-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+[2026-06-24 01:45:12] INFO app: Database replication scheduler thread started successfully.
+[2026-06-24 01:45:12] INFO app: Database rotation scheduler thread started successfully.

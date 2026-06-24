@@ -196,7 +196,7 @@ python -m pytest tests/ -v
 ## Project Structure
 
 ```
-coffee_shop/
+shawaya/
 ├── app.py              # App factory (mode-aware)
 ├── config.py           # Dev / Prod configuration
 ├── models.py           # SQLAlchemy models
