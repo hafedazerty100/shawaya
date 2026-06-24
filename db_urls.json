@@ -1,5 +1,5 @@
 [
-  "postgresql://neondb_owner:npg_DWMBL10dhXkj@ep-lingering-resonance-abun03tf-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
-  "postgresql://neondb_owner:npg_VbFmLnR0ThP5@ep-super-sound-ab5v2qrt-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
-  "postgresql://neondb_owner:npg_ATn9EDIkdB8X@ep-shiny-sky-abtyuysv-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+  "postgresql://neondb_owner:npg_HASe2VZoGuX9@ep-long-snow-abkfkbs5-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
+  "postgresql://neondb_owner:npg_PdHvBWD93zFQ@ep-late-sound-abx9vm19-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
+  "postgresql://neondb_owner:npg_NBJR9nlpW5PD@ep-aged-darkness-aia8vh1d-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 ]

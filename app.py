@@ -291,7 +291,7 @@ def create_app(mode: str | None = None) -> Flask:
     # ── Configure logging ─────────────────────────────────────────────────────
     _configure_logging(app)
     logger = logging.getLogger("app")
-    logger.info("Starting Coffee Shop POS in '%s' mode (debug=%s).", mode, debug)
+    logger.info("Starting Shawaya POS in '%s' mode (debug=%s).", mode, debug)
 
     # ── Bind extensions ───────────────────────────────────────────────────────
     db.init_app(app)
@@ -362,6 +362,22 @@ def create_app(mode: str | None = None) -> Flask:
             thread = threading.Thread(target=_run_replication, daemon=True, name="DbReplication")
             thread.start()
             logger.info("Database replication scheduler thread started successfully.")
+            
+            # ── Database Rotation Thread ──────────────────────────────────────
+            from db_rotation import rotate_database_if_needed
+
+            def _run_rotation():
+                time.sleep(45)
+                while True:
+                    try:
+                        rotate_database_if_needed(app)
+                    except Exception as err:
+                        logging.getLogger("db_rotation").error("Background db rotation thread error: %s", err)
+                    time.sleep(3600)
+
+            rotation_thread = threading.Thread(target=_run_rotation, daemon=True, name="DbRotation")
+            rotation_thread.start()
+            logger.info("Database rotation scheduler thread started successfully.")
         except Exception as exc:
             logger.error("Failed to start database replication thread: %s", exc)
 

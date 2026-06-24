@@ -939,8 +939,8 @@ def commit_and_push_db_urls():
             return False
             
         # Configure git identity locally
-        subprocess.run(["git", "config", "user.name", "Coffee POS Server"], cwd=DB_CONFIG_DIR, capture_output=True)
-        subprocess.run(["git", "config", "user.email", "server@coffee24h.local"], cwd=DB_CONFIG_DIR, capture_output=True)
+        subprocess.run(["git", "config", "user.name", "Shawaya POS Server"], cwd=DB_CONFIG_DIR, capture_output=True)
+        subprocess.run(["git", "config", "user.email", "server@shawaya.local"], cwd=DB_CONFIG_DIR, capture_output=True)
         
         # Add and commit
         subprocess.run(["git", "add", "db_urls.json"], cwd=DB_CONFIG_DIR, capture_output=True)
@@ -953,7 +953,7 @@ def commit_and_push_db_urls():
         # Push to remote
         github_token = os.environ.get("GITHUB_TOKEN")
         if github_token:
-            remote_url = f"https://{github_token}@github.com/hafedazerty100/Coffee_H24.git"
+            remote_url = f"https://{github_token}@github.com/hafedazerty100/shawaya.git"
             push_res = subprocess.run(["git", "push", remote_url, "main"], cwd=DB_CONFIG_DIR, capture_output=True, text=True)
             logger.info("Git push with token result: %s", push_res.stdout)
         else:

@@ -1,4 +1,4 @@
-# ☕ Coffee Shop POS
+# 🔥 Shawaya POS
 
 A dual-mode Flask POS system:
 - **Server / Admin** — manage products, categories, serial keys, and view synced orders  
@@ -92,7 +92,7 @@ python run_public.py
 You will see output like:
 ```
 ======================================================
-  ☕  COFFEE SHOP POS — ONLINE
+  🔥  SHAWAYA POS — ONLINE
 ======================================================
 
   🌐 Public URL (owner dashboard):

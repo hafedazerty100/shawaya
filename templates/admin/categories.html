@@ -1,5 +1,5 @@
 {% extends "admin/base_admin.html" %}
-{% block title %}الأصناف — كافيه 24{% endblock %}
+{% block title %}الأصناف — شواية{% endblock %}
 {% block page_title %}الأصناف{% endblock %}
 
 {% block content %}
@@ -20,7 +20,7 @@
           {{ form.hidden_tag() }}
           <div class="mb-3">
             <label class="form-label fw-semibold">اسم الصنف</label>
-            {{ form.name(class="form-control", placeholder="مثال: قهوة ساخنة") }}
+            {{ form.name(class="form-control", placeholder="مثال: مشويات") }}
             {% for err in form.name.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
           </div>
           <div class="mb-4">

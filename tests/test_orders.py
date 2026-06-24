@@ -11,7 +11,7 @@ def test_create_order_success(desktop_app, desktop_client):
     """Test successful local order creation on the kiosk."""
     with desktop_app.app_context():
         # Setup category and product
-        cat = Category(id=1, name="Coffee", display_order=1)
+        cat = Category(id=1, name="Shawaya", display_order=1)
         prod = Product(
             id=10,
             category_id=1,
@@ -60,7 +60,7 @@ def test_create_order_success(desktop_app, desktop_client):
 def test_create_order_idempotency(desktop_app, desktop_client):
     """Test order creation idempotency: submitting same local_id returns 200/201 without duplication."""
     with desktop_app.app_context():
-        cat = Category(id=1, name="Coffee", display_order=1)
+        cat = Category(id=1, name="Shawaya", display_order=1)
         prod = Product(id=10, category_id=1, name="Espresso", price_cents=250, is_active=True)
         db.session.add_all([cat, prod])
         db.session.commit()
@@ -91,7 +91,7 @@ def test_create_order_idempotency(desktop_app, desktop_client):
 def test_create_order_validation_failures(desktop_app, desktop_client):
     """Test various input validation failure cases for order creation."""
     with desktop_app.app_context():
-        cat = Category(id=1, name="Coffee", display_order=1)
+        cat = Category(id=1, name="Shawaya", display_order=1)
         prod_active = Product(id=10, category_id=1, name="Espresso", price_cents=250, is_active=True)
         prod_inactive = Product(id=11, category_id=1, name="Latte", price_cents=350, is_active=False)
         db.session.add_all([cat, prod_active, prod_inactive])
@@ -184,7 +184,7 @@ def test_api_revenue_endpoint(desktop_app, desktop_client, monkeypatch):
     with desktop_app.app_context():
         # Setup category and product if not present
         if not db.session.get(Category, 1):
-            cat = Category(id=1, name="Coffee", display_order=1)
+            cat = Category(id=1, name="Shawaya", display_order=1)
             db.session.add(cat)
         if not db.session.get(Product, 10):
             prod = Product(id=10, category_id=1, name="Espresso", price_cents=250, is_active=True)
@@ -362,7 +362,7 @@ def test_daily_revenue_csv_archiver(desktop_app, monkeypatch, tmp_path):
 
     with desktop_app.app_context():
         # Setup schema
-        cat = Category(id=1, name="Coffee", display_order=1)
+        cat = Category(id=1, name="Shawaya", display_order=1)
         prod = Product(id=10, category_id=1, name="Espresso", price_cents=250, is_active=True)
         db.session.add_all([cat, prod])
         db.session.commit()
@@ -433,7 +433,7 @@ def test_api_orders_history_date_filtering(desktop_app, desktop_client):
         Product.query.delete()
         db.session.commit()
 
-        cat = Category(id=1, name="Coffee", display_order=1)
+        cat = Category(id=1, name="Shawaya", display_order=1)
         prod = Product(id=10, category_id=1, name="Espresso", price_cents=250, is_active=True)
         db.session.add_all([cat, prod])
         db.session.commit()
@@ -515,9 +515,9 @@ def test_replicate_databases_executes(monkeypatch, server_app, tmp_path):
         s1 = Session1()
         s2 = Session2()
 
-        s1.add(Category(id=1, name="Coffee", display_order=1))
+        s1.add(Category(id=1, name="Shawaya", display_order=1))
         s1.commit()
-        s2.add(Category(id=2, name="Tea", display_order=2))
+        s2.add(Category(id=2, name="Grill", display_order=2))
         s2.commit()
 
         s1.close()

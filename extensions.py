@@ -65,6 +65,16 @@ if _env_db_url:
 
 _active_db_index = 0
 
+# Load active index from db_rotation.json if present
+rotation_file = os.path.join(base_dir, "db_rotation.json")
+if os.path.exists(rotation_file):
+    try:
+        with open(rotation_file, "r", encoding="utf-8") as f:
+            rotation_data = json.load(f)
+            _active_db_index = rotation_data.get("active_index", 0)
+    except Exception as _e:
+        logger.warning("Could not load db_rotation.json: %s", _e)
+
 def get_active_db_index() -> int:
     return _active_db_index
 

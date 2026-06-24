@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Coffee Shop — كاشير{% endblock %}
+{% block title %}Shawaya — كاشير{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/desktop.css') }}" />
 {% endblock %}
@@ -10,7 +10,7 @@
   <!-- ── Category Sidebar ──────────────────────────────────────── -->
   <aside class="category-sidebar" id="category-sidebar">
     <div class="sidebar-brand">
-      <i class="bi bi-cup-hot-fill"></i>
+      <i class="bi bi-fire"></i>
       <span>قائمة</span>
     </div>
     <nav class="category-nav" id="category-nav">
@@ -89,7 +89,7 @@
     <div class="cart-actions" id="cart-actions">
       <button class="btn-print-slips" id="btn-print-slips" disabled>
         <i class="bi bi-printer"></i>
-        <span>تذاكر البارستا</span>
+        <span>تذاكر الشواية</span>
       </button>
       <button class="btn-print-invoice" id="btn-print-invoice" disabled>
         <i class="bi bi-file-earmark-text"></i>

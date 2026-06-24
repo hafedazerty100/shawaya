@@ -110,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const imgHTML = imgSrc
         ? `<img class="product-card__img" src="${imgSrc}" alt="${product.name}" loading="lazy">`
-        : `<div class="product-card__img-placeholder"><i class="bi bi-cup-hot"></i></div>`;
+        : `<div class="product-card__img-placeholder"><i class="bi bi-fire"></i></div>`;
 
       const qtyInCart = cart[product.id] ? cart[product.id].qty : 0;
 

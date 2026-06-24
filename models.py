@@ -1,5 +1,5 @@
 """
-models.py — SQLAlchemy ORM models for the Coffee Shop POS.
+models.py — SQLAlchemy ORM models for the Shawaya POS.
 
 All monetary values are stored as integers (cents) to avoid floating-point
 rounding errors. For display, use utils.format_price(cents).

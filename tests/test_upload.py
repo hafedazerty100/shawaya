@@ -23,7 +23,7 @@ def test_upload_valid_image(desktop_app):
     img_bytes = _generate_test_image("PNG")
     file_storage = FileStorage(
         stream=io.BytesIO(img_bytes),
-        filename="coffee.png",
+        filename="shawaya.png",
         content_type="image/png"
     )
 
@@ -39,7 +39,7 @@ def test_upload_image_resizing(desktop_app):
     img_bytes = _generate_test_image("JPEG", size=(1200, 800))
     file_storage = FileStorage(
         stream=io.BytesIO(img_bytes),
-        filename="large_latte.jpg",
+        filename="large_shawaya.jpg",
         content_type="image/jpeg"
     )
 
