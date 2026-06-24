@@ -333,6 +333,9 @@ def confirm_order(order_id: int):
 def print_receipt(order_id: int):
     """Return a printable HTML receipt for a given order (triggered by browser window.print())."""
     order = db.get_or_404(Order, order_id)
+    if order.created_at and order.created_at.tzinfo is None:
+        from datetime import timezone
+        order.created_at = order.created_at.replace(tzinfo=timezone.utc)
     return render_template("desktop/receipt.html", order=order)
 
 
@@ -498,6 +501,9 @@ def print_invoice(order_id: int):
     the customer orders, then prints one invoice at the end showing everything.
     """
     order = db.get_or_404(Order, order_id)
+    if order.created_at and order.created_at.tzinfo is None:
+        from datetime import timezone
+        order.created_at = order.created_at.replace(tzinfo=timezone.utc)
     return render_template("desktop/receipt.html", order=order, mode="invoice")
 
 
