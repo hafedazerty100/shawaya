@@ -83,14 +83,32 @@
         <i class="bi bi-arrow-repeat text-warning fs-4"></i>
         <h5 class="mb-0 fw-bold">مزامنة السيرفر يدوياً</h5>
       </div>
-      <div class="card-body p-4">
-        <p class="text-muted small mb-4">
-          قم ببدء عملية مزامنة متبادلة فورية (Master-Master Replication) لدمج وتحديث الفئات والمنتجات والطلبات والرموز التسلسلية عبر جميع قواعد بيانات Neon المتصلة.
-        </p>
-        <button class="btn btn-warning w-100 fw-bold py-2 d-flex align-items-center justify-content-center gap-2 sync-db-btn" style="color: #111;">
-          <i class="bi bi-arrow-repeat"></i>
-          <span>بدء المزامنة الفورية</span>
-        </button>
+      <div class="card-body p-4 d-flex flex-column gap-3">
+        
+        <!-- Push Card Option -->
+        <div class="p-3 rounded-3 border border-secondary bg-dark text-white">
+          <h6 class="fw-bold text-warning mb-2"><i class="bi bi-arrow-up-circle-fill me-1"></i>دفع وتحديث قواعد البيانات الأخرى (Push)</h6>
+          <p class="text-muted small mb-3" style="font-size: 0.85rem; line-height: 1.5;">
+            تعتبر قاعدة البيانات الحالية (الرئيسية) هي المصدر الوحيد للمعلومات؛ سيتم نسخ التعديلات والمنتجات الجديدة وحذف ما تم حذفه في السيرفرات الاحتياطية ليتطابق معها تماماً.
+          </p>
+          <button class="btn btn-warning w-100 fw-bold py-2 d-flex align-items-center justify-content-center gap-2 sync-db-btn" data-strategy="push" style="color: #111;">
+            <i class="bi bi-arrow-repeat"></i>
+            <span>تحديث السيرفرات الاحتياطية</span>
+          </button>
+        </div>
+
+        <!-- Pull Card Option -->
+        <div class="p-3 rounded-3 border border-secondary bg-dark text-white">
+          <h6 class="fw-bold text-info mb-2"><i class="bi bi-arrow-down-circle-fill me-1"></i>استرجاع ودمج البيانات (Pull)</h6>
+          <p class="text-muted small mb-3" style="font-size: 0.85rem; line-height: 1.5;">
+            يقوم بدمج البيانات من السيرفرات المتصلة لاسترجاع أي منتجات، فئات أو بيانات تم حذفها بالخطأ (تراجع عن الحذف).
+          </p>
+          <button class="btn btn-info w-100 fw-bold py-2 d-flex align-items-center justify-content-center gap-2 sync-db-btn" data-strategy="pull" style="color: #111;">
+            <i class="bi bi-arrow-repeat"></i>
+            <span>استرجاع ودمج البيانات</span>
+          </button>
+        </div>
+
       </div>
     </div>
   </div>

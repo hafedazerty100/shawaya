@@ -893,11 +893,20 @@ def db_delete_row(table_name: str, row_id: int):
 @login_required
 @csrf.exempt
 def sync_databases():
-    """Manually trigger master-master database replication across all 3 databases."""
-    from flask import jsonify
+    """Manually trigger database replication across all 3 databases with push/pull strategies."""
+    from flask import jsonify, request
     from db_sync import replicate_databases
+    
+    strategy = "push"
+    if request.is_json:
+        strategy = request.json.get("strategy", "push")
+    else:
+        strategy = request.args.get("strategy", "push")
+    if strategy not in ["push", "pull"]:
+        strategy = "push"
+        
     try:
-        res = replicate_databases()
+        res = replicate_databases(strategy=strategy)
         if res is None:
             res = {"success": True}
         if res.get("success"):

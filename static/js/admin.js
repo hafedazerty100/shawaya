@@ -72,12 +72,15 @@ document.addEventListener("DOMContentLoaded", () => {
           if (icon) icon.classList.add("bi-spin");
         });
         
+        const strategy = btn.getAttribute("data-strategy") || "push";
+        
         try {
           const resp = await fetch("/admin/sync-databases", {
             method: "POST",
             headers: {
               "Content-Type": "application/json"
-            }
+            },
+            body: JSON.stringify({ strategy: strategy })
           });
           const data = await resp.json();
           

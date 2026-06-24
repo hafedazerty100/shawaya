@@ -270,7 +270,7 @@ def test_server_sync_databases_endpoint(server_app, server_client, monkeypatch):
 
     # Mock replication call
     replicate_called = False
-    def mock_replicate():
+    def mock_replicate(*args, **kwargs):
         nonlocal replicate_called
         replicate_called = True
 
@@ -523,8 +523,8 @@ def test_replicate_databases_executes(monkeypatch, server_app, tmp_path):
         s1.close()
         s2.close()
 
-        # Run replicate_databases
-        replicate_databases()
+        # Run replicate_databases in pull mode to test merging
+        replicate_databases(strategy="pull")
 
         # Verify that both Category 1 and Category 2 are now present in both DBs
         s1 = Session1()

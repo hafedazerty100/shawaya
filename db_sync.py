@@ -61,13 +61,13 @@ def mask_db_url(url: str) -> str:
             return "postgresql://***@" + url.split("@")[-1]
         return "postgresql://***"
 
-def replicate_databases() -> dict:
+def replicate_databases(strategy: str = "push") -> dict:
     """Consolidate and write records across all online Neon databases.
 
     NOTE: image_data is intentionally excluded from replication to conserve storage.
     Only the image filename (reference) is synced. Images are served from the primary DB.
     """
-    logger.info("Starting master-master database replication cycle...")
+    logger.info("Starting database replication cycle using strategy: %s...", strategy)
     
     # 1. Connect to all online DBs
     sessions = {}
@@ -107,123 +107,208 @@ def replicate_databases() -> dict:
     merged_orders = {}  # key: local_id -> dict of order attributes + item lists
     merged_serials = {}
 
-    for idx, (session, _) in sessions.items():
+    if strategy == "push":
+        if 0 not in sessions:
+            logger.warning("Push replication failed: primary database (index 0) is offline.")
+            for s, e in sessions.values():
+                s.close()
+                e.dispose()
+            return {
+                "success": False,
+                "message": "فشلت المزامنة: قاعدة البيانات الرئيسية غير متصلة.",
+                "reachable_count": len(sessions),
+                "total_count": len(DB_URLS),
+                "synced_databases": [],
+                "failed_databases": failed_dbs,
+                "merged_counts": {}
+            }
+        
+        session_0 = sessions[0][0]
+        # Extract from primary DB only
         try:
-            # Merge Admin Users (prioritize custom/changed passwords over default seeded ones)
-            for u in session.query(AdminUser).all():
-                existing = merged_admins.get(u.username)
-                if not existing or (not u.must_change_password and existing["must_change_password"]):
-                    merged_admins[u.username] = {
-                        "username": u.username,
-                        "password_hash": u.password_hash,
-                        "must_change_password": u.must_change_password,
-                        "created_at": u.created_at
-                    }
-                    
-            # Merge Categories
-            for c in session.query(Category).all():
+            for u in session_0.query(AdminUser).all():
+                merged_admins[u.username] = {
+                    "username": u.username,
+                    "password_hash": u.password_hash,
+                    "must_change_password": u.must_change_password,
+                    "created_at": u.created_at
+                }
+            for c in session_0.query(Category).all():
                 name_clean = c.name.strip()
-                if name_clean in category_id_by_name:
-                    unified_id = category_id_by_name[name_clean]
-                    db_cat_map[(idx, c.id)] = unified_id
-                else:
-                    if c.id in merged_categories:
-                        unified_id = max(merged_categories.keys()) + 1 if merged_categories else 1
-                    else:
-                        unified_id = c.id
-                    
-                    merged_categories[unified_id] = {
-                        "id": unified_id,
-                        "name": c.name,
-                        "display_order": c.display_order
-                    }
-                    category_id_by_name[name_clean] = unified_id
-                    db_cat_map[(idx, c.id)] = unified_id
-                    
-            # Merge Products (keep latest version by updated_at)
-            # NOTE: image_data is intentionally excluded from replication to save space.
-            for p in session.query(Product).all():
+                merged_categories[c.id] = {
+                    "id": c.id,
+                    "name": c.name,
+                    "display_order": c.display_order
+                }
+                category_id_by_name[name_clean] = c.id
+                db_cat_map[(0, c.id)] = c.id
+                
+            for p in session_0.query(Product).all():
                 name_clean = p.name.strip()
-                unified_cat_id = db_cat_map.get((idx, p.category_id))
-                if not unified_cat_id:
-                    logger.warning("Product %s references missing category ID %s in DB index %d.", p.name, p.category_id, idx)
-                    continue
+                merged_products[p.id] = {
+                    "id": p.id,
+                    "category_id": p.category_id,
+                    "name": p.name,
+                    "description": p.description,
+                    "price_cents": p.price_cents,
+                    "image": p.image,
+                    "is_active": p.is_active,
+                    "created_at": p.created_at,
+                    "updated_at": p.updated_at,
+                }
+                product_id_by_name[name_clean] = p.id
+                db_prod_map[(0, p.id)] = p.id
 
-                if name_clean in product_id_by_name:
-                    unified_prod_id = product_id_by_name[name_clean]
-                    db_prod_map[(idx, p.id)] = unified_prod_id
-                    
-                    existing = merged_products[unified_prod_id]
-                    if not p.updated_at or not existing["updated_at"] or p.updated_at > existing["updated_at"]:
+            for o in session_0.query(Order).all():
+                items = []
+                for item in o.items:
+                    items.append({
+                        "product_id": item.product_id,
+                        "product_name_snapshot": item.product_name_snapshot,
+                        "unit_price_cents_snapshot": item.unit_price_cents_snapshot,
+                        "quantity": item.quantity,
+                        "subtotal_cents": item.subtotal_cents
+                    })
+                merged_orders[o.local_id] = {
+                    "local_id": o.local_id,
+                    "status": o.status,
+                    "total_cents": o.total_cents,
+                    "created_at": o.created_at,
+                    "synced_at": o.synced_at,
+                    "device_id": o.device_id,
+                    "items": items
+                }
+
+            for s in session_0.query(SerialKey).all():
+                merged_serials[s.serial_hash] = {
+                    "serial_hash": s.serial_hash,
+                    "label": s.label,
+                    "device_id": s.device_id,
+                    "is_active": s.is_active,
+                    "activated_at": s.activated_at,
+                    "expires_at": s.expires_at,
+                    "created_at": s.created_at
+                }
+        except Exception as query_exc:
+            logger.error("Data extraction query failed on primary DB: %s", query_exc)
+            
+    else:
+        # Original master-master pull/merge logic
+        for idx, (session, _) in sessions.items():
+            try:
+                # Merge Admin Users
+                for u in session.query(AdminUser).all():
+                    existing = merged_admins.get(u.username)
+                    if not existing or (not u.must_change_password and existing["must_change_password"]):
+                        merged_admins[u.username] = {
+                            "username": u.username,
+                            "password_hash": u.password_hash,
+                            "must_change_password": u.must_change_password,
+                            "created_at": u.created_at
+                        }
+                # Merge Categories
+                for c in session.query(Category).all():
+                    name_clean = c.name.strip()
+                    if name_clean in category_id_by_name:
+                        unified_id = category_id_by_name[name_clean]
+                        db_cat_map[(idx, c.id)] = unified_id
+                    else:
+                        if c.id in merged_categories:
+                            unified_id = max(merged_categories.keys()) + 1 if merged_categories else 1
+                        else:
+                            unified_id = c.id
+                        
+                        merged_categories[unified_id] = {
+                            "id": unified_id,
+                            "name": c.name,
+                            "display_order": c.display_order
+                        }
+                        category_id_by_name[name_clean] = unified_id
+                        db_cat_map[(idx, c.id)] = unified_id
+                        
+                # Merge Products
+                for p in session.query(Product).all():
+                    name_clean = p.name.strip()
+                    unified_cat_id = db_cat_map.get((idx, p.category_id))
+                    if not unified_cat_id:
+                        logger.warning("Product %s references missing category ID %s in DB index %d.", p.name, p.category_id, idx)
+                        continue
+
+                    if name_clean in product_id_by_name:
+                        unified_prod_id = product_id_by_name[name_clean]
+                        db_prod_map[(idx, p.id)] = unified_prod_id
+                        
+                        existing = merged_products[unified_prod_id]
+                        if not p.updated_at or not existing["updated_at"] or p.updated_at > existing["updated_at"]:
+                            merged_products[unified_prod_id] = {
+                                "id": unified_prod_id,
+                                "category_id": unified_cat_id,
+                                "name": p.name,
+                                "description": p.description,
+                                "price_cents": p.price_cents,
+                                "image": p.image,
+                                "is_active": p.is_active,
+                                "created_at": p.created_at,
+                                "updated_at": p.updated_at,
+                            }
+                    else:
+                        if p.id in merged_products:
+                            unified_prod_id = max(merged_products.keys()) + 1 if merged_products else 1
+                        else:
+                            unified_prod_id = p.id
+                            
                         merged_products[unified_prod_id] = {
                             "id": unified_prod_id,
                             "category_id": unified_cat_id,
                             "name": p.name,
                             "description": p.description,
                             "price_cents": p.price_cents,
-                            "image": p.image,          # Filename reference only
+                            "image": p.image,
                             "is_active": p.is_active,
                             "created_at": p.created_at,
                             "updated_at": p.updated_at,
                         }
-                else:
-                    if p.id in merged_products:
-                        unified_prod_id = max(merged_products.keys()) + 1 if merged_products else 1
-                    else:
-                        unified_prod_id = p.id
+                        product_id_by_name[name_clean] = unified_prod_id
+                        db_prod_map[(idx, p.id)] = unified_prod_id
                         
-                    merged_products[unified_prod_id] = {
-                        "id": unified_prod_id,
-                        "category_id": unified_cat_id,
-                        "name": p.name,
-                        "description": p.description,
-                        "price_cents": p.price_cents,
-                        "image": p.image,          # Filename reference only
-                        "is_active": p.is_active,
-                        "created_at": p.created_at,
-                        "updated_at": p.updated_at,
-                    }
-                    product_id_by_name[name_clean] = unified_prod_id
-                    db_prod_map[(idx, p.id)] = unified_prod_id
-                    
-            # Merge Orders and their items (preserve "synced" status)
-            for o in session.query(Order).all():
-                existing = merged_orders.get(o.local_id)
-                if not existing or (o.status == "synced" and existing["status"] != "synced"):
-                    items = []
-                    for item in o.items:
-                        items.append({
-                            "product_id": item.product_id,
-                            "product_name_snapshot": item.product_name_snapshot,
-                            "unit_price_cents_snapshot": item.unit_price_cents_snapshot,
-                            "quantity": item.quantity,
-                            "subtotal_cents": item.subtotal_cents
-                        })
-                    merged_orders[o.local_id] = {
-                        "local_id": o.local_id,
-                        "status": o.status,
-                        "total_cents": o.total_cents,
-                        "created_at": o.created_at,
-                        "synced_at": o.synced_at,
-                        "device_id": o.device_id,
-                        "items": items
-                    }
-                    
-            # Merge Serial Keys (preserve active states)
-            for s in session.query(SerialKey).all():
-                existing = merged_serials.get(s.serial_hash)
-                if not existing or (s.is_active and not existing["is_active"]):
-                    merged_serials[s.serial_hash] = {
-                        "serial_hash": s.serial_hash,
-                        "label": s.label,
-                        "device_id": s.device_id,
-                        "is_active": s.is_active,
-                        "activated_at": s.activated_at,
-                        "expires_at": s.expires_at,
-                        "created_at": s.created_at
-                    }
-        except Exception as query_exc:
-            logger.error("Data extraction query failed on DB index %d: %s", idx, query_exc)
+                # Merge Orders
+                for o in session.query(Order).all():
+                    existing = merged_orders.get(o.local_id)
+                    if not existing or (o.status == "synced" and existing["status"] != "synced"):
+                        items = []
+                        for item in o.items:
+                            items.append({
+                                "product_id": item.product_id,
+                                "product_name_snapshot": item.product_name_snapshot,
+                                "unit_price_cents_snapshot": item.unit_price_cents_snapshot,
+                                "quantity": item.quantity,
+                                "subtotal_cents": item.subtotal_cents
+                            })
+                        merged_orders[o.local_id] = {
+                            "local_id": o.local_id,
+                            "status": o.status,
+                            "total_cents": o.total_cents,
+                            "created_at": o.created_at,
+                            "synced_at": o.synced_at,
+                            "device_id": o.device_id,
+                            "items": items
+                        }
+                        
+                # Merge Serial Keys
+                for s in session.query(SerialKey).all():
+                    existing = merged_serials.get(s.serial_hash)
+                    if not existing or (s.is_active and not existing["is_active"]):
+                        merged_serials[s.serial_hash] = {
+                            "serial_hash": s.serial_hash,
+                            "label": s.label,
+                            "device_id": s.device_id,
+                            "is_active": s.is_active,
+                            "activated_at": s.activated_at,
+                            "expires_at": s.expires_at,
+                            "created_at": s.created_at
+                        }
+            except Exception as query_exc:
+                logger.error("Data extraction query failed on DB index %d: %s", idx, query_exc)
 
     # Re-map OrderItem product_id references to use unified product IDs using snapshot name
     for order_data in merged_orders.values():
@@ -250,7 +335,46 @@ def replicate_databases() -> dict:
 
     # 3. Synchronize consolidated data back to all reachable databases
     for idx, (session, _) in sessions.items():
+        if idx == 0 and strategy == "push":
+            logger.info("Push strategy: skipping write back for primary database index 0.")
+            results["synced_databases"].append(mask_db_url(DB_URLS[idx]))
+            continue
+            
         try:
+            # If strategy is push, prune records not in primary DB first
+            if strategy == "push":
+                # Prune Admin Users
+                for admin in session.query(AdminUser).all():
+                    if admin.username not in merged_admins:
+                        session.delete(admin)
+                session.flush()
+
+                # Prune Products (set OrderItem.product_id referencing deleted product to None)
+                for prod in session.query(Product).all():
+                    if prod.id not in merged_products:
+                        session.query(OrderItem).filter_by(product_id=prod.id).update({OrderItem.product_id: None})
+                        session.flush()
+                        session.delete(prod)
+                session.flush()
+
+                # Prune Categories
+                for cat in session.query(Category).all():
+                    if cat.id not in merged_categories:
+                        session.delete(cat)
+                session.flush()
+
+                # Prune Serial Keys
+                for sk in session.query(SerialKey).all():
+                    if sk.serial_hash not in merged_serials:
+                        session.delete(sk)
+                session.flush()
+
+                # Prune Orders
+                for order in session.query(Order).all():
+                    if order.local_id not in merged_orders:
+                        session.delete(order)
+                session.flush()
+
             # Sync Admin Users
             for username, data in merged_admins.items():
                 admin = session.query(AdminUser).filter_by(username=username).first()
