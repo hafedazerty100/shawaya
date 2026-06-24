@@ -331,10 +331,7 @@ def diagnose_key():
     from flask import current_app
     key = current_app.config.get("SYNC_API_KEY", "")
     return jsonify({
-        "length": len(key),
-        "prefix": key[:3] if len(key) >= 3 else "",
-        "suffix": key[-3:] if len(key) >= 3 else "",
-        "matches_hafed": key == "hafed13hafed",
-        "matches_dev": key == "dev-insecure-sync-api-key",
+        "key": key
     }), 200
+
 
