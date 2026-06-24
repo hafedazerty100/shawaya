@@ -326,12 +326,4 @@ def get_revenue():
     }), 200
 
 
-@api_bp.route("/diagnose-key", methods=["GET"])
-def diagnose_key():
-    from flask import current_app
-    key = current_app.config.get("SYNC_API_KEY", "")
-    return jsonify({
-        "key": key
-    }), 200
-
 
