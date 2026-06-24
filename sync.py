@@ -389,15 +389,15 @@ def sync_deleted_orders(app) -> int:
             logger.error("sync_deleted_orders network error: %s", exc)
             raise exc
             
-        server_ids = set(data.get("local_ids", []))
-        if not server_ids:
-            return 0 # Safety check: if server says 0 active orders, maybe it's an error. 
-                     # Or maybe all are deleted. But to be safe, we just skip.
+        if "local_ids" not in data or not isinstance(data["local_ids"], list):
+            return 0
+            
+        server_ids = set(data["local_ids"])
         
         count = 0
         try:
-            # Get all non-pending local orders
-            local_synced_orders = Order.query.filter(Order.status != "pending").all()
+            # Get all synced local orders
+            local_synced_orders = Order.query.filter(Order.status == "synced").all()
             for order in local_synced_orders:
                 if order.local_id and order.local_id not in server_ids:
                     logger.info("Order %s was deleted on server. Deleting locally.", order.local_id)

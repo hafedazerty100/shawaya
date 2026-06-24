@@ -358,16 +358,29 @@ document.addEventListener("DOMContentLoaded", () => {
     syncLabel.textContent = "يتزامن…";
     syncStatusBadge.classList.add("syncing");
     try {
-      await fetch("/api/sync", { method: "POST" });
-      await fetch("/api/pull-products", { method: "POST" });
+      const resp = await fetch("/api/sync-all", { method: "POST" });
+      if (!resp.ok) {
+        const errData = await resp.json();
+        throw new Error(errData.error || "خطأ في المزامنة");
+      }
+      const data = await resp.json();
       syncLabel.textContent = "تم التزامن";
+      showToast(data.message || "تمت المزامنة بنجاح", "success");
       await fetchProducts();
-      setTimeout(() => { syncLabel.textContent = "جاهز"; syncStatusBadge.classList.remove("syncing"); }, 3000);
-    } catch {
+      setTimeout(() => {
+        syncLabel.textContent = "جاهز";
+        syncStatusBadge.classList.remove("syncing");
+      }, 3000);
+    } catch (err) {
+      console.error("Manual badge sync failed:", err);
       syncLabel.textContent = "خطأ";
       syncStatusBadge.classList.remove("syncing");
       syncStatusBadge.classList.add("error");
-      setTimeout(() => { syncLabel.textContent = "جاهز"; syncStatusBadge.classList.remove("error"); }, 5000);
+      showToast(err.message || "فشلت المزامنة", "error");
+      setTimeout(() => {
+        syncLabel.textContent = "جاهز";
+        syncStatusBadge.classList.remove("error");
+      }, 5000);
     }
   });
 

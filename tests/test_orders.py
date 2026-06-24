@@ -539,6 +539,47 @@ def test_replicate_databases_executes(monkeypatch, server_app, tmp_path):
         engine2.dispose()
 
 
+def test_sync_deleted_orders_logic(desktop_app, monkeypatch):
+    """Test that sync_deleted_orders deletes synced orders if not on server, but preserves draft/pending/failed."""
+    from extensions import db
+    from models import Order
+    from sync import sync_deleted_orders
+
+    # 1. Create different orders locally
+    with desktop_app.app_context():
+        # Clean existing orders
+        Order.query.delete()
+        db.session.commit()
+
+        o_synced = Order(local_id="o-synced", status="synced", total_cents=100)
+        o_draft = Order(local_id="o-draft", status="draft", total_cents=200)
+        o_pending = Order(local_id="o-pending", status="pending", total_cents=300)
+        o_failed = Order(local_id="o-failed", status="failed", total_cents=400)
+        db.session.add_all([o_synced, o_draft, o_pending, o_failed])
+        db.session.commit()
+
+    # 2. Mock requests.get to return empty active orders list from server
+    class MockResponse:
+        status_code = 200
+        def raise_for_status(self):
+            pass
+        def json(self):
+            return {"local_ids": []}
+
+    monkeypatch.setattr("requests.get", lambda *args, **kwargs: MockResponse())
+
+    # 3. Run synchronization
+    count = sync_deleted_orders(desktop_app)
+    assert count == 1  # Only o_synced should be deleted
+
+    # 4. Verify local DB state
+    with desktop_app.app_context():
+        assert Order.query.filter_by(local_id="o-synced").first() is None
+        assert Order.query.filter_by(local_id="o-draft").first() is not None
+        assert Order.query.filter_by(local_id="o-pending").first() is not None
+        assert Order.query.filter_by(local_id="o-failed").first() is not None
+
+
 
 
 
