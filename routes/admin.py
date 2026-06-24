@@ -896,8 +896,22 @@ def sync_databases():
     from flask import jsonify
     from db_sync import replicate_databases
     try:
-        replicate_databases()
-        return jsonify({"success": True, "message": "تمت مزامنة قواعد البيانات بنجاح."}), 200
+        res = replicate_databases()
+        if res is None:
+            res = {"success": True}
+        if res.get("success"):
+            return jsonify({
+                "success": True, 
+                "message": "تمت مزامنة قواعد البيانات بنجاح.",
+                "details": res
+            }), 200
+        else:
+            msg = res.get("message") if res else "فشلت المزامنة لجميع قواعد البيانات."
+            return jsonify({
+                "success": False, 
+                "message": msg,
+                "details": res
+            }), 200
     except Exception as exc:
         logger.error("Manual database sync failed: %s", exc)
         return jsonify({"success": False, "message": f"فشلت المزامنة: {str(exc)}"}), 500

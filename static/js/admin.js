@@ -78,23 +78,57 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         const data = await resp.json();
         
+        let alertClass = data.success ? "success" : "danger";
+        if (data.details && !data.success && data.details.reachable_count > 0) {
+          // Semi-successful or skip status
+          alertClass = "warning";
+        }
+        
         // Show flash message alert dynamically
         const flashContainer = document.querySelector(".flash-container");
         if (flashContainer) {
           const alertDiv = document.createElement("div");
-          alertDiv.className = `alert alert-${data.success ? "success" : "danger"} alert-dismissible fade show flash-msg`;
+          alertDiv.className = `alert alert-${alertClass} alert-dismissible fade show flash-msg`;
           alertDiv.role = "alert";
+          
+          let msgHtml = `<strong>${data.message}</strong>`;
+          if (data.details) {
+            const d = data.details;
+            msgHtml += `<hr class="my-2" style="border-color: rgba(0,0,0,0.15)">`;
+            msgHtml += `<div class="small" style="line-height: 1.5; font-size: 0.85rem;">`;
+            msgHtml += `<div><strong>قواعد البيانات الناجحة (${d.synced_databases ? d.synced_databases.length : 0}/${d.total_count || 0}):</strong></div>`;
+            if (d.synced_databases && d.synced_databases.length > 0) {
+              d.synced_databases.forEach(db => {
+                msgHtml += `<div class="text-success" style="direction: ltr; text-align: right;">&bull; ${db}</div>`;
+              });
+            } else {
+              msgHtml += `<div class="text-muted">&bull; لا يوجد</div>`;
+            }
+            if (d.failed_databases && d.failed_databases.length > 0) {
+              msgHtml += `<div class="mt-1"><strong>قواعد البيانات غير المتصلة:</strong></div>`;
+              d.failed_databases.forEach(db => {
+                msgHtml += `<div class="text-danger" style="direction: ltr; text-align: right;">&bull; ${db}</div>`;
+              });
+            }
+            if (d.merged_counts && Object.keys(d.merged_counts).length > 0) {
+              msgHtml += `<div class="mt-1"><strong>إجمالي السجلات المدمجة:</strong></div>`;
+              msgHtml += `<div>المنتجات: ${d.merged_counts.products || 0} | الفئات: ${d.merged_counts.categories || 0} | الطلبات: ${d.merged_counts.orders || 0} | مفاتيح الترخيص: ${d.merged_counts.serial_keys || 0}</div>`;
+            }
+            msgHtml += `</div>`;
+          }
+          
           alertDiv.innerHTML = `
-            ${data.message}
+            ${msgHtml}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="إغلاق"></button>
           `;
           flashContainer.appendChild(alertDiv);
           
-          // Auto-dismiss after 5s
+          // Auto-dismiss after 15s if it has details, otherwise 5s
+          const dismissTime = data.details ? 15000 : 5000;
           setTimeout(() => {
             const bsAlert = bootstrap.Alert.getOrCreateInstance(alertDiv);
             if (bsAlert) bsAlert.close();
-          }, 5000);
+          }, dismissTime);
         }
       } catch (err) {
         console.error("Database sync failed:", err);

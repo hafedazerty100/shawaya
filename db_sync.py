@@ -49,7 +49,19 @@ def get_session(url: str):
         logger.warning("Database at %s is currently unreachable: %s", url.split("@")[-1], exc)
         return None, None
 
-def replicate_databases():
+def mask_db_url(url: str) -> str:
+    """Mask credentials in database connection string for logs/JSON response."""
+    try:
+        from urllib.parse import urlparse
+        parsed = urlparse(url)
+        host = parsed.netloc.split("@")[-1]
+        return f"{parsed.scheme}://***@{host}{parsed.path}"
+    except Exception:
+        if "@" in url:
+            return "postgresql://***@" + url.split("@")[-1]
+        return "postgresql://***"
+
+def replicate_databases() -> dict:
     """Consolidate and write records across all online Neon databases.
 
     NOTE: image_data is intentionally excluded from replication to conserve storage.
@@ -59,17 +71,28 @@ def replicate_databases():
     
     # 1. Connect to all online DBs
     sessions = {}
+    failed_dbs = []
     for i, url in enumerate(DB_URLS):
         session, engine = get_session(url)
         if session:
             sessions[i] = (session, engine)
+        else:
+            failed_dbs.append(mask_db_url(url))
             
     if len(sessions) < 2:
         logger.warning("Replication skipped: less than 2 database accounts are currently online/reachable.")
         for s, e in sessions.values():
             s.close()
             e.dispose()
-        return
+        return {
+            "success": False,
+            "message": "تم تخطي المزامنة: عدد قواعد البيانات المتصلة أقل من 2.",
+            "reachable_count": len(sessions),
+            "total_count": len(DB_URLS),
+            "synced_databases": [mask_db_url(DB_URLS[idx]) for idx in sessions.keys()],
+            "failed_databases": failed_dbs,
+            "merged_counts": {}
+        }
 
     # 2. Extract and merge data in memory
     merged_admins = {}
@@ -115,9 +138,6 @@ def replicate_databases():
                         "is_active": p.is_active,
                         "created_at": p.created_at,
                         "updated_at": p.updated_at,
-                        # image_data and image_mime are DELIBERATELY excluded here.
-                        # Replicating raw binary blobs across 3 Neon accounts wastes
-                        # ~3x storage and is the #1 cause of hitting the 5GB limit fast.
                     }
                     
             # Merge Orders and their items (preserve "synced" status)
@@ -159,6 +179,21 @@ def replicate_databases():
         except Exception as query_exc:
             logger.error("Data extraction query failed on DB index %d: %s", idx, query_exc)
 
+    results = {
+        "success": True,
+        "reachable_count": len(sessions),
+        "total_count": len(DB_URLS),
+        "synced_databases": [],
+        "failed_databases": failed_dbs,
+        "merged_counts": {
+            "admin_users": len(merged_admins),
+            "categories": len(merged_categories),
+            "products": len(merged_products),
+            "orders": len(merged_orders),
+            "serial_keys": len(merged_serials)
+        }
+    }
+
     # 3. Synchronize consolidated data back to all reachable databases
     for idx, (session, _) in sessions.items():
         try:
@@ -193,9 +228,8 @@ def replicate_databases():
                     cat.display_order = data["display_order"]
             session.flush()
 
-            # Sync Products (image_data excluded — see module docstring)
+            # Sync Products
             for prod_id, data in merged_products.items():
-                # Enforce FK constraints
                 if not session.get(Category, data["category_id"]):
                     continue
                 prod = session.get(Product, prod_id)
@@ -210,7 +244,6 @@ def replicate_databases():
                         is_active=data["is_active"],
                         created_at=data["created_at"],
                         updated_at=data["updated_at"],
-                        # image_data intentionally NOT set here — see module docstring
                     )
                     session.add(prod)
                 else:
@@ -221,7 +254,6 @@ def replicate_databases():
                     prod.image = data["image"]
                     prod.is_active = data["is_active"]
                     prod.updated_at = data["updated_at"]
-                    # image_data intentionally NOT updated here — see module docstring
             session.flush()
 
             # Sync Serial Keys
@@ -258,7 +290,7 @@ def replicate_databases():
                         device_id=data["device_id"]
                     )
                     session.add(order)
-                    session.flush()  # Resolve DB autoincrement ID for order items mapping
+                    session.flush()
                     
                     for item_data in data["items"]:
                         item = OrderItem(
@@ -274,7 +306,7 @@ def replicate_databases():
                     order.status = data["status"]
                     order.synced_at = data["synced_at"]
             
-            # Reset postgres sequences to prevent IntegrityError on new inserts
+            # Reset postgres sequences
             if "sqlite" not in str(session.bind.url):
                 for table in ["products", "categories", "orders", "order_items", "serial_keys", "admin_users"]:
                     try:
@@ -288,9 +320,11 @@ def replicate_databases():
             
             session.commit()
             logger.info("Successfully replicated data to database index %d.", idx)
+            results["synced_databases"].append(mask_db_url(DB_URLS[idx]))
         except Exception as write_exc:
             session.rollback()
             logger.error("Replication writing failed on DB index %d: %s", idx, write_exc)
+            results["failed_databases"].append(mask_db_url(DB_URLS[idx]))
 
     # 4. Cleanup resources — NullPool ensures connections are fully closed
     for s, e in sessions.values():
@@ -298,3 +332,8 @@ def replicate_databases():
         e.dispose()
         
     logger.info("Database replication cycle finished successfully.")
+    
+    if not results["synced_databases"]:
+        results["success"] = False
+        
+    return results
