@@ -10,7 +10,7 @@ from werkzeug.security import generate_password_hash
 local_dbs = [
     "local_data.db",
     "server_data.db",
-    "coffee_shop.db",
+    "shawaya_shop.db",
     r"..\desktop_app\local_data.db"
 ]
 for db_file in local_dbs:

@@ -97,7 +97,13 @@ def replicate_databases() -> dict:
     # 2. Extract and merge data in memory
     merged_admins = {}
     merged_categories = {}
+    category_id_by_name = {}  # name -> unified_id
+    db_cat_map = {}           # (db_idx, local_cat_id) -> unified_id
+
     merged_products = {}
+    product_id_by_name = {}   # name -> unified_id
+    db_prod_map = {}          # (db_idx, local_prod_id) -> unified_id
+
     merged_orders = {}  # key: local_id -> dict of order attributes + item lists
     merged_serials = {}
 
@@ -116,21 +122,59 @@ def replicate_databases() -> dict:
                     
             # Merge Categories
             for c in session.query(Category).all():
-                if c.id not in merged_categories:
-                    merged_categories[c.id] = {
-                        "id": c.id,
+                name_clean = c.name.strip()
+                if name_clean in category_id_by_name:
+                    unified_id = category_id_by_name[name_clean]
+                    db_cat_map[(idx, c.id)] = unified_id
+                else:
+                    if c.id in merged_categories:
+                        unified_id = max(merged_categories.keys()) + 1 if merged_categories else 1
+                    else:
+                        unified_id = c.id
+                    
+                    merged_categories[unified_id] = {
+                        "id": unified_id,
                         "name": c.name,
                         "display_order": c.display_order
                     }
+                    category_id_by_name[name_clean] = unified_id
+                    db_cat_map[(idx, c.id)] = unified_id
                     
             # Merge Products (keep latest version by updated_at)
-            # NOTE: image_data is intentionally excluded — see module docstring
+            # NOTE: image_data is intentionally excluded from replication to save space.
             for p in session.query(Product).all():
-                existing = merged_products.get(p.id)
-                if not existing or (p.updated_at and existing["updated_at"] and p.updated_at > existing["updated_at"]):
-                    merged_products[p.id] = {
-                        "id": p.id,
-                        "category_id": p.category_id,
+                name_clean = p.name.strip()
+                unified_cat_id = db_cat_map.get((idx, p.category_id))
+                if not unified_cat_id:
+                    logger.warning("Product %s references missing category ID %s in DB index %d.", p.name, p.category_id, idx)
+                    continue
+
+                if name_clean in product_id_by_name:
+                    unified_prod_id = product_id_by_name[name_clean]
+                    db_prod_map[(idx, p.id)] = unified_prod_id
+                    
+                    existing = merged_products[unified_prod_id]
+                    if not p.updated_at or not existing["updated_at"] or p.updated_at > existing["updated_at"]:
+                        merged_products[unified_prod_id] = {
+                            "id": unified_prod_id,
+                            "category_id": unified_cat_id,
+                            "name": p.name,
+                            "description": p.description,
+                            "price_cents": p.price_cents,
+                            "image": p.image,          # Filename reference only
+                            "is_active": p.is_active,
+                            "created_at": p.created_at,
+                            "updated_at": p.updated_at,
+                        }
+                else:
+                    if p.id in merged_products:
+                        unified_prod_id = max(merged_products.keys()) + 1 if merged_products else 1
+                    else:
+                        unified_prod_id = p.id
+                        
+                    merged_products[unified_prod_id] = {
+                        "id": unified_prod_id,
+                        "category_id": unified_cat_id,
                         "name": p.name,
                         "description": p.description,
                         "price_cents": p.price_cents,
@@ -139,6 +183,8 @@ def replicate_databases() -> dict:
                         "created_at": p.created_at,
                         "updated_at": p.updated_at,
                     }
+                    product_id_by_name[name_clean] = unified_prod_id
+                    db_prod_map[(idx, p.id)] = unified_prod_id
                     
             # Merge Orders and their items (preserve "synced" status)
             for o in session.query(Order).all():
@@ -179,6 +225,14 @@ def replicate_databases() -> dict:
         except Exception as query_exc:
             logger.error("Data extraction query failed on DB index %d: %s", idx, query_exc)
 
+    # Re-map OrderItem product_id references to use unified product IDs using snapshot name
+    for order_data in merged_orders.values():
+        for item_data in order_data["items"]:
+            if item_data["product_name_snapshot"]:
+                unified_prod_id = product_id_by_name.get(item_data["product_name_snapshot"].strip())
+                if unified_prod_id:
+                    item_data["product_id"] = unified_prod_id
+
     results = {
         "success": True,
         "reachable_count": len(sessions),
@@ -213,6 +267,33 @@ def replicate_databases() -> dict:
                     admin.must_change_password = data["must_change_password"]
             session.flush()
 
+            # Align Category IDs in local session before full category sync
+            current_cats = session.query(Category).all()
+            for cat in current_cats:
+                name_clean = cat.name.strip()
+                unified_id = category_id_by_name.get(name_clean)
+                if unified_id and cat.id != unified_id:
+                    old_name = cat.name
+                    cat.name = f"{old_name}_temp_sync_{cat.id}"
+                    session.flush()
+                    
+                    new_cat = session.get(Category, unified_id)
+                    if not new_cat:
+                        new_cat = Category(
+                            id=unified_id,
+                            name=old_name,
+                            display_order=cat.display_order
+                        )
+                        session.add(new_cat)
+                        session.flush()
+                        
+                    # Re-associate local Products to use unified Category ID
+                    session.query(Product).filter_by(category_id=cat.id).update({Product.category_id: unified_id})
+                    session.flush()
+                    
+                    session.delete(cat)
+                    session.flush()
+
             # Sync Categories
             for cat_id, data in merged_categories.items():
                 cat = session.get(Category, cat_id)
@@ -227,6 +308,37 @@ def replicate_databases() -> dict:
                     cat.name = data["name"]
                     cat.display_order = data["display_order"]
             session.flush()
+
+            # Align Product IDs in local session before full product sync
+            current_prods = session.query(Product).all()
+            for prod in current_prods:
+                name_clean = prod.name.strip()
+                unified_id = product_id_by_name.get(name_clean)
+                if unified_id and prod.id != unified_id:
+                    new_prod = session.get(Product, unified_id)
+                    if not new_prod:
+                        new_prod = Product(
+                            id=unified_id,
+                            category_id=prod.category_id,
+                            name=prod.name,
+                            description=prod.description,
+                            price_cents=prod.price_cents,
+                            image=prod.image,
+                            image_data=prod.image_data,
+                            image_mime=prod.image_mime,
+                            is_active=prod.is_active,
+                            created_at=prod.created_at,
+                            updated_at=prod.updated_at
+                        )
+                        session.add(new_prod)
+                        session.flush()
+                        
+                    # Re-associate local OrderItems referencing the old product ID
+                    session.query(OrderItem).filter_by(product_id=prod.id).update({OrderItem.product_id: unified_id})
+                    session.flush()
+                    
+                    session.delete(prod)
+                    session.flush()
 
             # Sync Products
             for prod_id, data in merged_products.items():
