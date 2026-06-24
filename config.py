@@ -66,6 +66,7 @@ class Config:
     SERVER_URL: str = os.environ.get("SERVER_URL", "http://localhost:5000")
     SYNC_INTERVAL: int = int(os.environ.get("SYNC_INTERVAL", "30"))
     VERIFY_SSL: bool = os.environ.get("VERIFY_SSL", "True").strip().lower() in ("true", "1", "yes")
+    HISTORY_START_DATE: str = os.environ.get("HISTORY_START_DATE", "2026-06-24")
 
     # ── Admin seeding ─────────────────────────────────────────────────────────
     ADMIN_DEFAULT_USERNAME: str = os.environ.get("ADMIN_DEFAULT_USERNAME", "admin")

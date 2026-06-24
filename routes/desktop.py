@@ -513,6 +513,15 @@ def api_orders_history():
     else:
         target_date = datetime.now(timezone.utc).date()
 
+    cutoff_str = current_app.config.get("HISTORY_START_DATE", "2026-06-24")
+    try:
+        cutoff_date = datetime.strptime(cutoff_str, "%Y-%m-%d").date()
+    except ValueError:
+        cutoff_date = datetime(2026, 6, 24).date()
+
+    if target_date < cutoff_date:
+        return jsonify([]), 200
+
     start_dt = datetime.combine(target_date, datetime.min.time()).replace(tzinfo=timezone.utc)
     end_dt = datetime.combine(target_date, datetime.max.time()).replace(tzinfo=timezone.utc)
 

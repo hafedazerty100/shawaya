@@ -23,7 +23,7 @@ from flask import (
 from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from extensions import db
+from extensions import db, csrf
 from forms import (
     CategoryForm,
     ChangePasswordForm,
@@ -891,6 +891,7 @@ def db_delete_row(table_name: str, row_id: int):
 
 @admin_bp.route("/sync-databases", methods=["POST"])
 @login_required
+@csrf.exempt
 def sync_databases():
     """Manually trigger master-master database replication across all 3 databases."""
     from flask import jsonify

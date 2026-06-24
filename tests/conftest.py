@@ -24,6 +24,7 @@ def server_app():
     app = create_app("server")
     app.config["TESTING"] = True
     app.config["WTF_CSRF_ENABLED"] = False
+    app.config["HISTORY_START_DATE"] = "2020-01-01"
     
     with app.app_context():
         _db.create_all()
@@ -48,6 +49,7 @@ def desktop_app():
     app = create_app("desktop")
     app.config["TESTING"] = True
     app.config["WTF_CSRF_ENABLED"] = False
+    app.config["HISTORY_START_DATE"] = "2020-01-01"
     
     # Configure a temporary upload directory for tests
     temp_dir = tempfile.TemporaryDirectory()

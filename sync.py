@@ -452,6 +452,13 @@ def check_and_generate_daily_archives(app):
             # Group orders by their local date
             orders_by_date = {}
             from datetime import timezone
+            
+            cutoff_str = app.config.get("HISTORY_START_DATE", "2026-06-24")
+            try:
+                cutoff_date = datetime.strptime(cutoff_str, "%Y-%m-%d").date()
+            except ValueError:
+                cutoff_date = datetime(2026, 6, 24).date()
+                
             for o in orders:
                 o_dt = o.created_at
                 if o_dt.tzinfo is None:
@@ -459,6 +466,10 @@ def check_and_generate_daily_archives(app):
                 o_local_dt = o_dt.astimezone(local_tz)
                 o_date = o_local_dt.date()
                 
+                # Exclude dates before the cutoff
+                if o_date < cutoff_date:
+                    continue
+                    
                 # Exclude the current day as it is still in progress
                 if o_date >= current_local_date:
                     continue

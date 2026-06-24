@@ -44,8 +44,8 @@
   </div>
 
   <!-- Right Side: Add Database URL Form -->
-  <div class="col-lg-5">
-    <div class="card admin-card h-100">
+  <div class="col-lg-5 d-flex flex-column gap-4">
+    <div class="card admin-card">
       <div class="card-header border-0 bg-transparent pt-4 px-4 d-flex align-items-center gap-2">
         <i class="bi bi-plus-circle-fill text-warning fs-4"></i>
         <h5 class="mb-0 fw-bold">إضافة قاعدة بيانات جديدة</h5>
@@ -74,6 +74,23 @@
             <span>التحقق والحفظ</span>
           </button>
         </form>
+      </div>
+    </div>
+
+    <!-- Manual Sync Card -->
+    <div class="card admin-card">
+      <div class="card-header border-0 bg-transparent pt-4 px-4 d-flex align-items-center gap-2">
+        <i class="bi bi-arrow-repeat text-warning fs-4"></i>
+        <h5 class="mb-0 fw-bold">مزامنة السيرفر يدوياً</h5>
+      </div>
+      <div class="card-body p-4">
+        <p class="text-muted small mb-4">
+          قم ببدء عملية مزامنة متبادلة فورية (Master-Master Replication) لدمج وتحديث الفئات والمنتجات والطلبات والرموز التسلسلية عبر جميع قواعد بيانات Neon المتصلة.
+        </p>
+        <button class="btn btn-warning w-100 fw-bold py-2 d-flex align-items-center justify-content-center gap-2 sync-db-btn" style="color: #111;">
+          <i class="bi bi-arrow-repeat"></i>
+          <span>بدء المزامنة الفورية</span>
+        </button>
       </div>
     </div>
   </div>
