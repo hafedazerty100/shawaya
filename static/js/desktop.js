@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let menuData = [];
   let currentCategory = "all";
   let printInProgress = false;
+  let isDragging = false;
 
   // cart: { [productId]: { product: {...}, qty: N } }
   const cart = {};
@@ -94,6 +95,28 @@ document.addEventListener("DOMContentLoaded", () => {
       if (cat) items = cat.products;
     }
 
+    // Apply custom sort order from localStorage if available
+    const categoryKey = `product_order_${currentCategory}`;
+    const storedOrder = localStorage.getItem(categoryKey);
+    if (storedOrder) {
+      try {
+        const orderedIds = JSON.parse(storedOrder).map(id => parseInt(id));
+        items.sort((a, b) => {
+          const indexA = orderedIds.indexOf(a.id);
+          const indexB = orderedIds.indexOf(b.id);
+          
+          if (indexA !== -1 && indexB !== -1) {
+            return indexA - indexB;
+          }
+          if (indexA !== -1) return -1;
+          if (indexB !== -1) return 1;
+          return 0;
+        });
+      } catch (err) {
+        console.error("Error parsing product order:", err);
+      }
+    }
+
     if (!items.length) {
       productGrid.innerHTML = `<div class="col-12 text-center py-5 text-muted"><p>لا توجد منتجات</p></div>`;
       return;
@@ -103,6 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const card = document.createElement("div");
       card.className = "product-card";
       card.setAttribute("data-id", product.id);
+      card.setAttribute("draggable", "true");
 
       const imgSrc = product.image
         ? (product.image.startsWith("http") ? product.image : `/static/uploads/products/${product.image}`)
@@ -134,6 +158,22 @@ document.addEventListener("DOMContentLoaded", () => {
         ${qtyInCart > 0 ? `<div class="cart-badge" id="badge-${product.id}">${qtyInCart}</div>` : `<div class="cart-badge" id="badge-${product.id}" style="display:none;">${qtyInCart}</div>`}
       `;
 
+      // Drag and drop event listeners on each card
+      card.addEventListener("dragstart", (e) => {
+        card.classList.add("dragging");
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', product.id);
+        isDragging = true;
+      });
+
+      card.addEventListener("dragend", () => {
+        card.classList.remove("dragging");
+        saveProductOrder();
+        setTimeout(() => {
+          isDragging = false;
+        }, 50);
+      });
+
       card.addEventListener("click", () => addToCart(product, card));
       productGrid.appendChild(card);
     });
@@ -141,6 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ── Cart logic ────────────────────────────────────────────────────────────
   function addToCart(product, cardEl) {
+    if (isDragging) return;
     const currentQty = cart[product.id] ? cart[product.id].qty : 0;
     if (product.quantity !== undefined && product.quantity !== null) {
       if (product.quantity <= 0) {
@@ -593,6 +634,69 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       historyLoading.style.display = "none";
       historyList.innerHTML = `<div class="text-center text-danger py-3"><i class="bi bi-exclamation-circle"></i> ${err.message}</div>`;
+    }
+  }
+
+  // ── Drag and Drop Event Listeners & Helpers ───────────────────────────────
+  productGrid.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    const draggingCard = document.querySelector(".product-card.dragging");
+    if (!draggingCard) return;
+
+    const afterElement = getDragAfterElement(productGrid, e.clientX, e.clientY);
+    if (afterElement == null) {
+      productGrid.appendChild(draggingCard);
+    } else {
+      productGrid.insertBefore(draggingCard, afterElement);
+    }
+  });
+
+  function getDragAfterElement(container, x, y) {
+    const draggableElements = [...container.querySelectorAll('.product-card:not(.dragging)')];
+
+    return draggableElements.reduce((closest, child) => {
+      const box = child.getBoundingClientRect();
+      const centerX = box.left + box.width / 2;
+      const centerY = box.top + box.height / 2;
+
+      // Distance squared
+      const distance = Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2);
+
+      if (distance < closest.distance) {
+        return { distance: distance, element: child };
+      } else {
+        return closest;
+      }
+    }, { distance: Number.POSITIVE_INFINITY }).element;
+  }
+
+  function saveProductOrder() {
+    const cards = [...productGrid.querySelectorAll('.product-card')];
+    const orderedIds = cards.map(card => parseInt(card.getAttribute('data-id')));
+    const categoryKey = `product_order_${currentCategory}`;
+    localStorage.setItem(categoryKey, JSON.stringify(orderedIds));
+
+    // Update in-memory menuData so that subsequent additions to cart or tab switches preserve it
+    if (currentCategory === "all") {
+      menuData.forEach(cat => {
+        cat.products.sort((a, b) => {
+          const indexA = orderedIds.indexOf(a.id);
+          const indexB = orderedIds.indexOf(b.id);
+          if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+          if (indexA !== -1) return -1;
+          if (indexB !== -1) return 1;
+          return 0;
+        });
+      });
+    } else {
+      const cat = menuData.find(c => c.id.toString() === currentCategory.toString());
+      if (cat) {
+        cat.products.sort((a, b) => {
+          const indexA = orderedIds.indexOf(a.id);
+          const indexB = orderedIds.indexOf(b.id);
+          return indexA - indexB;
+        });
+      }
     }
   }
 

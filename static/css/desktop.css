@@ -916,3 +916,18 @@ body {
   border: 1px solid rgba(245, 158, 11, 0.35);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
+
+/* Drag and drop styling */
+.product-card {
+  cursor: grab;
+  user-drag: none;
+  -webkit-user-drag: none;
+}
+.product-card.dragging {
+  opacity: 0.4 !important;
+  border: 2px dashed var(--brand) !important;
+  transform: scale(0.96) !important;
+  cursor: grabbing !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+}
+
