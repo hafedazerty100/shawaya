@@ -920,8 +920,6 @@ body {
 /* Drag and drop styling */
 .product-card {
   cursor: grab;
-  user-drag: none;
-  -webkit-user-drag: none;
 }
 .product-card.dragging {
   opacity: 0.4 !important;
