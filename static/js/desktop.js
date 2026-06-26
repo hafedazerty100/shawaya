@@ -113,12 +113,20 @@ document.addEventListener("DOMContentLoaded", () => {
         : `<div class="product-card__img-placeholder"><i class="bi bi-fire"></i></div>`;
 
       const qtyInCart = cart[product.id] ? cart[product.id].qty : 0;
+      const quantityText = product.quantity !== undefined && product.quantity !== null
+        ? `<div class="product-card__quantity text-warning mt-1" style="font-size: 0.85rem; font-weight: 600;">المتبقي: ${product.quantity}</div>`
+        : '';
+      const isOutOfStock = product.quantity !== undefined && product.quantity !== null && product.quantity <= 0;
+      if (isOutOfStock) {
+        card.classList.add("out-of-stock");
+      }
 
       card.innerHTML = `
         ${imgHTML}
         <div class="product-card__body">
           <div class="product-card__name">${product.name}</div>
           <div class="product-card__price">${product.price_display}</div>
+          ${quantityText}
           <div class="product-card__tap-hint"><i class="bi bi-plus-circle"></i> أضف للسلة</div>
         </div>
         <div class="product-card__flash" id="flash-${product.id}"></div>
@@ -132,6 +140,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ── Cart logic ────────────────────────────────────────────────────────────
   function addToCart(product, cardEl) {
+    const currentQty = cart[product.id] ? cart[product.id].qty : 0;
+    if (product.quantity !== undefined && product.quantity !== null) {
+      if (product.quantity <= 0) {
+        showToast(`عذراً، المنتج ${product.name} غير متوفر حالياً (نفذت الكمية)`, "error");
+        return;
+      }
+      if (currentQty + 1 > product.quantity) {
+        showToast(`عذراً، لا يوجد مخزون كافي من ${product.name} (المتبقي: ${product.quantity})`, "error");
+        return;
+      }
+    }
+
     if (cart[product.id]) {
       cart[product.id].qty += 1;
     } else {

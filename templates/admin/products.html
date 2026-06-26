@@ -28,6 +28,7 @@
             <th>الاسم</th>
             <th>الصنف</th>
             <th>السعر</th>
+            <th>الكمية</th>
             <th>الحالة</th>
             <th class="text-start">إجراءات</th>
           </tr>
@@ -46,6 +47,7 @@
             <td class="fw-semibold">{{ product.name }}</td>
             <td><span class="badge bg-secondary">{{ product.category.name }}</span></td>
             <td>{{ format_price(product.price_cents) }}</td>
+            <td class="fw-semibold">{{ product.quantity }}</td>
             <td>
               {% if product.is_active %}
               <span class="badge bg-success">نشط</span>

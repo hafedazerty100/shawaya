@@ -580,6 +580,73 @@ def test_sync_deleted_orders_logic(desktop_app, monkeypatch):
         assert Order.query.filter_by(local_id="o-failed").first() is not None
 
 
+def test_order_creation_stock_validation(desktop_app, desktop_client):
+    """Test order creation fails when requesting out of stock or insufficient stock products."""
+    with desktop_app.app_context():
+        # Setup category and product with quantity = 2
+        cat = Category(id=1, name="Shawaya", display_order=1)
+        # Check if product with ID 10 exists, delete if so to prevent conflicts
+        existing_p = db.session.get(Product, 10)
+        if existing_p:
+            db.session.delete(existing_p)
+        prod = Product(
+            id=10,
+            category_id=1,
+            name="Espresso",
+            price_cents=250,
+            is_active=True,
+            quantity=2
+        )
+        db.session.add_all([prod])
+        db.session.commit()
+
+    # Case 1: quantity = 3 (exceeds stock of 2)
+    order_payload = {
+        "local_id": str(uuid.uuid4()),
+        "device_id": "test-kiosk",
+        "items": [
+            {"product_id": 10, "quantity": 3}
+        ]
+    }
+    resp = desktop_client.post("/api/orders", json=order_payload)
+    assert resp.status_code == 400
+    assert "المخزون غير كافٍ" in resp.get_json()["error"]
+
+
+def test_order_creation_stock_decrement(desktop_app, desktop_client):
+    """Test that placing a successful order decrements the product stock quantity."""
+    with desktop_app.app_context():
+        # Setup category and product with quantity = 5
+        # Check if product with ID 10 exists, delete if so to prevent conflicts
+        existing_p = db.session.get(Product, 10)
+        if existing_p:
+            db.session.delete(existing_p)
+        prod = Product(
+            id=10,
+            category_id=1,
+            name="Espresso",
+            price_cents=250,
+            is_active=True,
+            quantity=5
+        )
+        db.session.add_all([prod])
+        db.session.commit()
+
+    order_payload = {
+        "local_id": str(uuid.uuid4()),
+        "device_id": "test-kiosk",
+        "items": [
+            {"product_id": 10, "quantity": 2}
+        ]
+    }
+    resp = desktop_client.post("/api/orders", json=order_payload)
+    assert resp.status_code == 201
+
+    with desktop_app.app_context():
+        prod_updated = db.session.get(Product, 10)
+        assert prod_updated.quantity == 3
+
+
 
 
 

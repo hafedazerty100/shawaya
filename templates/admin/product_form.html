@@ -25,18 +25,23 @@
           </div>
 
           <div class="row g-3 mb-3">
-            <div class="col-sm-6">
+            <div class="col-sm-4">
               <label class="form-label fw-semibold">الصنف</label>
               {{ form.category_id(class="form-select") }}
               {% for err in form.category_id.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
             </div>
-            <div class="col-sm-6">
+            <div class="col-sm-4">
               <label class="form-label fw-semibold">السعر</label>
               <div class="input-group">
                 <span class="input-group-text">د.ج</span>
                 {{ form.price(class="form-control", placeholder="0.00") }}
               </div>
               {% for err in form.price.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label fw-semibold">الكمية المتوفرة</label>
+              {{ form.quantity(class="form-control", placeholder="0") }}
+              {% for err in form.quantity.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
             </div>
           </div>
 

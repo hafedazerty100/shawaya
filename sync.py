@@ -219,6 +219,7 @@ def pull_products(app) -> int:
                 prod.description = prod_data.get("description", "")
                 prod.price_cents = prod_data["price_cents"]
                 prod.is_active = prod_data.get("is_active", True)
+                prod.quantity = prod_data.get("quantity", 0)
 
                 # Download image only if it has changed or is new, or if DB bytes are missing (self-healing)
                 remote_image = prod_data.get("image")

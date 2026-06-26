@@ -117,6 +117,12 @@ def _initialize_single_db(app: Flask, db_url: str) -> bool:
                 db.session.commit()
             except Exception:
                 db.session.rollback()
+
+            try:
+                db.session.execute(text("ALTER TABLE products ADD COLUMN quantity INTEGER DEFAULT 99 NOT NULL"))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
                 
             logging.getLogger("app").info("Successfully initialized schema on DB: %s", db_url.split("@")[-1])
             success = True
@@ -152,6 +158,12 @@ def _initialize_db(app: Flask) -> None:
             try:
                 from sqlalchemy import text
                 db.session.execute(text("ALTER TABLE products ADD COLUMN image_mime VARCHAR(50)"))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+            try:
+                from sqlalchemy import text
+                db.session.execute(text("ALTER TABLE products ADD COLUMN quantity INTEGER DEFAULT 99 NOT NULL"))
                 db.session.commit()
             except Exception:
                 db.session.rollback()

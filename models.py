@@ -69,6 +69,7 @@ class Product(db.Model):
     image_data = db.Column(db.LargeBinary, nullable=True) # Actual binary image data
     image_mime = db.Column(db.String(50), nullable=True) # e.g. 'image/jpeg'
     is_active = db.Column(db.Boolean, nullable=False, default=True)
+    quantity = db.Column(db.Integer, nullable=False, default=99)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=_utcnow)
     updated_at = db.Column(
         db.DateTime(timezone=True), nullable=False, default=_utcnow, onupdate=_utcnow

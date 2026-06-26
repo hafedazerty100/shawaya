@@ -109,6 +109,11 @@ class ProductForm(FlaskForm):
         "Or Image URL",
         validators=[Optional(), Length(max=2048)]
     )
+    quantity = IntegerField(
+        "Quantity in Stock",
+        validators=[Optional(), NumberRange(min=0, message="Quantity cannot be negative.")],
+        default=0,
+    )
     is_active = BooleanField("Active", default=True)
 
     def validate_price(self, field):

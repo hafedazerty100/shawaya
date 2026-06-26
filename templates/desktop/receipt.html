@@ -224,6 +224,9 @@
       <span>رقم الفاتورة:</span>
       <span>#{{ order.id }}</span>
     </div>
+    <div class="order-number-box" style="font-size: 20px; font-weight: 900; text-align: center; border: 2px solid #000; padding: 4px 0; margin: 6px 0; font-family: Arial, sans-serif;">
+      رقم الطلب: {{ order.id }}
+    </div>
     <div class="meta-row inline">
       <span>التاريخ:</span>
       <span>{{ order.created_at.strftime('%d/%m/%Y') }}</span>
@@ -283,6 +286,9 @@
     <div class="meta-row">
       <span>رقم الطلب:</span>
       <span>#{{ order.id }}</span>
+    </div>
+    <div class="order-number-box" style="font-size: 24px; font-weight: 900; text-align: center; border: 2px solid #000; padding: 6px 0; margin: 8px 0; font-family: Arial, sans-serif;">
+      رقم الطلب: {{ order.id }}
     </div>
     <div class="meta-row inline">
       <span>التاريخ:</span>

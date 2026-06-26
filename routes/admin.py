@@ -413,6 +413,7 @@ def new_product():
                 image_data=image_data,
                 image_mime=image_mime,
                 is_active=form.is_active.data,
+                quantity=form.quantity.data or 0,
             )
             db.session.add(product)
             db.session.commit()
@@ -463,6 +464,7 @@ def edit_product(product_id: int):
             product.category_id = form.category_id.data
             product.price_cents = da_to_cents(float(form.price.data.replace(",", ".")))
             product.is_active = form.is_active.data
+            product.quantity = form.quantity.data or 0
             db.session.commit()
             flash(f"Product '{product.name}' updated.", "success")
             return redirect(url_for("admin.products"))

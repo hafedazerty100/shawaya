@@ -213,6 +213,7 @@ def api_products():
                 "price_cents": p.price_cents,
                 "price_display": format_price(p.price_cents),
                 "image": p.image,
+                "quantity": p.quantity,
             }
             for p in cat.products
             if p.is_active
@@ -263,7 +264,7 @@ def api_create_order():
     if existing:
         return jsonify({"order_id": existing.id, "local_id": existing.local_id}), 200
 
-    # Validate all products exist and are active
+    # Validate all products exist, are active, and have sufficient stock
     order_items = []
     total_cents = 0
     for item_data in items_data:
@@ -278,6 +279,9 @@ def api_create_order():
         product = db.session.get(Product, product_id)
         if not product or not product.is_active:
             return jsonify({"error": f"Product {product_id} not found or inactive."}), 400
+
+        if product.quantity is not None and product.quantity < quantity:
+            return jsonify({"error": f"المخزون غير كافٍ للمنتج {product.name} (المتبقي: {product.quantity})."}), 400
 
         subtotal = product.price_cents * quantity
         total_cents += subtotal
@@ -304,6 +308,11 @@ def api_create_order():
         for item in order_items:
             item.order_id = order.id
             db.session.add(item)
+            
+            # Decrement product stock quantity
+            prod = db.session.get(Product, item.product_id)
+            if prod and prod.quantity is not None:
+                prod.quantity = max(0, prod.quantity - item.quantity)
 
         db.session.commit()
         logger.info("Created draft order %s (total=%d cents).", local_id, total_cents)
@@ -540,21 +549,13 @@ def api_orders_history():
     )
     result = []
     for order in orders:
-        o_dt = order.created_at
-        if o_dt:
-            if o_dt.tzinfo is None:
-                o_dt = o_dt.replace(tzinfo=timezone.utc)
-            created_at_str = o_dt.astimezone().strftime("%H:%M")
-        else:
-            created_at_str = ""
-
         result.append({
             "id": order.id,
             "local_id": order.local_id,
             "status": order.status,
             "total_cents": order.total_cents,
             "total_display": format_price(order.total_cents),
-            "created_at": created_at_str,
+            "created_at": order.created_at.strftime("%H:%M") if order.created_at else "",
             "items": [
                 {
                     "name": item.product_name_snapshot,

@@ -118,6 +118,7 @@ def products():
                         "price_cents": p.price_cents,
                         "image": p.image,
                         "is_active": p.is_active,
+                        "quantity": p.quantity,
                     }
                 )
     return jsonify({"categories": cat_list, "products": prod_list}), 200
@@ -185,17 +186,24 @@ def sync_orders():
             db.session.flush()
 
             for item_data in items_data:
+                product_id = item_data.get("product_id")
                 quantity = int(item_data.get("quantity", 1))
                 unit_price = int(item_data.get("unit_price_cents_snapshot", 0))
                 item = OrderItem(
                     order_id=order.id,
-                    product_id=item_data.get("product_id"),
+                    product_id=product_id,
                     product_name_snapshot=str(item_data.get("product_name_snapshot", "")),
                     unit_price_cents_snapshot=unit_price,
                     quantity=quantity,
                     subtotal_cents=int(item_data.get("subtotal_cents", unit_price * quantity)),
                 )
                 db.session.add(item)
+                
+                # Also decrement product stock on the server
+                if product_id:
+                    product = db.session.get(Product, product_id)
+                    if product and product.quantity is not None:
+                        product.quantity = max(0, product.quantity - quantity)
 
             db.session.commit()
             results[local_id] = {"status": "ok"}

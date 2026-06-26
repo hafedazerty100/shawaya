@@ -873,3 +873,30 @@ body {
   animation: spin 1s linear infinite;
   display: inline-block;
 }
+
+/* Out of stock product card styling */
+.product-card.out-of-stock {
+  opacity: 0.6;
+  border-color: var(--border) !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+}
+
+.product-card.out-of-stock:hover {
+  transform: none;
+}
+
+.product-card.out-of-stock::before {
+  content: 'نفذت الكمية';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--red);
+  color: #fff;
+  font-weight: 800;
+  font-size: .8rem;
+  padding: 4px 10px;
+  border-radius: 20px;
+  z-index: 5;
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
+}

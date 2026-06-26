@@ -155,6 +155,7 @@ def replicate_databases(strategy: str = "push") -> dict:
                     "is_active": p.is_active,
                     "created_at": p.created_at,
                     "updated_at": p.updated_at,
+                    "quantity": p.quantity,
                 }
                 product_id_by_name[name_clean] = p.id
                 db_prod_map[(0, p.id)] = p.id
@@ -250,6 +251,7 @@ def replicate_databases(strategy: str = "push") -> dict:
                                 "is_active": p.is_active,
                                 "created_at": p.created_at,
                                 "updated_at": p.updated_at,
+                                "quantity": p.quantity,
                             }
                     else:
                         if p.id in merged_products:
@@ -267,6 +269,7 @@ def replicate_databases(strategy: str = "push") -> dict:
                             "is_active": p.is_active,
                             "created_at": p.created_at,
                             "updated_at": p.updated_at,
+                            "quantity": p.quantity,
                         }
                         product_id_by_name[name_clean] = unified_prod_id
                         db_prod_map[(idx, p.id)] = unified_prod_id
@@ -452,7 +455,8 @@ def replicate_databases(strategy: str = "push") -> dict:
                             image_mime=prod.image_mime,
                             is_active=prod.is_active,
                             created_at=prod.created_at,
-                            updated_at=prod.updated_at
+                            updated_at=prod.updated_at,
+                            quantity=prod.quantity,
                         )
                         session.add(new_prod)
                         session.flush()
@@ -480,6 +484,7 @@ def replicate_databases(strategy: str = "push") -> dict:
                         is_active=data["is_active"],
                         created_at=data["created_at"],
                         updated_at=data["updated_at"],
+                        quantity=data.get("quantity", 0),
                     )
                     session.add(prod)
                 else:
@@ -490,6 +495,7 @@ def replicate_databases(strategy: str = "push") -> dict:
                     prod.image = data["image"]
                     prod.is_active = data["is_active"]
                     prod.updated_at = data["updated_at"]
+                    prod.quantity = data.get("quantity", 0)
             session.flush()
 
             # Sync Serial Keys
