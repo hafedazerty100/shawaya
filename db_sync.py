@@ -107,15 +107,22 @@ def replicate_databases(strategy: str = "push") -> dict:
     merged_orders = {}  # key: local_id -> dict of order attributes + item lists
     merged_serials = {}
 
+    active_idx = 0
+    try:
+        from extensions import get_active_db_index
+        active_idx = get_active_db_index()
+    except Exception:
+        pass
+
     if strategy == "push":
-        if 0 not in sessions:
-            logger.warning("Push replication failed: primary database (index 0) is offline.")
+        if active_idx not in sessions:
+            logger.warning("Push replication failed: active database (index %d) is offline.", active_idx)
             for s, e in sessions.values():
                 s.close()
                 e.dispose()
             return {
                 "success": False,
-                "message": "فشلت المزامنة: قاعدة البيانات الرئيسية غير متصلة.",
+                "message": f"فشلت المزامنة: قاعدة البيانات النشطة (مؤشر {active_idx}) غير متصلة.",
                 "reachable_count": len(sessions),
                 "total_count": len(DB_URLS),
                 "synced_databases": [],
@@ -123,8 +130,8 @@ def replicate_databases(strategy: str = "push") -> dict:
                 "merged_counts": {}
             }
         
-        session_0 = sessions[0][0]
-        # Extract from primary DB only
+        session_0 = sessions[active_idx][0]
+        # Extract from active DB only
         try:
             for u in session_0.query(AdminUser).all():
                 merged_admins[u.username] = {
@@ -141,7 +148,7 @@ def replicate_databases(strategy: str = "push") -> dict:
                     "display_order": c.display_order
                 }
                 category_id_by_name[name_clean] = c.id
-                db_cat_map[(0, c.id)] = c.id
+                db_cat_map[(active_idx, c.id)] = c.id
                 
             for p in session_0.query(Product).all():
                 name_clean = p.name.strip()
@@ -158,7 +165,7 @@ def replicate_databases(strategy: str = "push") -> dict:
                     "quantity": p.quantity,
                 }
                 product_id_by_name[name_clean] = p.id
-                db_prod_map[(0, p.id)] = p.id
+                db_prod_map[(active_idx, p.id)] = p.id
 
             for o in session_0.query(Order).all():
                 items = []
@@ -338,8 +345,8 @@ def replicate_databases(strategy: str = "push") -> dict:
 
     # 3. Synchronize consolidated data back to all reachable databases
     for idx, (session, _) in sessions.items():
-        if idx == 0 and strategy == "push":
-            logger.info("Push strategy: skipping write back for primary database index 0.")
+        if idx == active_idx and strategy == "push":
+            logger.info("Push strategy: skipping write back for active database index %d.", active_idx)
             results["synced_databases"].append(mask_db_url(DB_URLS[idx]))
             continue
             

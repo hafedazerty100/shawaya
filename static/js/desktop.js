@@ -113,20 +113,21 @@ document.addEventListener("DOMContentLoaded", () => {
         : `<div class="product-card__img-placeholder"><i class="bi bi-fire"></i></div>`;
 
       const qtyInCart = cart[product.id] ? cart[product.id].qty : 0;
-      const quantityText = product.quantity !== undefined && product.quantity !== null
-        ? `<div class="product-card__quantity text-warning mt-1" style="font-size: 0.85rem; font-weight: 600;">المتبقي: ${product.quantity}</div>`
-        : '';
       const isOutOfStock = product.quantity !== undefined && product.quantity !== null && product.quantity <= 0;
       if (isOutOfStock) {
         card.classList.add("out-of-stock");
       }
 
+      const stockBadgeHTML = (product.quantity !== undefined && product.quantity !== null && !isOutOfStock)
+        ? `<div class="product-card__stock-badge">المتبقي: ${product.quantity}</div>`
+        : '';
+
       card.innerHTML = `
         ${imgHTML}
+        ${stockBadgeHTML}
         <div class="product-card__body">
           <div class="product-card__name">${product.name}</div>
           <div class="product-card__price">${product.price_display}</div>
-          ${quantityText}
           <div class="product-card__tap-hint"><i class="bi bi-plus-circle"></i> أضف للسلة</div>
         </div>
         <div class="product-card__flash" id="flash-${product.id}"></div>

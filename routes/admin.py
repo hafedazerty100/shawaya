@@ -724,11 +724,34 @@ def edit_order(order_id: int):
     return render_template("admin/order_edit.html", order=order, products=products)
 
 
+def delete_order_everywhere(local_id: str):
+    """Delete an order by local_id from all configured databases in DB_URLS."""
+    from db_sync import get_session
+    from extensions import DB_URLS
+    from models import Order
+    
+    for url in DB_URLS:
+        try:
+            session, engine = get_session(url)
+            if session:
+                order = session.query(Order).filter_by(local_id=local_id).first()
+                if order:
+                    session.delete(order)
+                    session.commit()
+                session.close()
+                engine.dispose()
+        except Exception as e:
+            logger.warning("Could not delete order %s from database %s during direct propagation: %s", 
+                           local_id, url.split("@")[-1], e)
+
+
 @admin_bp.route("/orders/<int:order_id>/delete", methods=["POST"])
 @login_required
 def delete_order(order_id: int):
     order = db.get_or_404(Order, order_id)
+    local_id = order.local_id
     try:
+        delete_order_everywhere(local_id)
         db.session.delete(order)
         db.session.commit()
         flash(f"Order #{order_id} deleted successfully.", "success")
@@ -879,7 +902,10 @@ def db_delete_row(table_name: str, row_id: int):
 
     model = models_map[table_name]
     row = db.get_or_404(model, row_id)
+    local_id = getattr(row, "local_id", None) if table_name == "orders" else None
     try:
+        if local_id:
+            delete_order_everywhere(local_id)
         db.session.delete(row)
         db.session.commit()
         flash(f"Row {row_id} deleted successfully from {table_name}.", "success")

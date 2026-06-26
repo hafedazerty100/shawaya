@@ -21,3 +21,5 @@ Thumbs.db
 
 # Other
 *.zip
+logs/
+static/uploads/
