@@ -46,7 +46,10 @@ def da_to_cents(da: float) -> int:
 
 def hash_serial(raw_serial: str) -> str:
     """Return the SHA-256 hex digest of a raw serial string."""
-    return hashlib.sha256(raw_serial.strip().encode("utf-8")).hexdigest()
+    if not raw_serial:
+        return ""
+    clean_serial = str(raw_serial).strip()
+    return hashlib.sha256(clean_serial.encode("utf-8")).hexdigest()
 
 
 # ─── HMAC activation tokens ───────────────────────────────────────────────────
@@ -138,45 +141,36 @@ def save_product_image(file_storage) -> str | None:
     try:
         img = Image.open(io.BytesIO(file_data))
         img.verify()  # Raises if not a valid image
-        # Re-open after verify() — Pillow closes the file after verify
-        img = Image.open(io.BytesIO(file_data))
-    except (UnidentifiedImageError, Exception) as exc:
-        raise ValueError(f"Invalid image file: {exc}") from exc
+    except (UnidentifiedImageError, OSError, Exception) as exc:
+        raise ValueError(f"Invalid image file: {exc}")
 
-    # 4. Check format whitelist
-    if img.format not in ALLOWED_PIL_FORMATS:
-        raise ValueError(
-            f"Unsupported image format '{img.format}'. "
-            f"Allowed: {', '.join(ALLOWED_PIL_FORMATS)}"
-        )
-
-    # 5. Resize if wider than MAX_IMAGE_WIDTH (preserve aspect ratio)
-    if img.width > MAX_IMAGE_WIDTH:
-        ratio = MAX_IMAGE_WIDTH / img.width
-        new_size = (MAX_IMAGE_WIDTH, int(img.height * ratio))
-        img = img.resize(new_size, Image.LANCZOS)
-
-    # 6. Convert to RGB if necessary (e.g. RGBA PNG → JPEG would fail)
-    save_format = img.format or "JPEG"
+    # 4. Generate unique UUID filename
     ext = file_storage.filename.rsplit(".", 1)[1].lower()
-    if ext == "jpg":
-        ext = "jpeg"
-    if save_format == "JPEG" and img.mode in ("RGBA", "P"):
-        img = img.convert("RGB")
-
-    # 7. Generate a UUID-based filename to prevent collisions / path traversal
-    unique_name = f"{uuid.uuid4().hex}.{ext}"
+    filename = f"{uuid.uuid4().hex}.{ext}"
     upload_folder = current_app.config["UPLOAD_FOLDER"]
     os.makedirs(upload_folder, exist_ok=True)
-    dest_path = os.path.join(upload_folder, unique_name)
+    save_path = os.path.join(upload_folder, filename)
 
-    # 8. Save the (possibly resized) image
-    img.save(dest_path, format=save_format.upper())
-    logger.info("Saved product image: %s", unique_name)
-    return unique_name
+    # 5. Re-open to process (verify() closes/invalidates the image handle)
+    img = Image.open(io.BytesIO(file_data))
+
+    # Convert RGBA / P mode images to RGB for JPEG saving
+    if ext in ("jpg", "jpeg") and img.mode in ("RGBA", "P"):
+        img = img.convert("RGB")
+
+    # Resize if image exceeds max width while preserving aspect ratio
+    if img.width > MAX_IMAGE_WIDTH:
+        ratio = MAX_IMAGE_WIDTH / float(img.width)
+        new_height = int(float(img.height) * ratio)
+        img = img.resize((MAX_IMAGE_WIDTH, new_height), Image.Resampling.LANCZOS)
+
+    # Save to disk
+    img.save(save_path, optimize=True, quality=85)
+    logger.info("Saved product image: %s", filename)
+    return filename
 
 
-def delete_product_image(filename: str) -> None:
+def delete_product_image(filename: str | None) -> None:
     """Delete a product image file from the uploads folder (best-effort)."""
     if not filename:
         return
@@ -203,8 +197,8 @@ def api_key_required(f):
         from models import SyncLog
         from extensions import db
 
-        provided_key = request.headers.get("X-API-KEY", "")
-        expected_key = current_app.config.get("SYNC_API_KEY", "")
+        provided_key = request.headers.get("X-API-KEY", "").strip()
+        expected_key = current_app.config.get("SYNC_API_KEY", "").strip()
 
         if not provided_key or not hmac.compare_digest(provided_key, expected_key):
             device_id = request.headers.get("X-Device-ID", "unknown")

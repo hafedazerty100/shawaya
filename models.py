@@ -155,8 +155,8 @@ class SyncLog(db.Model):
     timestamp = db.Column(
         db.DateTime(timezone=True), nullable=False, default=_utcnow, index=True
     )
-    # direction: "push" (orders → server) | "pull" (products ← server)
-    direction = db.Column(db.String(10), nullable=False)
+    # direction: "push" (orders → server) | "pull" (products ← server) | "pull_orders"
+    direction = db.Column(db.String(50), nullable=False)
     # status: "success" | "error"
     status = db.Column(db.String(10), nullable=False, index=True)
     detail = db.Column(db.Text, nullable=True)

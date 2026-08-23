@@ -362,7 +362,7 @@ def create_app(mode: str | None = None) -> Flask:
             import time
 
             def _run_replication():
-                interval = int(os.environ.get("DB_REPLICATION_INTERVAL", "10800"))
+                interval = int(os.environ.get("DB_REPLICATION_INTERVAL", "3600"))
                 time.sleep(30)
                 while True:
                     try:

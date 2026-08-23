@@ -174,16 +174,23 @@ def activate():
                 if resp.status_code == 200:
                     _save_serial_hash(serial_hash)
                     return redirect(url_for("desktop.index"))
-                # Use the Arabic error message from the server if available
-                server_error = resp.json().get("error", "")
-                if resp.status_code == 401:
-                    error = server_error or "الرمز التسلسلي غير صحيح."
+                
+                server_error = ""
+                try:
+                    server_error = resp.json().get("error", "")
+                except Exception:
+                    pass
+
+                if server_error:
+                    error = server_error
+                elif resp.status_code in (401, 404):
+                    error = "الرمز التسلسلي غير صحيح أو مفتاح API غير متطابق."
                 elif resp.status_code == 403:
-                    error = server_error or "الرمز التسلسلي منتهي الصلاحية أو تم إلغاؤه."
+                    error = "الرمز التسلسلي منتهي الصلاحية أو تم إلغاؤه."
                 else:
                     error = f"خطأ في الخادم ({resp.status_code}). حاول مجدداً."
             except requests.RequestException:
-                error = "لا يمكن الوصول إلى الخادم. تحقق من اتصالك بالإنترنت."
+                error = "لا يمكن الوصول إلى الخادم. تحقق من اتصالك بالإنترنت ومن إعداد SERVER_URL."
 
     # Check server connectivity for UI feedback
     online = False
