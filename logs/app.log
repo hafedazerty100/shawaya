@@ -42209,3 +42209,8 @@ connection to server at "aws-1-eu-west-1.pooler.supabase.com" (18.202.64.2), por
 [2026-08-23 22:08:51] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
 [2026-08-23 22:08:51] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
 [2026-08-23 22:08:51] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 22:10:03] INFO app: Starting Shawaya POS in 'desktop' mode (debug=False).
+[2026-08-23 22:10:03] INFO sync: pull_products: 34 products pulled.
+[2026-08-23 22:10:03] INFO sync: pull_orders_from_server: 1 new orders pulled.
+[2026-08-23 22:10:09] INFO app: Starting Shawaya POS in 'desktop' mode (debug=False).
+[2026-08-23 22:10:10] INFO sync: sync_orders: 1/1 orders synced.
