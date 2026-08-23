@@ -225,8 +225,9 @@ def api_key_required(f):
 
 def check_and_apply_updates():
     """
-    Check for updates via git fetch and git reset --hard if in a git repository.
-    If updates are available, apply them and restart the process.
+    Check for updates via git fetch. If new commits exist on origin/main,
+    apply them with git reset --hard, install requirements, and restart.
+    Returns True only if an update was applied (process restarts).
     """
     import os
     import sys
@@ -235,41 +236,70 @@ def check_and_apply_updates():
     project_dir = os.path.dirname(os.path.abspath(__file__))
     git_dir = os.path.join(project_dir, ".git")
     if not os.path.isdir(git_dir):
+        logger.info("[UPDATE] Not a git repository — skipping update check.")
         return False
         
     try:
-        # 1. Fetch latest changes from remote with a short 5-second timeout
-        # 1. Fetch latest changes
+        # 1. Fetch latest from remote (30s timeout — enough for slow connections)
+        logger.info("[UPDATE] Checking for updates...")
         res = subprocess.run(
             ["git", "fetch", "origin", "main"],
             cwd=project_dir,
             capture_output=True,
             text=True,
-            timeout=5
+            timeout=30
         )
         if res.returncode != 0:
+            logger.warning("[UPDATE] Git fetch failed: %s", res.stderr.strip() or "unknown error")
             return False
 
-        # 2. Compare hashes
-        local_hash = subprocess.run(["git", "rev-parse", "HEAD"], cwd=project_dir, capture_output=True, text=True).stdout.strip()
-        remote_hash = subprocess.run(["git", "rev-parse", "origin/main"], cwd=project_dir, capture_output=True, text=True).stdout.strip()
+        # 2. Compare local HEAD vs origin/main
+        local_hash = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=project_dir,
+            capture_output=True, text=True
+        ).stdout.strip()
+        remote_hash = subprocess.run(
+            ["git", "rev-parse", "origin/main"], cwd=project_dir,
+            capture_output=True, text=True
+        ).stdout.strip()
         
-        if local_hash and remote_hash and local_hash != remote_hash:
-            logger.info("[UPDATE] New updates found. Applying...")
-            subprocess.run(["git", "reset", "--hard", "origin/main"], cwd=project_dir, check=True)
-            
-            # 3. Update requirements
+        if not local_hash or not remote_hash:
+            logger.warning("[UPDATE] Could not determine git hashes.")
+            return False
+
+        if local_hash == remote_hash:
+            logger.info("[UPDATE] Already up to date (%s).", local_hash[:7])
+            return False
+
+        # 3. New updates available — apply them
+        logger.info("[UPDATE] New updates found: %s → %s. Applying...", local_hash[:7], remote_hash[:7])
+        subprocess.run(
+            ["git", "reset", "--hard", "origin/main"],
+            cwd=project_dir, capture_output=True, text=True, check=True
+        )
+        
+        # 4. Install updated requirements
+        req_file = os.path.join(project_dir, "requirements_windows.txt")
+        if not os.path.isfile(req_file):
             req_file = os.path.join(project_dir, "requirements.txt")
-            if os.path.isfile(req_file):
-                subprocess.run([sys.executable, "-m", "pip", "install", "-r", req_file], cwd=project_dir, timeout=60, check=True)
-                
-        logger.info("[UPDATE] Restarting process to load updated code...")
+        if os.path.isfile(req_file):
+            try:
+                logger.info("[UPDATE] Installing updated requirements...")
+                subprocess.run(
+                    [sys.executable, "-m", "pip", "install", "-r", req_file],
+                    cwd=project_dir, timeout=120, capture_output=True
+                )
+            except Exception as pip_err:
+                logger.warning("[UPDATE] pip install had issues (continuing): %s", pip_err)
+
+        # 5. Restart the process with the new code
+        logger.info("[UPDATE] Update applied successfully. Restarting...")
         os.execv(sys.executable, [sys.executable] + sys.argv)
-        sys.exit(0)
-        
+
     except subprocess.TimeoutExpired:
-        logger.warning("[UPDATE] Git fetch timed out (possibly offline).")
+        logger.warning("[UPDATE] Git fetch timed out after 30s — will retry next cycle.")
     except Exception as exc:
-        logger.error(f"[UPDATE] Update check failed: {exc}")
+        logger.warning("[UPDATE] Update check failed: %s", exc)
         
     return False
+

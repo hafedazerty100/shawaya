@@ -578,17 +578,25 @@ def start_sync_thread(app):
         first_sync_delay = 10
         startup_time = time.time()
 
+        # ── Check for updates immediately on startup ──────────────────────────
+        try:
+            from utils import check_and_apply_updates
+            check_and_apply_updates()
+        except Exception as u_err:
+            logger.warning("Startup update check failed: %s", u_err)
+        last_update_check = time.time()
+
         while True:
             now = time.time()
 
-            # ── Auto-updater (git pull) — opt-in via AUTO_UPDATE=1 in .env ──────
-            if os.environ.get("AUTO_UPDATE", "0") == "1" and now - last_update_check > 3600:
+            # ── Auto-updater (git pull) — every hour ────────────────────────────
+            if now - last_update_check > 3600:
                 last_update_check = now
                 try:
                     from utils import check_and_apply_updates
                     check_and_apply_updates()
                 except Exception as u_err:
-                    logger.warning("Auto-updater skipped: %s", u_err)
+                    logger.warning("Auto-updater failed: %s", u_err)
 
             # ── Hourly batch sync (push orders, pull products, pull remote orders, deletions) ─
             time_since_last = now - last_network_sync
