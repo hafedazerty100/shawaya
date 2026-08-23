@@ -239,20 +239,41 @@ def check_and_apply_updates():
         logger.info("[UPDATE] Not a git repository — skipping update check.")
         return False
         
-    try:
-        # 1. Fetch latest from remote (30s timeout — enough for slow connections)
-        logger.info("[UPDATE] Checking for updates...")
-        res = subprocess.run(
-            ["git", "fetch", "origin", "main"],
-            cwd=project_dir,
-            capture_output=True,
-            text=True,
-            timeout=30
-        )
-        if res.returncode != 0:
-            logger.warning("[UPDATE] Git fetch failed: %s", res.stderr.strip() or "unknown error")
-            return False
+    # 1. Fetch latest from remote with retry & optimized HTTP connection
+    logger.info("[UPDATE] Checking for updates...")
+    git_cmd = [
+        "git",
+        "-c", "http.version=HTTP/1.1",
+        "-c", "http.lowSpeedLimit=1000",
+        "-c", "http.lowSpeedTime=10",
+        "fetch", "--depth=1", "origin", "main"
+    ]
 
+    fetch_ok = False
+    for attempt in range(1, 3):
+        try:
+            res = subprocess.run(
+                git_cmd,
+                cwd=project_dir,
+                capture_output=True,
+                text=True,
+                timeout=15
+            )
+            if res.returncode == 0:
+                fetch_ok = True
+                break
+            else:
+                logger.warning("[UPDATE] Git fetch attempt %d failed: %s", attempt, res.stderr.strip() or "unknown error")
+        except subprocess.TimeoutExpired:
+            logger.warning("[UPDATE] Git fetch attempt %d timed out.", attempt)
+        except Exception as e:
+            logger.warning("[UPDATE] Git fetch attempt %d error: %s", attempt, e)
+
+    if not fetch_ok:
+        logger.warning("[UPDATE] Could not reach GitHub remote — skipping update for this cycle.")
+        return False
+
+    try:
         # 2. Compare local HEAD vs origin/main
         local_hash = subprocess.run(
             ["git", "rev-parse", "HEAD"], cwd=project_dir,

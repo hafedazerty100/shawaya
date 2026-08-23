@@ -117,14 +117,13 @@ def _is_activated() -> bool:
         if resp.status_code == 200 and resp.json().get("valid"):
             _last_remote_check = now
             return True
-        if resp.status_code in (401, 403):
+        if resp.status_code == 403:
             logger.warning(
-                "Serial rejected by server (%d) — clearing local hash.",
-                resp.status_code,
+                "Serial explicitly revoked or expired by server (403) — clearing local hash."
             )
             _clear_serial_hash()
             return False
-        # 500, 502, 503, etc. → treat as temporary → stay unlocked
+        # 401, 500, 502, etc. → treat as temporary / network auth delay → keep kiosk running
         logger.debug("Server returned %d during serial check — keeping kiosk running.", resp.status_code)
 
     except requests.RequestException as exc:
