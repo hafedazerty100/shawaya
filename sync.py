@@ -74,7 +74,7 @@ def sync_orders(app) -> int:
     from datetime import timezone
 
     with app.app_context():
-        pending = Order.query.filter_by(status="pending").all()
+        pending = Order.query.filter(Order.status.in_(["pending", "failed"])).all()
         if not pending:
             return 0
 

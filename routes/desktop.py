@@ -535,34 +535,46 @@ def api_orders_history():
     else:
         target_date = datetime.now(timezone.utc).date()
 
-    cutoff_str = current_app.config.get("HISTORY_START_DATE", "2026-06-24")
-    try:
-        cutoff_date = datetime.strptime(cutoff_str, "%Y-%m-%d").date()
-    except ValueError:
-        cutoff_date = datetime(2026, 6, 24).date()
-
-    if target_date < cutoff_date:
-        return jsonify([]), 200
-
-    start_dt = datetime.combine(target_date, datetime.min.time()).replace(tzinfo=timezone.utc)
-    end_dt = datetime.combine(target_date, datetime.max.time()).replace(tzinfo=timezone.utc)
-
-    orders = (
+    # Query non-draft orders
+    all_orders = (
         Order.query
-        .filter(Order.status != "draft", Order.created_at >= start_dt, Order.created_at <= end_dt)
+        .filter(Order.status != "draft")
         .order_by(Order.created_at.desc())
-        .limit(100)
+        .limit(200)
         .all()
     )
+
     result = []
-    for order in orders:
+    for order in all_orders:
+        order_date = None
+        if order.created_at:
+            if hasattr(order.created_at, "date"):
+                order_date = order.created_at.date()
+            elif isinstance(order.created_at, str):
+                try:
+                    order_date = datetime.fromisoformat(order.created_at[:10]).date()
+                except Exception:
+                    pass
+
+        # Filter by date
+        if order_date and order_date != target_date:
+            continue
+
+        time_str = ""
+        if order.created_at:
+            if hasattr(order.created_at, "strftime"):
+                time_str = order.created_at.strftime("%H:%M")
+            elif isinstance(order.created_at, str) and len(order.created_at) >= 16:
+                time_str = order.created_at[11:16]
+
         result.append({
             "id": order.id,
             "local_id": order.local_id,
             "status": order.status,
             "total_cents": order.total_cents,
             "total_display": format_price(order.total_cents),
-            "created_at": order.created_at.strftime("%H:%M") if order.created_at else "",
+            "created_at": time_str,
+            "date": str(order_date) if order_date else "",
             "items": [
                 {
                     "name": item.product_name_snapshot,
