@@ -590,45 +590,45 @@ def start_sync_thread(app):
                 except Exception as u_err:
                     logger.warning("Auto-updater skipped: %s", u_err)
 
-            # ── Fast Order Push: Check and push pending orders every 10 seconds ──
-            try:
-                synced = sync_orders(app)
-                if synced > 0:
-                    logger.info("Order sync: pushed %d pending orders to server.", synced)
-            except Exception as exc:
-                logger.warning("Order push attempt failed: %s", exc)
-
-            # ── Periodic heavy sync (pull products, pull remote orders, deletions) ─
+            # ── Hourly batch sync (push orders, pull products, pull remote orders, deletions) ─
             time_since_last = now - last_network_sync
             startup_delay_passed = (now - startup_time) >= first_sync_delay
 
             if startup_delay_passed and (last_network_sync == 0 or time_since_last >= SYNC_HOURLY_INTERVAL):
                 last_network_sync = now
-                logger.info("Starting periodic database sync batch...")
+                logger.info("Starting hourly database sync batch...")
 
-                # 1. Pull latest product catalog
+                # 1. Push any locally pending orders to the server
+                try:
+                    synced = sync_orders(app)
+                    if synced > 0:
+                        logger.info("Hourly sync: pushed %d pending orders.", synced)
+                except Exception as exc:
+                    logger.warning("Hourly sync — push orders failed: %s", exc)
+
+                # 2. Pull latest product catalog
                 try:
                     pulled_products = pull_products(app)
                     if pulled_products > 0:
-                        logger.info("Periodic sync: pulled %d products.", pulled_products)
+                        logger.info("Hourly sync: pulled %d products.", pulled_products)
                 except Exception as exc:
-                    logger.warning("Periodic sync — pull products failed: %s", exc)
+                    logger.warning("Hourly sync — pull products failed: %s", exc)
 
-                # 2. Pull new orders from other devices
+                # 3. Pull new orders from other devices
                 try:
                     pulled_orders = pull_orders_from_server(app)
                     if pulled_orders > 0:
-                        logger.info("Periodic sync: pulled %d new orders.", pulled_orders)
+                        logger.info("Hourly sync: pulled %d new orders.", pulled_orders)
                 except Exception as exc:
-                    logger.warning("Periodic sync — pull orders failed: %s", exc)
+                    logger.warning("Hourly sync — pull orders failed: %s", exc)
 
-                # 3. Sync deleted orders
+                # 4. Sync deleted orders
                 try:
                     deleted = sync_deleted_orders(app)
                     if deleted > 0:
-                        logger.info("Periodic sync: synced %d deletions.", deleted)
+                        logger.info("Hourly sync: synced %d deletions.", deleted)
                 except Exception as exc:
-                    logger.warning("Periodic sync — deleted orders failed: %s", exc)
+                    logger.warning("Hourly sync — deleted orders failed: %s", exc)
 
             # ── Daily revenue CSV archive ─────────────────────────────────────────
             if now - last_archive_check > 3600 or last_archive_check == 0:
@@ -638,8 +638,8 @@ def start_sync_thread(app):
                 except Exception as arc_err:
                     logger.warning("Daily archive check failed: %s", arc_err)
 
-            # Sleep 10 seconds between order push cycles
-            time.sleep(10)
+            # Sleep 60 seconds between hourly sync checks
+            time.sleep(60)
 
     thread = threading.Thread(target=_sync_loop, daemon=True, name="SyncThread")
     thread.start()

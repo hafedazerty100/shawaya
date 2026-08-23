@@ -167,9 +167,9 @@ def dashboard():
             start_date = datetime.fromtimestamp(0, tz=timezone.utc)
             end_date = None
         else:
-            # Default to today (current day)
-            period = "today"
-            start_date = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
+            # Default to "all" so all orders and revenue are visible by default
+            period = "all"
+            start_date = datetime.fromtimestamp(0, tz=timezone.utc)
             end_date = None
 
     # ── Today's badges ──────────────────────────────────────────────────────
