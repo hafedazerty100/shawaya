@@ -39406,3 +39406,735 @@ sqlalchemy.exc.DataError: (raised as a result of Query-invoked autoflush; consid
 [2026-08-23 21:39:14] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
 [2026-08-23 21:39:14] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
 [2026-08-23 21:39:14] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:47:57] INFO app: Starting Shawaya POS in 'server' mode (debug=False).
+[2026-08-23 21:47:59] WARNING app: Skipping initialization for database aws-1-eu-west-1.pooler.supabase.com:5432/postgres?sslmode=require (unreachable): (psycopg2.OperationalError) connection to server at "aws-1-eu-west-1.pooler.supabase.com" (54.247.26.119), port 5432 failed: FATAL:  password authentication failed for user "postgres"
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+[2026-08-23 21:48:03] INFO app: Successfully initialized schema on DB: aws-1-eu-west-1.pooler.supabase.com:5432/postgres
+[2026-08-23 21:48:05] WARNING app: Active DB candidate index 0 (aws-1-eu-west-1.pooler.supabase.com:5432/postgres?sslmode=require) is unreachable: (psycopg2.OperationalError) connection to server at "aws-1-eu-west-1.pooler.supabase.com" (54.247.26.119), port 5432 failed: FATAL:  password authentication failed for user "postgres"
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+[2026-08-23 21:48:07] INFO app: Database startup selected active DB index 1: aws-1-eu-west-1.pooler.supabase.com:5432/postgres
+[2026-08-23 21:48:07] INFO app: Database replication scheduler thread started successfully.
+[2026-08-23 21:48:07] INFO app: Database rotation scheduler thread started successfully.
+[2026-08-23 21:49:17] INFO app: Starting Shawaya POS in 'server' mode (debug=False).
+[2026-08-23 21:49:20] WARNING app: Skipping initialization for database aws-1-eu-west-1.pooler.supabase.com:5432/postgres (unreachable): (psycopg2.OperationalError) connection to server at "aws-1-eu-west-1.pooler.supabase.com" (18.202.64.2), port 5432 failed: FATAL:  password authentication failed for user "postgres"
+connection to server at "aws-1-eu-west-1.pooler.supabase.com" (18.202.64.2), port 5432 failed: FATAL:  password authentication failed for user "postgres"
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+[2026-08-23 21:49:25] INFO app: Successfully initialized schema on DB: aws-1-eu-west-1.pooler.supabase.com:5432/postgres
+[2026-08-23 21:49:27] WARNING app: Active DB candidate index 0 (aws-1-eu-west-1.pooler.supabase.com:5432/postgres) is unreachable: (psycopg2.OperationalError) connection to server at "aws-1-eu-west-1.pooler.supabase.com" (18.202.64.2), port 5432 failed: FATAL:  password authentication failed for user "postgres"
+connection to server at "aws-1-eu-west-1.pooler.supabase.com" (18.202.64.2), port 5432 failed: FATAL:  password authentication failed for user "postgres"
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+[2026-08-23 21:49:28] INFO app: Database startup selected active DB index 1: aws-1-eu-west-1.pooler.supabase.com:5432/postgres
+[2026-08-23 21:49:28] INFO app: Database replication scheduler thread started successfully.
+[2026-08-23 21:49:28] INFO app: Database rotation scheduler thread started successfully.
+[2026-08-23 21:52:11] INFO app: Starting Shawaya POS in 'server' mode (debug=False).
+[2026-08-23 21:52:13] WARNING app: Skipping initialization for database aws-1-eu-west-1.pooler.supabase.com:5432/postgres (unreachable): (psycopg2.OperationalError) connection to server at "aws-1-eu-west-1.pooler.supabase.com" (18.202.64.2), port 5432 failed: FATAL:  password authentication failed for user "postgres"
+connection to server at "aws-1-eu-west-1.pooler.supabase.com" (18.202.64.2), port 5432 failed: FATAL:  password authentication failed for user "postgres"
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+[2026-08-23 21:52:15] WARNING app: Active DB candidate index 0 (aws-1-eu-west-1.pooler.supabase.com:5432/postgres) is unreachable: (psycopg2.OperationalError) connection to server at "aws-1-eu-west-1.pooler.supabase.com" (18.202.64.2), port 5432 failed: FATAL:  password authentication failed for user "postgres"
+connection to server at "aws-1-eu-west-1.pooler.supabase.com" (18.202.64.2), port 5432 failed: FATAL:  password authentication failed for user "postgres"
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+[2026-08-23 21:52:15] CRITICAL app: All configured PostgreSQL databases are currently unreachable! Falling back to local SQLite database.
+[2026-08-23 21:52:15] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:52:15] INFO app: Database replication scheduler thread started successfully.
+[2026-08-23 21:52:15] INFO app: Database rotation scheduler thread started successfully.
+[2026-08-23 21:52:56] INFO app: Starting Shawaya POS in 'server' mode (debug=False).
+[2026-08-23 21:53:01] INFO app: Successfully initialized schema on DB: aws-1-eu-west-1.pooler.supabase.com:5432/postgres
+[2026-08-23 21:53:03] INFO app: Database startup selected active DB index 0: aws-1-eu-west-1.pooler.supabase.com:5432/postgres
+[2026-08-23 21:53:03] INFO app: Database replication scheduler thread started successfully.
+[2026-08-23 21:53:03] INFO app: Database rotation scheduler thread started successfully.
+[2026-08-23 21:53:21] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:22] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:22] WARNING utils: API key rejection: IP=127.0.0.1 device=unknown
+[2026-08-23 21:53:22] WARNING utils: API key rejection: IP=127.0.0.1 device=unknown
+[2026-08-23 21:53:22] WARNING utils: API key rejection: IP=127.0.0.1 device=unknown
+[2026-08-23 21:53:22] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:22] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:22] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:22] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:22] WARNING utils: API key rejection: IP=127.0.0.1 device=unknown
+[2026-08-23 21:53:22] WARNING utils: API key rejection: IP=127.0.0.1 device=unknown
+[2026-08-23 21:53:22] WARNING utils: API key rejection: IP=127.0.0.1 device=unknown
+[2026-08-23 21:53:22] WARNING utils: API key rejection: IP=127.0.0.1 device=unknown
+[2026-08-23 21:53:22] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:22] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:22] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:22] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:22] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:22] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:22] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:22] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:22] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:22] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO routes.desktop: Created draft order df887f6f-3c48-4a7d-a434-0c04375eb61e (total=500 cents).
+[2026-08-23 21:53:23] INFO routes.desktop: Created draft order df887f6f-3c48-4a7d-a434-0c04375eb61e (total=500 cents).
+[2026-08-23 21:53:23] INFO routes.desktop: Created draft order df887f6f-3c48-4a7d-a434-0c04375eb61e (total=500 cents).
+[2026-08-23 21:53:23] INFO routes.desktop: Created draft order df887f6f-3c48-4a7d-a434-0c04375eb61e (total=500 cents).
+[2026-08-23 21:53:23] INFO routes.desktop: Order 1 confirmed and status set to 'pending'.
+[2026-08-23 21:53:23] INFO routes.desktop: Order 1 confirmed and status set to 'pending'.
+[2026-08-23 21:53:23] INFO routes.desktop: Order 1 confirmed and status set to 'pending'.
+[2026-08-23 21:53:23] INFO routes.desktop: Order 1 confirmed and status set to 'pending'.
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO routes.desktop: Created draft order d1807e6c-ddee-4daf-b9f8-776e515dd0ae (total=250 cents).
+[2026-08-23 21:53:23] INFO routes.desktop: Created draft order d1807e6c-ddee-4daf-b9f8-776e515dd0ae (total=250 cents).
+[2026-08-23 21:53:23] INFO routes.desktop: Created draft order d1807e6c-ddee-4daf-b9f8-776e515dd0ae (total=250 cents).
+[2026-08-23 21:53:23] INFO routes.desktop: Created draft order d1807e6c-ddee-4daf-b9f8-776e515dd0ae (total=250 cents).
+[2026-08-23 21:53:23] INFO routes.desktop: Created draft order d1807e6c-ddee-4daf-b9f8-776e515dd0ae (total=250 cents).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:23] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:23] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:23] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:23] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:23] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:23] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:23] INFO routes.api: Received order 1dd6a6b2-8eb2-48c2-a0c3-faba64a3d22f from device test-kiosk.
+[2026-08-23 21:53:23] INFO routes.api: Received order 1dd6a6b2-8eb2-48c2-a0c3-faba64a3d22f from device test-kiosk.
+[2026-08-23 21:53:23] INFO routes.api: Received order 1dd6a6b2-8eb2-48c2-a0c3-faba64a3d22f from device test-kiosk.
+[2026-08-23 21:53:23] INFO routes.api: Received order 1dd6a6b2-8eb2-48c2-a0c3-faba64a3d22f from device test-kiosk.
+[2026-08-23 21:53:23] INFO routes.api: Received order 1dd6a6b2-8eb2-48c2-a0c3-faba64a3d22f from device test-kiosk.
+[2026-08-23 21:53:23] INFO routes.api: Received order 1dd6a6b2-8eb2-48c2-a0c3-faba64a3d22f from device test-kiosk.
+[2026-08-23 21:53:23] INFO routes.api: Received order 1dd6a6b2-8eb2-48c2-a0c3-faba64a3d22f from device test-kiosk.
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] WARNING routes.desktop: Server returned 404 for sync revenue: Not found
+[2026-08-23 21:53:23] WARNING routes.desktop: Server returned 404 for sync revenue: Not found
+[2026-08-23 21:53:23] WARNING routes.desktop: Server returned 404 for sync revenue: Not found
+[2026-08-23 21:53:23] WARNING routes.desktop: Server returned 404 for sync revenue: Not found
+[2026-08-23 21:53:23] WARNING routes.desktop: Server returned 404 for sync revenue: Not found
+[2026-08-23 21:53:23] WARNING routes.desktop: Server returned 404 for sync revenue: Not found
+[2026-08-23 21:53:23] WARNING routes.desktop: Server returned 404 for sync revenue: Not found
+[2026-08-23 21:53:23] WARNING routes.desktop: Server returned 404 for sync revenue: Not found
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:23] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:23] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:23] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:23] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:23] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:23] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:23] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:23] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:23] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:23] INFO routes.admin: Admin login: admin_sync_test from 127.0.0.1
+[2026-08-23 21:53:23] INFO routes.admin: Admin login: admin_sync_test from 127.0.0.1
+[2026-08-23 21:53:23] INFO routes.admin: Admin login: admin_sync_test from 127.0.0.1
+[2026-08-23 21:53:23] INFO routes.admin: Admin login: admin_sync_test from 127.0.0.1
+[2026-08-23 21:53:23] INFO routes.admin: Admin login: admin_sync_test from 127.0.0.1
+[2026-08-23 21:53:23] INFO routes.admin: Admin login: admin_sync_test from 127.0.0.1
+[2026-08-23 21:53:23] INFO routes.admin: Admin login: admin_sync_test from 127.0.0.1
+[2026-08-23 21:53:23] INFO routes.admin: Admin login: admin_sync_test from 127.0.0.1
+[2026-08-23 21:53:23] INFO routes.admin: Admin login: admin_sync_test from 127.0.0.1
+[2026-08-23 21:53:23] INFO routes.admin: Admin login: admin_sync_test from 127.0.0.1
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:23] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO routes.admin: Admin login: admin_settings_test from 127.0.0.1
+[2026-08-23 21:53:24] INFO routes.admin: Admin login: admin_settings_test from 127.0.0.1
+[2026-08-23 21:53:24] INFO routes.admin: Admin login: admin_settings_test from 127.0.0.1
+[2026-08-23 21:53:24] INFO routes.admin: Admin login: admin_settings_test from 127.0.0.1
+[2026-08-23 21:53:24] INFO routes.admin: Admin login: admin_settings_test from 127.0.0.1
+[2026-08-23 21:53:24] INFO routes.admin: Admin login: admin_settings_test from 127.0.0.1
+[2026-08-23 21:53:24] INFO routes.admin: Admin login: admin_settings_test from 127.0.0.1
+[2026-08-23 21:53:24] INFO routes.admin: Admin login: admin_settings_test from 127.0.0.1
+[2026-08-23 21:53:24] INFO routes.admin: Admin login: admin_settings_test from 127.0.0.1
+[2026-08-23 21:53:24] INFO routes.admin: Admin login: admin_settings_test from 127.0.0.1
+[2026-08-23 21:53:24] INFO routes.admin: Admin login: admin_settings_test from 127.0.0.1
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO sync: Generating daily revenue archive CSV for 2026-08-22
+[2026-08-23 21:53:24] INFO sync: Generating daily revenue archive CSV for 2026-08-22
+[2026-08-23 21:53:24] INFO sync: Generating daily revenue archive CSV for 2026-08-22
+[2026-08-23 21:53:24] INFO sync: Generating daily revenue archive CSV for 2026-08-22
+[2026-08-23 21:53:24] INFO sync: Generating daily revenue archive CSV for 2026-08-22
+[2026-08-23 21:53:24] INFO sync: Generating daily revenue archive CSV for 2026-08-22
+[2026-08-23 21:53:24] INFO sync: Generating daily revenue archive CSV for 2026-08-22
+[2026-08-23 21:53:24] INFO sync: Generating daily revenue archive CSV for 2026-08-22
+[2026-08-23 21:53:24] INFO sync: Generating daily revenue archive CSV for 2026-08-22
+[2026-08-23 21:53:24] INFO sync: Generating daily revenue archive CSV for 2026-08-22
+[2026-08-23 21:53:24] INFO sync: Generating daily revenue archive CSV for 2026-08-22
+[2026-08-23 21:53:24] INFO sync: Generating daily revenue archive CSV for 2026-08-22
+[2026-08-23 21:53:24] INFO sync: Completed check for daily revenue archives.
+[2026-08-23 21:53:24] INFO sync: Completed check for daily revenue archives.
+[2026-08-23 21:53:24] INFO sync: Completed check for daily revenue archives.
+[2026-08-23 21:53:24] INFO sync: Completed check for daily revenue archives.
+[2026-08-23 21:53:24] INFO sync: Completed check for daily revenue archives.
+[2026-08-23 21:53:24] INFO sync: Completed check for daily revenue archives.
+[2026-08-23 21:53:24] INFO sync: Completed check for daily revenue archives.
+[2026-08-23 21:53:24] INFO sync: Completed check for daily revenue archives.
+[2026-08-23 21:53:24] INFO sync: Completed check for daily revenue archives.
+[2026-08-23 21:53:24] INFO sync: Completed check for daily revenue archives.
+[2026-08-23 21:53:24] INFO sync: Completed check for daily revenue archives.
+[2026-08-23 21:53:24] INFO sync: Completed check for daily revenue archives.
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:24] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO db_sync: Starting database replication cycle using strategy: pull...
+[2026-08-23 21:53:25] INFO db_sync: Starting database replication cycle using strategy: pull...
+[2026-08-23 21:53:25] INFO db_sync: Starting database replication cycle using strategy: pull...
+[2026-08-23 21:53:25] INFO db_sync: Starting database replication cycle using strategy: pull...
+[2026-08-23 21:53:25] INFO db_sync: Starting database replication cycle using strategy: pull...
+[2026-08-23 21:53:25] INFO db_sync: Starting database replication cycle using strategy: pull...
+[2026-08-23 21:53:25] INFO db_sync: Starting database replication cycle using strategy: pull...
+[2026-08-23 21:53:25] INFO db_sync: Starting database replication cycle using strategy: pull...
+[2026-08-23 21:53:25] INFO db_sync: Starting database replication cycle using strategy: pull...
+[2026-08-23 21:53:25] INFO db_sync: Starting database replication cycle using strategy: pull...
+[2026-08-23 21:53:25] INFO db_sync: Starting database replication cycle using strategy: pull...
+[2026-08-23 21:53:25] INFO db_sync: Starting database replication cycle using strategy: pull...
+[2026-08-23 21:53:25] INFO db_sync: Starting database replication cycle using strategy: pull...
+[2026-08-23 21:53:25] INFO db_sync: Starting database replication cycle using strategy: pull...
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 0.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 0.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 0.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 0.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 0.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 0.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 0.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 0.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 0.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 0.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 0.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 0.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 0.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 0.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 1.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 1.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 1.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 1.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 1.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 1.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 1.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 1.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 1.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 1.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 1.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 1.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 1.
+[2026-08-23 21:53:25] INFO db_sync: Successfully replicated data to database index 1.
+[2026-08-23 21:53:25] INFO db_sync: Database replication cycle finished successfully.
+[2026-08-23 21:53:25] INFO db_sync: Database replication cycle finished successfully.
+[2026-08-23 21:53:25] INFO db_sync: Database replication cycle finished successfully.
+[2026-08-23 21:53:25] INFO db_sync: Database replication cycle finished successfully.
+[2026-08-23 21:53:25] INFO db_sync: Database replication cycle finished successfully.
+[2026-08-23 21:53:25] INFO db_sync: Database replication cycle finished successfully.
+[2026-08-23 21:53:25] INFO db_sync: Database replication cycle finished successfully.
+[2026-08-23 21:53:25] INFO db_sync: Database replication cycle finished successfully.
+[2026-08-23 21:53:25] INFO db_sync: Database replication cycle finished successfully.
+[2026-08-23 21:53:25] INFO db_sync: Database replication cycle finished successfully.
+[2026-08-23 21:53:25] INFO db_sync: Database replication cycle finished successfully.
+[2026-08-23 21:53:25] INFO db_sync: Database replication cycle finished successfully.
+[2026-08-23 21:53:25] INFO db_sync: Database replication cycle finished successfully.
+[2026-08-23 21:53:25] INFO db_sync: Database replication cycle finished successfully.
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO sync: Order o-synced was deleted on server. Deleting locally.
+[2026-08-23 21:53:25] INFO sync: Order o-synced was deleted on server. Deleting locally.
+[2026-08-23 21:53:25] INFO sync: Order o-synced was deleted on server. Deleting locally.
+[2026-08-23 21:53:25] INFO sync: Order o-synced was deleted on server. Deleting locally.
+[2026-08-23 21:53:25] INFO sync: Order o-synced was deleted on server. Deleting locally.
+[2026-08-23 21:53:25] INFO sync: Order o-synced was deleted on server. Deleting locally.
+[2026-08-23 21:53:25] INFO sync: Order o-synced was deleted on server. Deleting locally.
+[2026-08-23 21:53:25] INFO sync: Order o-synced was deleted on server. Deleting locally.
+[2026-08-23 21:53:25] INFO sync: Order o-synced was deleted on server. Deleting locally.
+[2026-08-23 21:53:25] INFO sync: Order o-synced was deleted on server. Deleting locally.
+[2026-08-23 21:53:25] INFO sync: Order o-synced was deleted on server. Deleting locally.
+[2026-08-23 21:53:25] INFO sync: Order o-synced was deleted on server. Deleting locally.
+[2026-08-23 21:53:25] INFO sync: Order o-synced was deleted on server. Deleting locally.
+[2026-08-23 21:53:25] INFO sync: Order o-synced was deleted on server. Deleting locally.
+[2026-08-23 21:53:25] INFO sync: Order o-synced was deleted on server. Deleting locally.
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO routes.desktop: Created draft order 3805a307-7dce-4096-82a5-6161ab02888b (total=500 cents).
+[2026-08-23 21:53:25] INFO routes.desktop: Created draft order 3805a307-7dce-4096-82a5-6161ab02888b (total=500 cents).
+[2026-08-23 21:53:25] INFO routes.desktop: Created draft order 3805a307-7dce-4096-82a5-6161ab02888b (total=500 cents).
+[2026-08-23 21:53:25] INFO routes.desktop: Created draft order 3805a307-7dce-4096-82a5-6161ab02888b (total=500 cents).
+[2026-08-23 21:53:25] INFO routes.desktop: Created draft order 3805a307-7dce-4096-82a5-6161ab02888b (total=500 cents).
+[2026-08-23 21:53:25] INFO routes.desktop: Created draft order 3805a307-7dce-4096-82a5-6161ab02888b (total=500 cents).
+[2026-08-23 21:53:25] INFO routes.desktop: Created draft order 3805a307-7dce-4096-82a5-6161ab02888b (total=500 cents).
+[2026-08-23 21:53:25] INFO routes.desktop: Created draft order 3805a307-7dce-4096-82a5-6161ab02888b (total=500 cents).
+[2026-08-23 21:53:25] INFO routes.desktop: Created draft order 3805a307-7dce-4096-82a5-6161ab02888b (total=500 cents).
+[2026-08-23 21:53:25] INFO routes.desktop: Created draft order 3805a307-7dce-4096-82a5-6161ab02888b (total=500 cents).
+[2026-08-23 21:53:25] INFO routes.desktop: Created draft order 3805a307-7dce-4096-82a5-6161ab02888b (total=500 cents).
+[2026-08-23 21:53:25] INFO routes.desktop: Created draft order 3805a307-7dce-4096-82a5-6161ab02888b (total=500 cents).
+[2026-08-23 21:53:25] INFO routes.desktop: Created draft order 3805a307-7dce-4096-82a5-6161ab02888b (total=500 cents).
+[2026-08-23 21:53:25] INFO routes.desktop: Created draft order 3805a307-7dce-4096-82a5-6161ab02888b (total=500 cents).
+[2026-08-23 21:53:25] INFO routes.desktop: Created draft order 3805a307-7dce-4096-82a5-6161ab02888b (total=500 cents).
+[2026-08-23 21:53:25] INFO routes.desktop: Created draft order 3805a307-7dce-4096-82a5-6161ab02888b (total=500 cents).
+[2026-08-23 21:53:25] INFO routes.desktop: Created draft order 3805a307-7dce-4096-82a5-6161ab02888b (total=500 cents).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'server' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Seeded default admin user 'admin'. Change the password on first login!
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO utils: Saved product image: cfb212293f8c4fee9d4d88264c2b2afd.png
+[2026-08-23 21:53:25] INFO utils: Saved product image: cfb212293f8c4fee9d4d88264c2b2afd.png
+[2026-08-23 21:53:25] INFO utils: Saved product image: cfb212293f8c4fee9d4d88264c2b2afd.png
+[2026-08-23 21:53:25] INFO utils: Saved product image: cfb212293f8c4fee9d4d88264c2b2afd.png
+[2026-08-23 21:53:25] INFO utils: Saved product image: cfb212293f8c4fee9d4d88264c2b2afd.png
+[2026-08-23 21:53:25] INFO utils: Saved product image: cfb212293f8c4fee9d4d88264c2b2afd.png
+[2026-08-23 21:53:25] INFO utils: Saved product image: cfb212293f8c4fee9d4d88264c2b2afd.png
+[2026-08-23 21:53:25] INFO utils: Saved product image: cfb212293f8c4fee9d4d88264c2b2afd.png
+[2026-08-23 21:53:25] INFO utils: Saved product image: cfb212293f8c4fee9d4d88264c2b2afd.png
+[2026-08-23 21:53:25] INFO utils: Saved product image: cfb212293f8c4fee9d4d88264c2b2afd.png
+[2026-08-23 21:53:25] INFO utils: Saved product image: cfb212293f8c4fee9d4d88264c2b2afd.png
+[2026-08-23 21:53:25] INFO utils: Saved product image: cfb212293f8c4fee9d4d88264c2b2afd.png
+[2026-08-23 21:53:25] INFO utils: Saved product image: cfb212293f8c4fee9d4d88264c2b2afd.png
+[2026-08-23 21:53:25] INFO utils: Saved product image: cfb212293f8c4fee9d4d88264c2b2afd.png
+[2026-08-23 21:53:25] INFO utils: Saved product image: cfb212293f8c4fee9d4d88264c2b2afd.png
+[2026-08-23 21:53:25] INFO utils: Saved product image: cfb212293f8c4fee9d4d88264c2b2afd.png
+[2026-08-23 21:53:25] INFO utils: Saved product image: cfb212293f8c4fee9d4d88264c2b2afd.png
+[2026-08-23 21:53:25] INFO utils: Saved product image: cfb212293f8c4fee9d4d88264c2b2afd.png
+[2026-08-23 21:53:25] INFO utils: Saved product image: cfb212293f8c4fee9d4d88264c2b2afd.png
+[2026-08-23 21:53:25] INFO utils: Saved product image: cfb212293f8c4fee9d4d88264c2b2afd.png
+[2026-08-23 21:53:25] INFO utils: Saved product image: cfb212293f8c4fee9d4d88264c2b2afd.png
+[2026-08-23 21:53:25] INFO utils: Saved product image: cfb212293f8c4fee9d4d88264c2b2afd.png
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO utils: Saved product image: 8f2c0019305846948febc35d908a0b8e.jpg
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:25] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).
+[2026-08-23 21:53:26] INFO app: Starting Shawaya POS in 'desktop' mode (debug=True).

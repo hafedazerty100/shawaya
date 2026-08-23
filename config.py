@@ -50,8 +50,6 @@ class Config:
             # Render uses postgres:// but SQLAlchemy needs postgresql://
             if db_url.startswith("postgres://"):
                 db_url = "postgresql://" + db_url[len("postgres://"):]
-            if "sslmode=" not in db_url and "sqlite" not in db_url:
-                db_url += "?sslmode=require" if "?" not in db_url else "&sslmode=require"
             return db_url
         base = os.path.abspath(os.path.dirname(__file__))
         if mode == "desktop":

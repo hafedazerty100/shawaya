@@ -82,7 +82,7 @@ def _initialize_single_db(app: Flask, db_url: str) -> bool:
     
     # Connectivity check
     try:
-        engine = create_engine(db_url, connect_args={"connect_timeout": 5})
+        engine = create_engine(db_url)
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
         engine.dispose()
@@ -187,7 +187,7 @@ def _initialize_db(app: Flask) -> None:
         idx = (active_index + attempt) % len(DB_URLS)
         url = DB_URLS[idx]
         try:
-            engine = create_engine(url, connect_args={"connect_timeout": 5})
+            engine = create_engine(url)
             with engine.connect() as conn:
                 conn.execute(text("SELECT 1"))
             engine.dispose()

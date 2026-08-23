@@ -60,8 +60,6 @@ _env_db_url = os.environ.get("DATABASE_URL", "").strip()
 if _env_db_url:
     if _env_db_url.startswith("postgres://"):
         _env_db_url = "postgresql://" + _env_db_url[len("postgres://"):]
-    if "sslmode=" not in _env_db_url and "sqlite" not in _env_db_url:
-        _env_db_url += "?sslmode=require" if "?" not in _env_db_url else "&sslmode=require"
     if _env_db_url not in DB_URLS:
         DB_URLS.insert(0, _env_db_url)  # Env var is the primary, always first
 
