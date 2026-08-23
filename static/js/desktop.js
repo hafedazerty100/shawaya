@@ -613,7 +613,21 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      orders.forEach(order => {
+  window.printReceipt = function(orderId) {
+    if (printIframe) {
+      printIframe.src = `/api/print-receipt/${orderId}`;
+      showToast("جاري طباعة التذاكر…", "success");
+    }
+  };
+
+  window.printInvoice = function(orderId) {
+    if (printIframe) {
+      printIframe.src = `/api/print-invoice/${orderId}`;
+      showToast("جاري طباعة الفاتورة…", "success");
+    }
+  };
+
+  orders.forEach(order => {
         const card = document.createElement("div");
         card.className = "history-order-card";
 
@@ -650,9 +664,14 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="history-order-items mb-2">${itemsHtml}</div>
           <div class="history-order-total d-flex justify-content-between align-items-center pt-2 border-top border-secondary">
             <strong>${order.total_display}</strong>
-            <button class="btn btn-sm btn-outline-warning py-0 px-2" onclick="printReceipt(${order.id})">
-              <i class="bi bi-printer"></i> طباعة الوصل
-            </button>
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-sm btn-outline-warning py-0 px-2" onclick="printReceipt(${order.id})">
+                <i class="bi bi-printer"></i> تذاكر
+              </button>
+              <button class="btn btn-sm btn-outline-info py-0 px-2" onclick="printInvoice(${order.id})">
+                <i class="bi bi-file-earmark-text"></i> فاتورة
+              </button>
+            </div>
           </div>
         `;
         historyList.appendChild(card);

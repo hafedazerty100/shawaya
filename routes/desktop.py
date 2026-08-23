@@ -556,8 +556,8 @@ def api_orders_history():
                 except Exception:
                     pass
 
-        # Filter by date
-        if order_date and order_date != target_date:
+        # Filter by date if target_date is set
+        if target_date is not None and order_date and order_date != target_date:
             continue
 
         time_str = ""

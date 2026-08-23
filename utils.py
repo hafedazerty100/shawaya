@@ -239,15 +239,9 @@ def check_and_apply_updates():
         logger.info("[UPDATE] Not a git repository — skipping update check.")
         return False
         
-    # 1. Fetch latest from remote with retry & optimized HTTP connection
+    # 1. Fetch latest from remote with retry
     logger.info("[UPDATE] Checking for updates...")
-    git_cmd = [
-        "git",
-        "-c", "http.version=HTTP/1.1",
-        "-c", "http.lowSpeedLimit=1000",
-        "-c", "http.lowSpeedTime=10",
-        "fetch", "--depth=1", "origin", "main"
-    ]
+    git_cmd = ["git", "fetch", "origin", "main"]
 
     fetch_ok = False
     for attempt in range(1, 3):
@@ -257,7 +251,7 @@ def check_and_apply_updates():
                 cwd=project_dir,
                 capture_output=True,
                 text=True,
-                timeout=15
+                timeout=30
             )
             if res.returncode == 0:
                 fetch_ok = True
@@ -268,6 +262,9 @@ def check_and_apply_updates():
             logger.warning("[UPDATE] Git fetch attempt %d timed out.", attempt)
         except Exception as e:
             logger.warning("[UPDATE] Git fetch attempt %d error: %s", attempt, e)
+
+        if attempt < 2:
+            time.sleep(1)
 
     if not fetch_ok:
         logger.warning("[UPDATE] Could not reach GitHub remote — skipping update for this cycle.")
