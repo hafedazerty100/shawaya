@@ -542,15 +542,35 @@ document.addEventListener("DOMContentLoaded", () => {
   const historyEmpty    = document.getElementById("history-empty");
   const inputHistoryDate = document.getElementById("history-date");
 
-  if (inputHistoryDate) {
+  const btnHistoryToday = document.getElementById("btn-history-today");
+  const btnHistoryAll   = document.getElementById("btn-history-all");
+
+  function getTodayString() {
     const today = new Date();
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
-    inputHistoryDate.value = `${yyyy}-${mm}-${dd}`;
+    return `${yyyy}-${mm}-${dd}`;
+  }
 
+  if (inputHistoryDate) {
+    inputHistoryDate.value = getTodayString();
     inputHistoryDate.addEventListener("change", () => {
-      loadOrderHistory();
+      loadOrderHistory(inputHistoryDate.value);
+    });
+  }
+
+  if (btnHistoryToday) {
+    btnHistoryToday.addEventListener("click", () => {
+      if (inputHistoryDate) inputHistoryDate.value = getTodayString();
+      loadOrderHistory(getTodayString());
+    });
+  }
+
+  if (btnHistoryAll) {
+    btnHistoryAll.addEventListener("click", () => {
+      if (inputHistoryDate) inputHistoryDate.value = "";
+      loadOrderHistory("all");
     });
   }
 
@@ -558,7 +578,7 @@ document.addEventListener("DOMContentLoaded", () => {
     historyPanel.classList.add("open");
     historyOverlay.classList.add("open");
     document.body.style.overflow = "hidden";
-    loadOrderHistory();
+    loadOrderHistory(inputHistoryDate ? inputHistoryDate.value : "");
   }
 
   function closeHistoryPanel() {
@@ -571,16 +591,16 @@ document.addEventListener("DOMContentLoaded", () => {
   btnCloseHistory.addEventListener("click", closeHistoryPanel);
   historyOverlay.addEventListener("click", closeHistoryPanel);
 
-  async function loadOrderHistory() {
+  async function loadOrderHistory(dateFilter) {
     historyList.innerHTML = "";
     historyLoading.style.display = "flex";
     historyEmpty.style.display = "none";
 
     try {
-      const selectedDate = inputHistoryDate ? inputHistoryDate.value : "";
+      const selectedDate = dateFilter !== undefined ? dateFilter : (inputHistoryDate ? inputHistoryDate.value : "");
       let url = "/api/orders/history";
       if (selectedDate) {
-        url += `?date=${selectedDate}`;
+        url += `?date=${encodeURIComponent(selectedDate)}`;
       }
       const resp = await fetch(url);
       if (!resp.ok) throw new Error("فشل تحميل السجل");
@@ -617,16 +637,22 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         `).join("");
 
+        const displayTime = order.date ? `${order.date} ${order.created_at}` : order.created_at;
+
         card.innerHTML = `
-          <div class="history-order-meta">
-            <span class="history-order-time"><i class="bi bi-clock"></i> ${order.created_at}</span>
-            <span class="history-order-id">#${order.id}</span>
+          <div class="history-order-meta d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <span class="history-order-time text-muted small"><i class="bi bi-clock"></i> ${displayTime}</span>
+              <span class="history-order-id ms-2 badge bg-secondary">#${order.id}</span>
+            </div>
             <span class="history-status-badge ${statusClass}">${statusLabel}</span>
           </div>
-          <div class="history-order-items">${itemsHtml}</div>
-          <div class="history-order-total">
-            <span>الإجمالي:</span>
+          <div class="history-order-items mb-2">${itemsHtml}</div>
+          <div class="history-order-total d-flex justify-content-between align-items-center pt-2 border-top border-secondary">
             <strong>${order.total_display}</strong>
+            <button class="btn btn-sm btn-outline-warning py-0 px-2" onclick="printReceipt(${order.id})">
+              <i class="bi bi-printer"></i> طباعة الوصل
+            </button>
           </div>
         `;
         historyList.appendChild(card);

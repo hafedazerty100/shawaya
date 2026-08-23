@@ -755,14 +755,23 @@ def delete_order(order_id: int):
     order = db.get_or_404(Order, order_id)
     local_id = order.local_id
     try:
+        # Restore stock quantity for each item in the deleted order
+        for item in order.items:
+            if item.product_id:
+                product = db.session.get(Product, item.product_id)
+                if product and product.quantity is not None:
+                    product.quantity += item.quantity
+                    logger.info("Restored %d units to stock for product '%s' (New stock: %d).", 
+                                item.quantity, product.name, product.quantity)
+
         delete_order_everywhere(local_id)
         db.session.delete(order)
         db.session.commit()
-        flash(f"Order #{order_id} deleted successfully.", "success")
+        flash(f"تم حذف الطلب #{order_id} واستعادة الكميات إلى المخزون بنجاح.", "success")
     except Exception as exc:
         db.session.rollback()
         logger.error("Failed to delete order %s: %s", order_id, exc)
-        flash("Failed to delete order.", "danger")
+        flash("فشل حذف الطلب.", "danger")
     return redirect(url_for("admin.orders"))
 
 
@@ -908,6 +917,12 @@ def db_delete_row(table_name: str, row_id: int):
     row = db.get_or_404(model, row_id)
     local_id = getattr(row, "local_id", None) if table_name == "orders" else None
     try:
+        if table_name == "orders":
+            for item in row.items:
+                if item.product_id:
+                    prod = db.session.get(Product, item.product_id)
+                    if prod and prod.quantity is not None:
+                        prod.quantity += item.quantity
         if local_id:
             delete_order_everywhere(local_id)
         db.session.delete(row)

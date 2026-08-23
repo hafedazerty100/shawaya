@@ -525,14 +525,15 @@ def print_invoice(order_id: int):
 
 @desktop_bp.route("/api/orders/history")
 def api_orders_history():
-    """Return confirmed (non-draft) orders for a specific date (or today) for the history slide panel."""
+    """Return confirmed (non-draft) orders for a specific date (or all/today) for the history slide panel."""
     date_str = request.args.get("date", "").strip()
-    if date_str:
+    target_date = None
+    if date_str and date_str.lower() != "all":
         try:
             target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
         except ValueError:
             return jsonify({"error": "Invalid date format. Use YYYY-MM-DD."}), 400
-    else:
+    elif date_str.lower() != "all":
         target_date = datetime.now(timezone.utc).date()
 
     # Query non-draft orders

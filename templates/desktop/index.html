@@ -110,9 +110,15 @@
     <span><i class="bi bi-clock-history"></i> سجل الطلبات</span>
     <button class="history-close" id="btn-close-history" aria-label="إغلاق"><i class="bi bi-x-lg"></i></button>
   </div>
-  <div class="history-date-filter">
-    <label for="history-date">اختر التاريخ:</label>
-    <input type="date" id="history-date">
+  <div class="history-date-filter d-flex align-items-center gap-2 flex-wrap">
+    <div class="d-flex align-items-center gap-1">
+      <label for="history-date" class="mb-0 small">التاريخ:</label>
+      <input type="date" id="history-date" class="form-control form-control-sm" style="width:140px;">
+    </div>
+    <div class="btn-group btn-group-sm ms-auto">
+      <button class="btn btn-sm btn-outline-warning" id="btn-history-today">اليوم</button>
+      <button class="btn btn-sm btn-outline-light" id="btn-history-all">عرض الكل</button>
+    </div>
   </div>
   <div class="history-loading" id="history-loading">
     <div class="spinner-border text-warning spinner-border-sm" role="status"></div>
