@@ -341,6 +341,16 @@ def confirm_order(order_id: int):
         order.status = "pending"
         db.session.commit()
         logger.info("Order %d confirmed and status set to 'pending'.", order_id)
+        
+        # Trigger immediate background sync to push order to server instantly
+        try:
+            from sync import sync_orders
+            import threading
+            target_app = current_app._get_current_object()
+            threading.Thread(target=sync_orders, args=(target_app,), daemon=True).start()
+        except Exception as sync_err:
+            logger.warning("Immediate sync trigger warning: %s", sync_err)
+
         return jsonify({"success": True}), 200
     return jsonify({"success": True, "message": "Already confirmed"}), 200
 

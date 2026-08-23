@@ -572,75 +572,74 @@ def start_sync_thread(app):
 
     def _sync_loop():
         last_update_check  = 0
-        last_network_sync  = 0   # covers: push orders + pull products + pull orders + deleted
+        last_network_sync  = 0   # covers: pull products + pull orders + deleted
         last_archive_check = 0
 
-        # Offset the first network sync by 60 seconds after startup so the app
-        # is fully ready before making any Neon connections.
-        first_sync_delay = 60
+        first_sync_delay = 10
         startup_time = time.time()
 
         while True:
             now = time.time()
 
             # ── Auto-updater (git pull) — opt-in via AUTO_UPDATE=1 in .env ──────
-            if os.environ.get("AUTO_UPDATE", "1") != "0" and now - last_update_check > 3600:
+            if os.environ.get("AUTO_UPDATE", "0") == "1" and now - last_update_check > 3600:
                 last_update_check = now
                 try:
                     from utils import check_and_apply_updates
                     check_and_apply_updates()
                 except Exception as u_err:
-                    logger.error("Auto-updater failed: %s", u_err)
+                    logger.warning("Auto-updater skipped: %s", u_err)
 
-            # ── Hourly Neon sync (all 4 network tasks in one batch) ──────────────
+            # ── Fast Order Push: Check and push pending orders every 10 seconds ──
+            try:
+                synced = sync_orders(app)
+                if synced > 0:
+                    logger.info("Order sync: pushed %d pending orders to server.", synced)
+            except Exception as exc:
+                logger.warning("Order push attempt failed: %s", exc)
+
+            # ── Periodic heavy sync (pull products, pull remote orders, deletions) ─
             time_since_last = now - last_network_sync
             startup_delay_passed = (now - startup_time) >= first_sync_delay
 
             if startup_delay_passed and (last_network_sync == 0 or time_since_last >= SYNC_HOURLY_INTERVAL):
                 last_network_sync = now
-                logger.info("Starting hourly Neon sync batch...")
+                logger.info("Starting periodic database sync batch...")
 
-                # 1. Push any locally pending orders to the server
-                try:
-                    synced = sync_orders(app)
-                    logger.info("Hourly sync: pushed %d orders.", synced)
-                except Exception as exc:
-                    logger.error("Hourly sync — push orders failed: %s", exc)
-
-                # 2. Pull latest product catalog (only upserts changed items)
+                # 1. Pull latest product catalog
                 try:
                     pulled_products = pull_products(app)
-                    logger.info("Hourly sync: pulled %d products.", pulled_products)
+                    if pulled_products > 0:
+                        logger.info("Periodic sync: pulled %d products.", pulled_products)
                 except Exception as exc:
-                    logger.error("Hourly sync — pull products failed: %s", exc)
+                    logger.warning("Periodic sync — pull products failed: %s", exc)
 
-                # 3. Pull any new orders from other devices
+                # 2. Pull new orders from other devices
                 try:
                     pulled_orders = pull_orders_from_server(app)
-                    logger.info("Hourly sync: pulled %d new orders.", pulled_orders)
+                    if pulled_orders > 0:
+                        logger.info("Periodic sync: pulled %d new orders.", pulled_orders)
                 except Exception as exc:
-                    logger.error("Hourly sync — pull orders failed: %s", exc)
+                    logger.warning("Periodic sync — pull orders failed: %s", exc)
 
-                # 4. Sync deleted orders
+                # 3. Sync deleted orders
                 try:
                     deleted = sync_deleted_orders(app)
-                    logger.info("Hourly sync: synced %d deletions.", deleted)
+                    if deleted > 0:
+                        logger.info("Periodic sync: synced %d deletions.", deleted)
                 except Exception as exc:
-                    logger.error("Hourly sync — deleted orders failed: %s", exc)
+                    logger.warning("Periodic sync — deleted orders failed: %s", exc)
 
-                logger.info("Hourly Neon sync batch complete. Next sync in %ds.", SYNC_HOURLY_INTERVAL)
-
-            # ── Daily revenue CSV archive — LOCAL ONLY, no network ───────────────
+            # ── Daily revenue CSV archive ─────────────────────────────────────────
             if now - last_archive_check > 3600 or last_archive_check == 0:
                 try:
                     check_and_generate_daily_archives(app)
                     last_archive_check = now
                 except Exception as arc_err:
-                    logger.error("Daily archive check failed: %s", arc_err)
+                    logger.warning("Daily archive check failed: %s", arc_err)
 
-            # Sleep 60 seconds between iterations — coarse polling is fine
-            # since the actual work only fires once per hour
-            time.sleep(60)
+            # Sleep 10 seconds between order push cycles
+            time.sleep(10)
 
     thread = threading.Thread(target=_sync_loop, daemon=True, name="SyncThread")
     thread.start()

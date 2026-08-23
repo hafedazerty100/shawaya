@@ -127,6 +127,8 @@ def dashboard():
     from datetime import timedelta
     from models import OrderItem
 
+    db.session.expire_all()
+
     # ── Period filter ───────────────────────────────────────────────────────
     period = request.args.get("period", "").lower()
     date_str = request.args.get("date", "").strip()   # e.g. "2025-06-01"
@@ -501,6 +503,7 @@ def delete_product(product_id: int):
 @admin_bp.route("/orders")
 @login_required
 def orders():
+    db.session.expire_all()
     status_filter = request.args.get("status", "").strip()
     start_str = request.args.get("start_date", "").strip()
     end_str = request.args.get("end_date", "").strip()
@@ -610,6 +613,7 @@ def serial_keys():
             logger.error("Serial key generation failed: %s", exc)
             flash("Failed to generate serial keys.", "danger")
 
+    db.session.expire_all()
     all_keys = SerialKey.query.order_by(SerialKey.created_at.desc()).all()
     return render_template(
         "admin/serial_keys.html",
